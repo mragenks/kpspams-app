@@ -30,11 +30,22 @@ class PembayaranController extends Controller
         return view('admin.pembayaran.index', compact('tagihan', 'bulan', 'tahun', 'status'));
     }
 
-    public function show(TagihanAir $pembayaran)
+    // 1. UBAH NAMA VARIABEL $pembayaran MENJADI $tagihan DI SINI
+    // Laravel Implicit Binding akan mencari ID TagihanAir, bukan Pembayaran
+    public function show($id)
     {
-        $pembayaran->load(['pelanggan', 'pencatatanMeter', 'pembayaran.akunKas']);
+        // Cari TagihanAir berdasarkan ID, lalu load SEMUA relasi yang dibutuhkan
+        // Kita tidak menggunakan implicit binding (TagihanAir $tagihan) untuk mencegah
+        // kebingungan jika route parameter bernama {pembayaran}
+        $tagihan = TagihanAir::with(['pelanggan', 'pencatatanMeter', 'pembayaran.akunKas'])
+            ->findOrFail($id);
+
         $akunKas = AkunKas::where('is_active', true)->get();
-        return view('admin.pembayaran.show', compact('pembayaran', 'akunKas'));
+
+        return view('admin.pembayaran.show', [
+            'pembayaran' => $tagihan,
+            'akunKas' => $akunKas
+        ]);
     }
 
     public function store(Request $request)
@@ -45,13 +56,18 @@ class PembayaranController extends Controller
             'nominal_bayar' => 'required|numeric|min:1',
             'tanggal_bayar' => 'required|date',
             'keterangan'    => 'nullable|string|max:255',
-            'foto_bukti'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'foto_bukti'    => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ]);
 
         $tagihan = TagihanAir::findOrFail($request->tagihan_id);
 
+        // 2. CEGAH PEMBAYARAN JIKA SUDAH LUNAS
+        if ($tagihan->status_bayar === 'lunas' || $tagihan->sisa_tagihan <= 0) {
+            return back()->with('error', 'Gagal: Tagihan ini sudah lunas.');
+        }
+
         if ($request->nominal_bayar > $tagihan->sisa_tagihan) {
-            return back()->with('error', 'Nominal pembayaran melebihi sisa tagihan!');
+            return back()->withInput()->with('error', 'Nominal pembayaran (Rp ' . number_format($request->nominal_bayar, 0, ',', '.') . ') melebihi sisa tagihan (Rp ' . number_format($tagihan->sisa_tagihan, 0, ',', '.') . ')!');
         }
 
         // Upload foto
@@ -72,20 +88,22 @@ class PembayaranController extends Controller
                 'dicatat_oleh'  => auth()->id(),
             ]);
 
-            $totalTerbayar = $tagihan->total_terbayar + $request->nominal_bayar;
-            $sisaTagihan = $tagihan->total_tagihan - $totalTerbayar;
+            // 3. LOGIKA PERHITUNGAN YANG LEBIH AMAN
+            $totalTerbayarBaru = $tagihan->total_terbayar + $request->nominal_bayar;
+            $sisaTagihanBaru = $tagihan->total_tagihan - $totalTerbayarBaru;
 
             $status = 'belum_lunas';
-            if ($sisaTagihan <= 0) {
+            // Pengecekan status yang paling aman adalah <= 0 (bukan == 0) untuk mencegah nilai minus
+            if ($sisaTagihanBaru <= 0) {
                 $status = 'lunas';
-                $sisaTagihan = 0;
-            } elseif ($totalTerbayar > 0) {
+                $sisaTagihanBaru = 0; // Kunci agar tidak minus
+            } elseif ($totalTerbayarBaru > 0) {
                 $status = 'mencicil';
             }
 
             $tagihan->update([
-                'total_terbayar' => $totalTerbayar,
-                'sisa_tagihan'   => $sisaTagihan,
+                'total_terbayar' => $totalTerbayarBaru,
+                'sisa_tagihan'   => $sisaTagihanBaru,
                 'status_bayar'   => $status,
             ]);
 
@@ -107,6 +125,6 @@ class PembayaranController extends Controller
         });
 
         return redirect()->route('admin.pembayaran.show', $request->tagihan_id)
-            ->with('success', 'Pembayaran berhasil dicatat!');
+            ->with('success', 'Pembayaran sebesar Rp ' . number_format($request->nominal_bayar, 0, ',', '.') . ' berhasil dicatat!');
     }
 }

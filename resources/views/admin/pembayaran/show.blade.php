@@ -153,9 +153,15 @@
                             Foto Bukti Pembayaran <span class="text-gray-400 font-normal">(Opsional)</span>
                         </label>
                         <input type="file" name="foto_bukti" accept="image/*"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition bg-white"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition bg-white {{ $errors->has('foto_bukti') ? 'border-red-500 bg-red-50' : '' }}"
                             onchange="previewFoto(this, 'preview_bukti')">
-                        <p class="text-[10px] text-gray-400 mt-1">Format: JPG, JPEG, PNG. Maksimal 2MB</p>
+
+                        @error('foto_bukti')
+                            <p class="text-red-500 text-xs mt-1 font-medium">{{ $message }}</p>
+                        @enderror
+
+                        <p class="text-[10px] text-gray-400 mt-1">Format: JPG, JPEG, PNG. Maksimal 5MB</p>
+
                         <div id="preview_bukti" class="hidden mt-3">
                             <img src="" alt="Preview" class="w-32 h-32 object-cover rounded-lg border shadow-sm">
                         </div>
