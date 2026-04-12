@@ -2,6 +2,40 @@
 @section('title', 'Catat Meter Air')
 
 @section('content')
+    {{-- Tambahkan CSS Tom Select --}}
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+    <style>
+        /* Kustomisasi Tom Select agar persis seperti input Tailwind */
+        .ts-control {
+            border: 1px solid #d1d5db;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            box-shadow: none;
+            font-size: 0.875rem;
+            background-color: #ffffff;
+        }
+
+        .ts-control.focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
+
+        .ts-dropdown {
+            border-radius: 0.5rem;
+            border-color: #d1d5db;
+            font-size: 0.875rem;
+            overflow: hidden;
+        }
+
+        .ts-dropdown .option:hover,
+        .ts-dropdown .option.active {
+            background-color: #eff6ff;
+            /* blue-50 */
+            color: #1d4ed8;
+            /* blue-700 */
+        }
+    </style>
+
     <div class="max-w-2xl mx-auto bg-white rounded-lg shadow p-4 sm:p-6">
         <h2 class="text-lg font-semibold text-gray-700 mb-6">Catat Meter Air</h2>
 
@@ -11,9 +45,9 @@
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Pelanggan <span
                         class="text-red-500">*</span></label>
-                <select name="pelanggan_id" id="pelanggan_id"
-                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white {{ $errors->has('pelanggan_id') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}"
-                    onchange="loadMeterAwal(this.value)">
+                {{-- Hapus class bawaan Tailwind karena akan digantikan Tom Select, Hapus juga onchange bawaan HTML --}}
+                <select name="pelanggan_id" id="pelanggan_id" autocomplete="off"
+                    placeholder="Ketik Kode atau Nama Pelanggan...">
                     <option value="" data-bulan="0" data-tahun="0">-- Pilih Pelanggan --</option>
                     @foreach ($pelanggan as $p)
                         <option value="{{ $p->id }}" data-meteran="{{ $p->meter_terakhir }}"
@@ -127,40 +161,64 @@
         </form>
     </div>
 
+    {{-- Tambahkan JS Tom Select --}}
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inisialisasi Fitur Search Pelanggan dengan Tom Select
+            new TomSelect("#pelanggan_id", {
+                create: false,
+                sortField: {
+                    field: "text",
+                    direction: "asc"
+                },
+                // Trigger fungsi loadMeterAwal saat user selesai memilih di pencarian
+                onChange: function(value) {
+                    loadMeterAwal(value);
+                }
+            });
+
+            updateHiddenPeriode();
+
+            // Jika ada nilai lama (misal error validasi), load ulang datanya
+            const existingPelanggan = document.getElementById('pelanggan_id').value;
+            if (existingPelanggan !== "") {
+                loadMeterAwal(existingPelanggan);
+            }
+        });
+
         // Sinkronisasi Input "Month" ke Hidden "Tahun" & "Bulan"
         function updateHiddenPeriode() {
             const val = document.getElementById('periode_input').value;
             if (val) {
-                const parts = val.split('-'); // Pecah '2026-04' menjadi ['2026', '04']
+                const parts = val.split('-');
                 document.getElementById('tahun_periode').value = parts[0];
-                document.getElementById('bulan_periode').value = parseInt(parts[1], 10); // Ubah '04' jadi 4
+                document.getElementById('bulan_periode').value = parseInt(parts[1], 10);
             }
         }
 
-        // Modifikasi loadMeterAwal dengan fitur Cerdas HTML5 'min'
+        // Modifikasi loadMeterAwal agar membaca element options secara aman
         function loadMeterAwal(pelangganId) {
             const select = document.getElementById('pelanggan_id');
-            const selected = select.options[select.selectedIndex];
+            // Cari tag <option> yang value-nya sama dengan ID yang sedang dipilih
+            const selectedOpt = Array.from(select.options).find(opt => opt.value === pelangganId);
 
-            // Jika dikembalikan ke '-- Pilih Pelanggan --'
-            if (!selected || !selected.value) {
+            if (!selectedOpt || !selectedOpt.value) {
                 document.getElementById('periode_input').removeAttribute('min');
                 document.getElementById('meter_awal_display').value = '';
                 return;
             }
 
             // Tampilkan Meter Awal
-            const meteranAwal = selected.getAttribute('data-meteran');
+            const meteranAwal = selectedOpt.getAttribute('data-meteran');
             document.getElementById('meter_awal_display').value = meteranAwal ?? 0;
 
             // Kunci bulan & tahun menggunakan HTML5 Attribute 'min'
-            const bulanTerakhir = parseInt(selected.getAttribute('data-bulan')) || 0;
-            const tahunTerakhir = parseInt(selected.getAttribute('data-tahun')) || 0;
+            const bulanTerakhir = parseInt(selectedOpt.getAttribute('data-bulan')) || 0;
+            const tahunTerakhir = parseInt(selectedOpt.getAttribute('data-tahun')) || 0;
             const periodeInput = document.getElementById('periode_input');
 
             if (bulanTerakhir > 0 && tahunTerakhir > 0) {
-                // Hitung bulan tagihan selanjutnya yang valid
                 let nextBulan = bulanTerakhir + 1;
                 let nextTahun = tahunTerakhir;
                 if (nextBulan > 12) {
@@ -168,14 +226,11 @@
                     nextTahun++;
                 }
 
-                // Ubah menjadi format YYYY-MM
                 const minBulanStr = nextBulan.toString().padStart(2, '0');
                 const minPeriode = `${nextTahun}-${minBulanStr}`;
 
-                // Terapkan atribut 'min' (otomatis mendisable bulan sebelumnya di UI kalender bawaan HP/Browser)
                 periodeInput.min = minPeriode;
 
-                // Jika input saat ini (old value) ternyata sudah kadaluarsa, majukan paksa ke minPeriode
                 if (periodeInput.value < minPeriode) {
                     periodeInput.value = minPeriode;
                     updateHiddenPeriode();
@@ -186,13 +241,6 @@
 
             hitungPreview();
         }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            updateHiddenPeriode();
-            if (document.getElementById('pelanggan_id').value !== "") {
-                loadMeterAwal(document.getElementById('pelanggan_id').value);
-            }
-        });
 
         function hitungPreview() {
             const meterAwal = parseFloat(document.getElementById('meter_awal_display').value) || 0;

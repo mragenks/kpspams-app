@@ -23,7 +23,23 @@ class MeterController extends Controller
             ->latest()
             ->paginate(10);
 
+        $batasWaktuFilter = \Carbon\Carbon::create($tahun, $bulan)->endOfMonth();
+
+        // LOGIKA PENYEMPURNAAN
         $pelangganBelumDicatat = Pelanggan::where('status', 'aktif')
+            ->where(function ($query) use ($batasWaktuFilter, $tahun, $bulan) {
+                // Kondisi 1: Didaftarkan sebelum atau pada bulan yang difilter
+                $query->where('created_at', '<=', $batasWaktuFilter)
+                    // Kondisi 2: ATAU punya riwayat tagihan di bulan-bulan sebelumnya (Kasus Backdate)
+                    ->orWhereHas('pencatatanMeter', function ($subQuery) use ($tahun, $bulan) {
+                        $subQuery->where('tahun_periode', '<', $tahun)
+                            ->orWhere(function ($q) use ($tahun, $bulan) {
+                                $q->where('tahun_periode', $tahun)
+                                    ->where('bulan_periode', '<', $bulan);
+                            });
+                    });
+            })
+            // Tetap pastikan dia BELUM dicatat di bulan yang sedang difilter ini
             ->whereDoesntHave('pencatatanMeter', function ($q) use ($bulan, $tahun) {
                 $q->where('bulan_periode', $bulan)
                     ->where('tahun_periode', $tahun);
