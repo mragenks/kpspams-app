@@ -30,5 +30,7 @@ class DatabaseSeeder extends Seeder
             'keterangan'  => 'Rekening bank KP-SPAMS',
             'is_active'   => true,
         ]);
+
+        $this->call(DataDummySeeder::class);
     }
 }
