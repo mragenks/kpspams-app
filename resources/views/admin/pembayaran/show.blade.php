@@ -120,7 +120,7 @@
                                 <option value="">-- Pilih Akun Kas --</option>
                                 @foreach ($akunKas as $ak)
                                     <option value="{{ $ak->id }}">
-                                        {{ $ak->nama_akun }} (Saldo: Rp {{ number_format($ak->saldo, 0, ',', '.') }})
+                                        {{ $ak->nama_akun }}
                                     </option>
                                 @endforeach
                             </select>
@@ -301,8 +301,7 @@
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
                         <option value="">-- Pilih Akun Kas --</option>
                         @foreach ($akunKas as $ak)
-                            <option value="{{ $ak->id }}">{{ $ak->nama_akun }} (Saldo: Rp
-                                {{ number_format($ak->saldo, 0, ',', '.') }})</option>
+                            <option value="{{ $ak->id }}">{{ $ak->nama_akun }}</option>
                         @endforeach
                     </select>
                 </div>
