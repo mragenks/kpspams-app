@@ -14,7 +14,7 @@ class PelangganController extends Controller
     public function index()
     {
         // $pelanggan = Pelanggan::with('user')->latest()->paginate(10);
-        $pelanggan = Pelanggan::with(['pencatatanMeter' => function($query) {
+        $pelanggan = Pelanggan::with(['pencatatanMeter' => function ($query) {
             $query->latest('tahun_periode')->latest('bulan_periode');
         }])->latest()->paginate(10);
         return view('admin.pelanggan.index', compact('pelanggan'));
@@ -39,7 +39,7 @@ class PelangganController extends Controller
             // Generate kode pelanggan otomatis
             $lastPelanggan = Pelanggan::latest('id')->first();
             $newNumber = $lastPelanggan ? (intval(substr($lastPelanggan->kode_pelanggan, 4)) + 1) : 1;
-            $kodePelanggan = 'PLG-' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
+            $kodePelanggan = 'PLG-' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
 
             // Buat akun user untuk pelanggan
             $user = User::create([
