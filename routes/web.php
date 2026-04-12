@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\MeterController;
 use App\Http\Controllers\Admin\PembayaranController;
 use App\Http\Controllers\Admin\AkunKasController;
 use App\Http\Controllers\Admin\ArusKasController;
+use App\Http\Controllers\Admin\DepositController;
 use App\Http\Controllers\Admin\InventarisController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\UserController;
@@ -71,6 +72,11 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
     Route::get('/user/{user}', [UserController::class, 'show'])->name('user.show');
     Route::post('/user/{user}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');
     Route::post('/user/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('user.toggle-status');
+
+    //DEPOSIT ROUTES
+    Route::get('/deposit', [DepositController::class, 'index'])->name('deposit.index');
+    Route::post('/deposit', [DepositController::class, 'store'])->name('deposit.store');
+    Route::post('/pembayaran/bayar-saldo/{tagihan}', [PembayaranController::class, 'payWithSaldo'])->name('pembayaran.bayar_saldo');
 });
 
 /*

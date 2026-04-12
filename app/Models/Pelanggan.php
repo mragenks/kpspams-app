@@ -16,7 +16,8 @@ class Pelanggan extends Model
         'alamat',
         'no_hp',
         'status',
-        'meteran_awal'
+        'meteran_awal',
+        'saldo'
     ];
 
     public function user()

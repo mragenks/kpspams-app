@@ -88,7 +88,7 @@
             </div>
         </div>
 
-        {{-- Form Bayar (Hanya muncul jika belum lunas) --}}
+        {{-- Form Bayar --}}
         @if ($pembayaran->status_bayar !== 'lunas')
             <div class="bg-white rounded-lg shadow p-4 sm:p-6 border-t-4 border-blue-500">
                 <h3 class="text-base font-semibold text-gray-800 mb-4">Catat Pembayaran (Manual)</h3>
@@ -104,11 +104,7 @@
                             </label>
                             <input type="number" name="nominal_bayar"
                                 value="{{ old('nominal_bayar', $pembayaran->sisa_tagihan) }}" min="1"
-                                max="{{ $pembayaran->sisa_tagihan }}"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                            <p class="text-[10px] text-gray-400 mt-1">
-                                Maksimal: Rp {{ number_format($pembayaran->sisa_tagihan, 0, ',', '.') }}
-                            </p>
                         </div>
 
                         <div>
@@ -119,18 +115,9 @@
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                                 <option value="">-- Pilih Akun Kas --</option>
                                 @foreach ($akunKas as $ak)
-                                    <option value="{{ $ak->id }}">
-                                        {{ $ak->nama_akun }}
-                                    </option>
+                                    <option value="{{ $ak->id }}">{{ $ak->nama_akun }}</option>
                                 @endforeach
                             </select>
-                            @if ($akunKas->isEmpty())
-                                <p class="text-xs text-red-500 mt-1">
-                                    Belum ada akun kas!
-                                    <a href="{{ route('admin.akun-kas.create') }}" class="underline font-medium">Buat akun
-                                        kas dulu</a>
-                                </p>
-                            @endif
                         </div>
                     </div>
 
@@ -150,34 +137,48 @@
                         </div>
                     </div>
 
-                    {{-- Foto Bukti --}}
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Foto Bukti Pembayaran <span class="text-gray-400 font-normal">(Opsional)</span>
                         </label>
                         <input type="file" name="foto_bukti" accept="image/*"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition bg-white {{ $errors->has('foto_bukti') ? 'border-red-500 bg-red-50' : '' }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition bg-white"
                             onchange="previewFoto(this, 'preview_bukti')">
-
-                        @error('foto_bukti')
-                            <p class="text-red-500 text-xs mt-1 font-medium">{{ $message }}</p>
-                        @enderror
-
-                        <p class="text-[10px] text-gray-400 mt-1">Format: JPG, JPEG, PNG. Maksimal 5MB</p>
-
                         <div id="preview_bukti" class="hidden mt-3">
                             <img src="" alt="Preview" class="w-32 h-32 object-cover rounded-lg border shadow-sm">
                         </div>
                     </div>
 
-                    <button type="submit"
-                        class="w-full sm:w-auto flex justify-center items-center gap-2 bg-green-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-green-700 transition shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        Proses Pembayaran
-                    </button>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button type="submit"
+                            class="w-full sm:w-auto flex justify-center items-center gap-2 bg-green-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-green-700 transition shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Proses Pembayaran
+                        </button>
+
+                        {{-- Tombol Bayar via Saldo --}}
+                        @if ($pembayaran->pelanggan->saldo > 0)
+                            <button type="button"
+                                onclick="if(confirm('Gunakan saldo sebesar Rp {{ number_format(min($pembayaran->pelanggan->saldo, $pembayaran->sisa_tagihan), 0, ',', '.') }} untuk membayar tagihan ini?')) { document.getElementById('formBayarSaldo').submit(); }"
+                                class="w-full sm:w-auto flex justify-center items-center gap-2 bg-indigo-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-indigo-700 transition shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                Bayar Pakai Saldo (Tersedia: Rp
+                                {{ number_format($pembayaran->pelanggan->saldo, 0, ',', '.') }})
+                            </button>
+                        @endif
+                    </div>
+                </form>
+
+                {{-- Hidden Form untuk Bayar Saldo --}}
+                <form id="formBayarSaldo" action="{{ route('admin.pembayaran.bayar_saldo', $pembayaran->id) }}"
+                    method="POST" class="hidden">
+                    @csrf
                 </form>
             </div>
         @endif
@@ -186,7 +187,6 @@
         @if ($pembayaran->pembayaran->count() > 0)
             <div class="bg-white rounded-lg shadow p-4 sm:p-6">
                 <h3 class="text-base font-semibold text-gray-800 mb-4 border-b pb-2">Riwayat Pembayaran & Bukti</h3>
-
                 <div class="overflow-x-auto rounded-lg border border-gray-200">
                     <table class="w-full text-sm text-left">
                         <thead
@@ -195,8 +195,7 @@
                                 <th class="px-4 py-3 w-8">No</th>
                                 <th class="px-4 py-3 whitespace-nowrap">Tanggal</th>
                                 <th class="px-4 py-3">Nominal</th>
-                                <th class="hidden sm:table-cell px-4 py-3">Akun Kas</th>
-                                <th class="hidden md:table-cell px-4 py-3">Keterangan</th>
+                                <th class="px-4 py-3">Akun Kas</th>
                                 <th class="px-4 py-3 text-center">Bukti</th>
                                 <th class="px-4 py-3 text-center">Aksi</th>
                             </tr>
@@ -205,32 +204,27 @@
                             @foreach ($pembayaran->pembayaran as $index => $p)
                                 <tr class="hover:bg-gray-50 transition">
                                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $index + 1 }}</td>
-                                    <td class="px-4 py-3 text-gray-800 font-medium whitespace-nowrap text-xs sm:text-sm">
+                                    <td class="px-4 py-3 text-gray-800 font-medium whitespace-nowrap text-xs">
                                         {{ \Carbon\Carbon::parse($p->tanggal_bayar)->isoFormat('D MMM Y') }}
                                     </td>
                                     <td class="px-4 py-3 font-bold text-green-600 whitespace-nowrap">
                                         Rp {{ number_format($p->nominal_bayar, 0, ',', '.') }}
                                     </td>
-                                    <td class="px-4 py-3 text-gray-700">
+                                    <td class="px-4 py-3 text-gray-700 text-xs">
                                         @if ($p->is_pending)
                                             <span
-                                                class="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
-                                                ⏳ Menunggu Konfirmasi
-                                            </span>
+                                                class="px-2 py-1 bg-orange-100 text-orange-700 rounded-full font-medium">⏳
+                                                Pending</span>
                                         @else
                                             {{ $p->akunKas->nama_akun ?? '-' }}
                                         @endif
-                                    </td>
-                                    <td
-                                        class="hidden md:table-cell px-4 py-3 text-gray-500 text-xs truncate max-w-[150px]">
-                                        {{ $p->keterangan ?? '-' }}
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         @if ($p->foto_bukti)
                                             <a href="{{ Storage::url($p->foto_bukti) }}" target="_blank"
                                                 class="inline-block">
                                                 <img src="{{ Storage::url($p->foto_bukti) }}" alt="Bukti"
-                                                    class="w-10 h-10 object-cover rounded border border-gray-300 hover:opacity-80 transition cursor-pointer shadow-sm">
+                                                    class="w-10 h-10 object-cover rounded border border-gray-300 shadow-sm">
                                             </a>
                                         @else
                                             <span class="text-gray-300 text-xs">-</span>
@@ -238,25 +232,18 @@
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         @if ($p->is_pending)
-                                            <div class="flex flex-col gap-1 justify-center">
-                                                {{-- Tombol ACC hanya muncul jika tagihan belum lunas --}}
+                                            <div class="flex flex-col gap-1">
                                                 @if ($pembayaran->sisa_tagihan > 0)
                                                     <button type="button"
                                                         onclick="bukaModalKonfirmasi({{ $p->id }})"
-                                                        class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] font-medium hover:bg-blue-700 transition">
-                                                        Konfirmasi
-                                                    </button>
+                                                        class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] font-medium hover:bg-blue-700 transition">Konfirmasi</button>
                                                 @endif
-
                                                 <form action="{{ route('admin.pembayaran.reject', $p->id) }}"
                                                     method="POST"
                                                     onsubmit="return confirm('Apakah Anda yakin ingin menolak dan menghapus bukti pembayaran ini?')">
-                                                    @csrf
-                                                    @method('DELETE')
+                                                    @csrf @method('DELETE')
                                                     <button type="submit"
-                                                        class="w-full bg-red-600 text-white px-2 py-1 rounded text-[10px] font-medium hover:bg-red-700 transition">
-                                                        Tolak
-                                                    </button>
+                                                        class="w-full bg-red-600 text-white px-2 py-1 rounded text-[10px] font-medium hover:bg-red-700 transition">Tolak</button>
                                                 </form>
                                             </div>
                                         @else
@@ -266,20 +253,6 @@
                                 </tr>
                             @endforeach
                         </tbody>
-                        <tfoot class="bg-gray-50 border-t border-gray-200">
-                            <tr>
-                                <td colspan="2"
-                                    class="px-4 py-3 text-xs sm:text-sm font-bold text-gray-700 text-right uppercase tracking-wider">
-                                    Total Terbayar:</td>
-                                <td class="px-4 py-3 font-black text-green-600 text-sm sm:text-base whitespace-nowrap">
-                                    Rp {{ number_format($pembayaran->pembayaran->sum('nominal_bayar'), 0, ',', '.') }}
-                                </td>
-                                <td class="hidden sm:table-cell"></td>
-                                <td class="hidden md:table-cell"></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -287,18 +260,18 @@
 
     </div>
 
-    {{-- Modal Konfirmasi (Dibersihkan dari class 'flex' bawaan) --}}
+    {{-- Modal Konfirmasi --}}
     <div id="modalKonfirmasi"
         class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 mx-4">
-            <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">ACC Pembayaran Pelanggan</h3>
+            <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">ACC Pembayaran</h3>
             <form id="formKonfirmasi" method="POST" action="">
                 @csrf
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Masukkan Dana ke Akun Kas <span
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Masuk ke Kas <span
                             class="text-red-500">*</span></label>
                     <select name="akun_kas_id" required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                         <option value="">-- Pilih Akun Kas --</option>
                         @foreach ($akunKas as $ak)
                             <option value="{{ $ak->id }}">{{ $ak->nama_akun }}</option>
@@ -306,19 +279,17 @@
                     </select>
                 </div>
                 <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nominal yang Disetujui <span
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nominal Disetujui <span
                             class="text-red-500">*</span></label>
                     <input type="number" name="nominal_bayar" required min="1"
                         max="{{ $pembayaran->sisa_tagihan }}" value="{{ $pembayaran->sisa_tagihan }}"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
-                    <p class="text-[10px] text-gray-400 mt-1">Sisa tagihan maksimal: Rp
-                        {{ number_format($pembayaran->sisa_tagihan, 0, ',', '.') }}</p>
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 </div>
                 <div class="flex justify-end gap-2">
                     <button type="button" onclick="tutupModalKonfirmasi()"
                         class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition">Batal</button>
                     <button type="submit"
-                        class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition shadow-sm">Simpan
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">Simpan
                         & ACC</button>
                 </div>
             </form>
@@ -338,28 +309,22 @@
             }
         }
 
-        // Script untuk mengatur aksi form modal
         const modalAcc = document.getElementById('modalKonfirmasi');
 
         function bukaModalKonfirmasi(pembayaranId) {
             const form = document.getElementById('formKonfirmasi');
-            // Menyesuaikan action URL dengan ID pembayaran yang spesifik
             form.action = `/admin/pembayaran/konfirmasi/${pembayaranId}`;
-
             modalAcc.classList.remove('hidden');
-            modalAcc.classList.add('flex'); // Tambahkan flex saat dibuka
+            modalAcc.classList.add('flex');
         }
 
         function tutupModalKonfirmasi() {
             modalAcc.classList.add('hidden');
-            modalAcc.classList.remove('flex'); // Hapus flex saat ditutup
+            modalAcc.classList.remove('flex');
         }
 
-        // Tutup modal kalau klik di luar area form
         modalAcc.addEventListener('click', function(e) {
-            if (e.target === this) {
-                tutupModalKonfirmasi();
-            }
+            if (e.target === this) tutupModalKonfirmasi();
         });
     </script>
 @endsection

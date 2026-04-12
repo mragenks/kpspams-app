@@ -200,4 +200,51 @@ class PembayaranController extends Controller
 
         return back()->with('success', 'Bukti pembayaran ditolak dan dihapus.');
     }
+
+    public function payWithSaldo(Request $request, $tagihanId)
+    {
+        $tagihan = \App\Models\TagihanAir::findOrFail($tagihanId);
+        $pelanggan = $tagihan->pelanggan;
+
+        if ($pelanggan->saldo <= 0) {
+            return back()->with('error', 'Saldo pelanggan tidak mencukupi (Rp 0).');
+        }
+
+        DB::transaction(function () use ($tagihan, $pelanggan) {
+            $nominalPotong = min($pelanggan->saldo, $tagihan->sisa_tagihan);
+
+            // 1. Buat catatan Pembayaran
+            $pembayaran = \App\Models\Pembayaran::create([
+                'tagihan_id'    => $tagihan->id,
+                'pelanggan_id'  => $pelanggan->id,
+                'nominal_bayar' => $nominalPotong,
+                'tanggal_bayar' => now(),
+                'keterangan'    => 'Pelunasan via Saldo/Deposit',
+                'is_pending'    => false,
+                'dicatat_oleh'  => auth()->id(),
+            ]);
+
+            // 2. Update Tagihan
+            $tagihan->total_terbayar += $nominalPotong;
+            $tagihan->sisa_tagihan   -= $nominalPotong;
+            $tagihan->status_bayar    = ($tagihan->sisa_tagihan <= 0) ? 'lunas' : 'mencicil';
+            $tagihan->save();
+
+            // 3. Potong Saldo Pelanggan
+            $pelanggan->decrement('saldo', $nominalPotong);
+
+            // 4. TAMBAHKAN KE ARUS KAS SEBAGAI MEMO (NOMINAL 0)
+            \App\Models\ArusKas::create([
+                'akun_kas_id'     => 1, // Opsional: arahkan ke kas utama atau kas manapun
+                'jenis_transaksi' => 'masuk',
+                'nominal'         => 0, // <--- Kunci: Nominal 0 agar tidak merusak saldo riil
+                'keterangan'      => "Pelunasan Tagihan: {$pelanggan->nama_pelanggan} (Via Saldo - Rp " . number_format($nominalPotong, 0, ',', '.') . ")",
+                'tanggal'         => now(),
+                'pembayaran_id'   => $pembayaran->id,
+                'dicatat_oleh'    => auth()->id(),
+            ]);
+        });
+
+        return back()->with('success', 'Tagihan berhasil dibayar menggunakan saldo!');
+    }
 }
