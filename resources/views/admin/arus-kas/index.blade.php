@@ -156,7 +156,7 @@
                                 {{ ($arusKas->currentPage() - 1) * $arusKas->perPage() + $index + 1 }}
                             </td>
                             <td class="px-4 py-3 sm:px-6 text-gray-700 whitespace-nowrap">
-                                {{ \Carbon\Carbon::parse($ak->tanggal)->isoFormat('d MMM Y') }}
+                                {{ \Carbon\Carbon::parse($ak->tanggal)->isoFormat('D MMM Y') }}
                             </td>
                             <td class="px-4 py-3 sm:px-6 text-gray-800 text-xs sm:text-sm">
                                 {{ $ak->keterangan }}
