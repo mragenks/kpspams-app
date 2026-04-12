@@ -28,30 +28,32 @@
                 @enderror
             </div>
 
+            {{-- Kolom Periode & Tanggal Bersebelahan --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tahun <span
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Periode Tagihan <span
                             class="text-red-500">*</span></label>
-                    <select name="tahun_periode" id="tahun_periode"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        @foreach (range(date('Y'), 2020) as $t)
-                            <option value="{{ $t }}"
-                                {{ old('tahun_periode', date('Y')) == $t ? 'selected' : '' }}>{{ $t }}</option>
-                        @endforeach
-                    </select>
+                    @php
+                        // Menyiapkan format YYYY-MM untuk old input
+                        $oldBulan = old('bulan_periode', date('n'));
+                        $oldTahun = old('tahun_periode', date('Y'));
+                        $oldPeriode = $oldTahun . '-' . str_pad($oldBulan, 2, '0', STR_PAD_LEFT);
+                    @endphp
+
+                    {{-- Input Tipe Month (Gabungan Bulan & Tahun) --}}
+                    <input type="month" id="periode_input" value="{{ $oldPeriode }}"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                        onchange="updateHiddenPeriode()">
+
+                    {{-- Hidden Input untuk dikirim ke Controller --}}
+                    <input type="hidden" name="bulan_periode" id="bulan_periode" value="{{ $oldBulan }}">
+                    <input type="hidden" name="tahun_periode" id="tahun_periode" value="{{ $oldTahun }}">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Bulan <span
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Pencatatan <span
                             class="text-red-500">*</span></label>
-                    <select name="bulan_periode" id="bulan_periode"
+                    <input type="date" name="tanggal_pencatatan" value="{{ old('tanggal_pencatatan', date('Y-m-d')) }}"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        @foreach (range(1, 12) as $b)
-                            <option value="{{ $b }}"
-                                {{ old('bulan_periode', date('n')) == $b ? 'selected' : '' }}>
-                                {{ \Carbon\Carbon::create()->month($b)->isoFormat('MMMM') }}
-                            </option>
-                        @endforeach
-                    </select>
                 </div>
             </div>
 
@@ -76,7 +78,7 @@
             </div>
 
             {{-- Foto Meteran --}}
-            <div class="mb-4">
+            <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Foto Meteran <span class="text-gray-400 font-normal">(Opsional)</span>
                 </label>
@@ -89,20 +91,13 @@
                 </div>
             </div>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Pencatatan <span
-                        class="text-red-500">*</span></label>
-                <input type="date" name="tanggal_pencatatan" value="{{ old('tanggal_pencatatan', date('Y-m-d')) }}"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-            </div>
-
             {{-- Preview Tagihan --}}
             <div id="preview_tagihan" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <h3 class="text-sm font-semibold text-blue-800 mb-3 border-b border-blue-200 pb-2">Pratinjau Tagihan:</h3>
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between text-gray-600">
                         <span>Volume Pemakaian:</span>
-                        <span id="prev_volume" class="font-medium text-gray-800">0 m³</span>
+                        <span id="prev_volume" class="font-medium text-gray-800 font-mono">0 m³</span>
                     </div>
                     <div class="flex justify-between text-gray-600">
                         <span>Biaya Beban:</span>
@@ -133,85 +128,69 @@
     </div>
 
     <script>
-        // Event Listener saat user mengubah dropdown tahun
-        document.getElementById('tahun_periode').addEventListener('change', filterBulan);
+        // Sinkronisasi Input "Month" ke Hidden "Tahun" & "Bulan"
+        function updateHiddenPeriode() {
+            const val = document.getElementById('periode_input').value;
+            if (val) {
+                const parts = val.split('-'); // Pecah '2026-04' menjadi ['2026', '04']
+                document.getElementById('tahun_periode').value = parts[0];
+                document.getElementById('bulan_periode').value = parseInt(parts[1], 10); // Ubah '04' jadi 4
+            }
+        }
 
-        // Modifikasi loadMeterAwal untuk memicu filterBulan
+        // Modifikasi loadMeterAwal dengan fitur Cerdas HTML5 'min'
         function loadMeterAwal(pelangganId) {
             const select = document.getElementById('pelanggan_id');
             const selected = select.options[select.selectedIndex];
+
+            // Jika dikembalikan ke '-- Pilih Pelanggan --'
+            if (!selected || !selected.value) {
+                document.getElementById('periode_input').removeAttribute('min');
+                document.getElementById('meter_awal_display').value = '';
+                return;
+            }
 
             // Tampilkan Meter Awal
             const meteranAwal = selected.getAttribute('data-meteran');
             document.getElementById('meter_awal_display').value = meteranAwal ?? 0;
 
-            // Kunci bulan & tahun yang kadaluarsa
-            filterBulan();
+            // Kunci bulan & tahun menggunakan HTML5 Attribute 'min'
+            const bulanTerakhir = parseInt(selected.getAttribute('data-bulan')) || 0;
+            const tahunTerakhir = parseInt(selected.getAttribute('data-tahun')) || 0;
+            const periodeInput = document.getElementById('periode_input');
 
-            // Hitung preview (jika user menukar pelanggan saat angka meter akhir sudah terisi)
+            if (bulanTerakhir > 0 && tahunTerakhir > 0) {
+                // Hitung bulan tagihan selanjutnya yang valid
+                let nextBulan = bulanTerakhir + 1;
+                let nextTahun = tahunTerakhir;
+                if (nextBulan > 12) {
+                    nextBulan = 1;
+                    nextTahun++;
+                }
+
+                // Ubah menjadi format YYYY-MM
+                const minBulanStr = nextBulan.toString().padStart(2, '0');
+                const minPeriode = `${nextTahun}-${minBulanStr}`;
+
+                // Terapkan atribut 'min' (otomatis mendisable bulan sebelumnya di UI kalender bawaan HP/Browser)
+                periodeInput.min = minPeriode;
+
+                // Jika input saat ini (old value) ternyata sudah kadaluarsa, majukan paksa ke minPeriode
+                if (periodeInput.value < minPeriode) {
+                    periodeInput.value = minPeriode;
+                    updateHiddenPeriode();
+                }
+            } else {
+                periodeInput.removeAttribute('min');
+            }
+
             hitungPreview();
         }
 
-        // Fungsi Cerdas: Disable dropdown berdasarkan data terakhir
-        function filterBulan() {
-            const selectPelanggan = document.getElementById('pelanggan_id');
-            const selectedOpt = selectPelanggan.options[selectPelanggan.selectedIndex];
-
-            // Jika belum ada pelanggan yang dipilih, buka semua opsi
-            if (!selectedOpt || !selectedOpt.value) return;
-
-            const bulanTerakhir = parseInt(selectedOpt.getAttribute('data-bulan')) || 0;
-            const tahunTerakhir = parseInt(selectedOpt.getAttribute('data-tahun')) || 0;
-
-            const selectBulan = document.getElementById('bulan_periode');
-            const selectTahun = document.getElementById('tahun_periode');
-            const tahunDipilih = parseInt(selectTahun.value);
-
-            // 1. Kunci Tahun yang <= Tahun Terakhir, KECUALI tahun tersebut masih punya sisa bulan
-            Array.from(selectTahun.options).forEach(opt => {
-                const nilaiTahun = parseInt(opt.value);
-                // Jika tahun tsb < tahun terakhir OR (tahun tsb = tahun terakhir TAPI bulan terakhir = 12)
-                if (nilaiTahun < tahunTerakhir || (nilaiTahun === tahunTerakhir && bulanTerakhir === 12)) {
-                    opt.disabled = true;
-                    opt.classList.add('text-gray-300', 'bg-gray-100');
-                } else {
-                    opt.disabled = false;
-                    opt.classList.remove('text-gray-300', 'bg-gray-100');
-                }
-            });
-
-            // 2. Kunci Bulan jika Tahun yang dipilih sama dengan Tahun Terakhir pencatatan
-            Array.from(selectBulan.options).forEach(opt => {
-                const nilaiBulan = parseInt(opt.value);
-
-                if (tahunDipilih === tahunTerakhir && nilaiBulan <= bulanTerakhir) {
-                    opt.disabled = true;
-                    opt.classList.add('text-gray-300', 'bg-gray-100');
-                } else {
-                    opt.disabled = false;
-                    opt.classList.remove('text-gray-300', 'bg-gray-100');
-                }
-            });
-
-            // 3. Auto-Select: Jika opsi yang sedang terpilih ternyata 'disabled', lompat ke opsi valid pertama
-            if (selectTahun.options[selectTahun.selectedIndex].disabled) {
-                const firstValidTahun = Array.from(selectTahun.options).find(opt => !opt.disabled);
-                if (firstValidTahun) selectTahun.value = firstValidTahun.value;
-                // Karena tahun berubah otomatis, kita perlu panggil ulang logika disable bulannya
-                filterBulan();
-                return;
-            }
-
-            if (selectBulan.options[selectBulan.selectedIndex].disabled) {
-                const firstValidBulan = Array.from(selectBulan.options).find(opt => !opt.disabled);
-                if (firstValidBulan) selectBulan.value = firstValidBulan.value;
-            }
-        }
-
-        // Jalankan filter saat halaman pertama kali dimuat (untuk skenario old() session saat validasi error)
         document.addEventListener('DOMContentLoaded', function() {
+            updateHiddenPeriode();
             if (document.getElementById('pelanggan_id').value !== "") {
-                filterBulan();
+                loadMeterAwal(document.getElementById('pelanggan_id').value);
             }
         });
 
