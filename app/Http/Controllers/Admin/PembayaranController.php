@@ -127,4 +127,77 @@ class PembayaranController extends Controller
         return redirect()->route('admin.pembayaran.show', $request->tagihan_id)
             ->with('success', 'Pembayaran sebesar Rp ' . number_format($request->nominal_bayar, 0, ',', '.') . ' berhasil dicatat!');
     }
+
+    public function confirm(Request $request, $id)
+    {
+        $pembayaranPending = Pembayaran::findOrFail($id);
+        $tagihan = TagihanAir::findOrFail($pembayaranPending->tagihan_id);
+
+        // Validasi jika tagihan sudah lunas duluan
+        if ($tagihan->sisa_tagihan <= 0) {
+            return back()->with('error', 'Tagihan sudah lunas! Silakan tolak/hapus bukti pending ini.');
+        }
+
+        $request->validate([
+            'nominal_bayar' => 'required|numeric|min:1|max:' . $tagihan->sisa_tagihan,
+            'akun_kas_id'   => 'required|exists:akun_kas,id',
+        ]);
+
+        DB::transaction(function () use ($request, $pembayaranPending, $tagihan) {
+            // 1. Update bukti pending menjadi pembayaran sah
+            $pembayaranPending->update([
+                'nominal_bayar' => $request->nominal_bayar,
+                'akun_kas_id'   => $request->akun_kas_id,
+                'is_pending'    => false,
+            ]);
+
+            // 2. Kalkulasi Tagihan
+            $totalTerbayarBaru = $tagihan->total_terbayar + $request->nominal_bayar;
+            $sisaTagihanBaru = $tagihan->total_tagihan - $totalTerbayarBaru;
+
+            $status = 'belum_lunas';
+            if ($sisaTagihanBaru <= 0) {
+                $status = 'lunas';
+                $sisaTagihanBaru = 0;
+            } elseif ($totalTerbayarBaru > 0) {
+                $status = 'mencicil';
+            }
+
+            $tagihan->update([
+                'total_terbayar' => $totalTerbayarBaru,
+                'sisa_tagihan'   => $sisaTagihanBaru,
+                'status_bayar'   => $status,
+            ]);
+
+            // 3. Catat ke Arus Kas
+            $akunKas = AkunKas::find($request->akun_kas_id);
+            ArusKas::create([
+                'akun_kas_id'     => $request->akun_kas_id,
+                'jenis_transaksi' => 'masuk',
+                'nominal'         => $request->nominal_bayar,
+                'keterangan'      => 'Konfirmasi transfer: ' . $tagihan->pelanggan->nama_pelanggan,
+                'tanggal'         => $pembayaranPending->tanggal_bayar, // Pakai tanggal upload pelanggan
+                'dicatat_oleh'    => auth()->id(),
+                'pembayaran_id'   => $pembayaranPending->id,
+            ]);
+
+            $akunKas->increment('saldo', $request->nominal_bayar);
+        });
+
+        return back()->with('success', 'Bukti pembayaran berhasil dikonfirmasi dan masuk ke Kas!');
+    }
+
+    public function reject($id)
+    {
+        $pembayaranPending = Pembayaran::findOrFail($id);
+
+        // Hapus file foto dari server agar tidak memenuhi harddisk
+        if ($pembayaranPending->foto_bukti) {
+            Storage::disk('public')->delete($pembayaranPending->foto_bukti);
+        }
+
+        $pembayaranPending->delete();
+
+        return back()->with('success', 'Bukti pembayaran ditolak dan dihapus.');
+    }
 }

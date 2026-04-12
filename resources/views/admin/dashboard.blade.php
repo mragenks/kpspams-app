@@ -67,6 +67,52 @@
         </div>
     </div>
 
+    {{-- Notifikasi Bukti Pending --}}
+    @if ($buktiPending->count() > 0)
+        <div class="bg-orange-50 border border-orange-300 rounded-xl p-4 mb-6">
+            <div class="flex items-start gap-3">
+                <div class="p-2 bg-orange-100 rounded-full text-orange-600 flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-orange-800">
+                        {{ $buktiPending->count() }} Bukti Pembayaran Menunggu Konfirmasi
+                    </p>
+                    <div class="mt-2 space-y-1">
+                        @foreach ($buktiPending->take(3) as $bp)
+                            <div class="flex items-center justify-between bg-white rounded-lg px-3 py-2">
+                                <div class="flex items-center gap-2">
+                                    @if ($bp->foto_bukti)
+                                        <a href="{{ asset('storage/' . $bp->foto_bukti) }}" target="_blank">
+                                            <img src="{{ asset('storage/' . $bp->foto_bukti) }}"
+                                                class="w-8 h-8 object-cover rounded border">
+                                        </a>
+                                    @endif
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-800">
+                                            {{ $bp->pelanggan->nama_pelanggan ?? '-' }}
+                                        </p>
+                                        <p class="text-xs text-gray-400">
+                                            {{ \Carbon\Carbon::parse($bp->tanggal_bayar)->isoFormat('D MMM Y') }}
+                                            — {{ $bp->keterangan }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <a href="{{ route('admin.pembayaran.show', $bp->tagihan_id) }}"
+                                    class="text-xs bg-orange-500 text-white px-3 py-1 rounded-lg hover:bg-orange-600 transition flex-shrink-0">
+                                    Proses
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- Piutang info mobile --}}
     <div class="lg:hidden bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
         <p class="text-sm text-red-700">

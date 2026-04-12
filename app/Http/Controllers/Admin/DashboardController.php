@@ -94,6 +94,12 @@ class DashboardController extends Controller
             ];
         }
 
+        $buktiPending = \App\Models\Pembayaran::where('is_pending', true)
+            ->where('nominal_bayar', 0)
+            ->with(['pelanggan', 'tagihan'])
+            ->latest()
+            ->get();
+
         return view('admin.dashboard', compact(
             'totalPelanggan',
             'tagihanBelumLunas',
@@ -109,7 +115,8 @@ class DashboardController extends Controller
             'asetRusak',
             'chartData',
             'bulan',
-            'tahun'
+            'tahun',
+            'buktiPending'  // ← tambahkan ini
         ));
     }
 }

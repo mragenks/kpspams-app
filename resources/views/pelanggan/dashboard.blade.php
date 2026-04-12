@@ -74,10 +74,63 @@
                 </div>
             @endif
 
-            <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p class="text-sm text-yellow-700">
-                    ⚠️ Harap segera melunasi tagihan. Hubungi pengurus KP-SPAMS untuk pembayaran.
-                </p>
+            {{-- Form Submit Bukti --}}
+            <div class="mt-4 border-t pt-4">
+                <p class="text-sm font-semibold text-gray-700 mb-3">📤 Upload Bukti Pembayaran</p>
+
+                @php
+                    $sudahSubmit = $tagihanAktif->pembayaran->where('is_pending', true)->count() > 0;
+                @endphp
+
+                @if ($sudahSubmit)
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-sm text-blue-700">
+                            ✅ Bukti pembayaran sudah dikirim. Menunggu konfirmasi Admin.
+                        </p>
+                    </div>
+                @else
+                    <form action="{{ route('pelanggan.pembayaran.submit') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" name="tagihan_id" value="{{ $tagihanAktif->id }}">
+
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Foto Bukti Transfer/Pembayaran <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" name="foto_bukti" accept="image/*" required onchange="previewBukti(this)"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-400 mt-1">Format: JPG, PNG. Maks 2MB</p>
+                            <div id="previewBuktiContainer" class="hidden mt-2">
+                                <img id="previewBuktiImg" src="" alt="Preview"
+                                    class="w-32 h-32 object-cover rounded-lg border">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Keterangan <span class="text-gray-400 font-normal">(Opsional)</span>
+                            </label>
+                            <input type="text" name="keterangan" placeholder="Contoh: Transfer BRI 10 April 2026"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                            <p class="text-xs text-yellow-700">
+                                ⚠️ Bukti yang dikirim akan diverifikasi oleh Admin. Pembayaran baru tercatat setelah
+                                dikonfirmasi.
+                            </p>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                            Kirim Bukti Pembayaran
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
     @else
@@ -101,8 +154,7 @@
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold text-gray-700">Riwayat Tagihan</h2>
             @if ($riwayatTagihan->total() > 3)
-                <button onclick="document.getElementById('modalRiwayat').classList.remove('hidden')"
-                    class="text-sm text-blue-600 hover:underline font-medium">
+                <button onclick="bukaModalRiwayat()" class="text-sm text-blue-600 hover:underline font-medium">
                     Lihat semua ({{ $riwayatTagihan->total() }}) →
                 </button>
             @endif
@@ -186,7 +238,8 @@
                                             <div class="flex items-center gap-3">
                                                 @if ($p->foto_bukti)
                                                     <a href="{{ asset('storage/' . $p->foto_bukti) }}" target="_blank">
-                                                        <img src="{{ asset('storage/' . $p->foto_bukti) }}" alt="Bukti"
+                                                        <img src="{{ asset('storage/' . $p->foto_bukti) }}"
+                                                            alt="Bukti"
                                                             class="w-12 h-12 object-cover rounded-lg border hover:opacity-80 transition cursor-pointer">
                                                     </a>
                                                 @else
@@ -223,7 +276,8 @@
             </div>
         @else
             <div class="text-center py-8 text-gray-400">
-                <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
@@ -232,15 +286,14 @@
         @endif
     </div>
 
-    {{-- MODAL Semua Riwayat --}}
-    <div id="modalRiwayat" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    {{-- MODAL Semua Riwayat (Dibersihkan dari class 'flex' bawaan) --}}
+    <div id="modalRiwayat" class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-screen overflow-hidden flex flex-col">
 
             {{-- Modal Header --}}
             <div class="flex justify-between items-center p-6 border-b">
                 <h2 class="text-lg font-bold text-gray-800">Semua Riwayat Tagihan</h2>
-                <button onclick="document.getElementById('modalRiwayat').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 transition">
+                <button onclick="tutupModalRiwayat()" class="text-gray-400 hover:text-gray-600 transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -354,7 +407,7 @@
 
             {{-- Modal Footer --}}
             <div class="p-4 border-t">
-                <button onclick="document.getElementById('modalRiwayat').classList.add('hidden')"
+                <button onclick="tutupModalRiwayat()"
                     class="w-full bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition">
                     Tutup
                 </button>
@@ -362,13 +415,42 @@
         </div>
     </div>
 
-    {{-- Tutup modal kalau klik di luar --}}
+    {{-- Script Interaktif Modal & Preview Foto --}}
     <script>
-        document.getElementById('modalRiwayat').addEventListener('click', function(e) {
+        const modal = document.getElementById('modalRiwayat');
+
+        // Fungsi Buka Modal
+        function bukaModalRiwayat() {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex'); // Tambahkan flex secara dinamis agar peringatan VS Code hilang
+        }
+
+        // Fungsi Tutup Modal
+        function tutupModalRiwayat() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex'); // Hapus kembali flex-nya
+        }
+
+        // Tutup modal kalau klik di luar area konten modal
+        modal.addEventListener('click', function(e) {
             if (e.target === this) {
-                this.classList.add('hidden');
+                tutupModalRiwayat();
             }
         });
+
+        // Preview Bukti Pembayaran
+        function previewBukti(input) {
+            const container = document.getElementById('previewBuktiContainer');
+            const img = document.getElementById('previewBuktiImg');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    container.classList.remove('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
     </script>
 
 @endsection

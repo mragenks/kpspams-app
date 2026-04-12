@@ -21,9 +21,12 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div>
                     <p class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wide">Pelanggan</p>
-                    <p class="font-semibold text-gray-800 text-sm sm:text-base">{{ $pembayaran->pelanggan->nama_pelanggan }}
+                    <p class="font-semibold text-gray-800 text-sm sm:text-base">
+                        {{ $pembayaran->pelanggan?->nama_pelanggan ?? 'Pelanggan Telah Dihapus' }}
                     </p>
-                    <p class="text-xs text-blue-600 font-mono mt-0.5">{{ $pembayaran->pelanggan->kode_pelanggan }}</p>
+                    <p class="text-xs text-blue-600 font-mono mt-0.5">
+                        {{ $pembayaran->pelanggan?->kode_pelanggan ?? '-' }}
+                    </p>
                 </div>
                 <div>
                     <p class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wide">Periode</p>
@@ -85,10 +88,10 @@
             </div>
         </div>
 
-        {{-- Form Bayar --}}
+        {{-- Form Bayar (Hanya muncul jika belum lunas) --}}
         @if ($pembayaran->status_bayar !== 'lunas')
             <div class="bg-white rounded-lg shadow p-4 sm:p-6 border-t-4 border-blue-500">
-                <h3 class="text-base font-semibold text-gray-800 mb-4">Catat Pembayaran</h3>
+                <h3 class="text-base font-semibold text-gray-800 mb-4">Catat Pembayaran (Manual)</h3>
 
                 <form action="{{ route('admin.pembayaran.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
@@ -182,7 +185,7 @@
         {{-- Riwayat Pembayaran --}}
         @if ($pembayaran->pembayaran->count() > 0)
             <div class="bg-white rounded-lg shadow p-4 sm:p-6">
-                <h3 class="text-base font-semibold text-gray-800 mb-4 border-b pb-2">Riwayat Pembayaran</h3>
+                <h3 class="text-base font-semibold text-gray-800 mb-4 border-b pb-2">Riwayat Pembayaran & Bukti</h3>
 
                 <div class="overflow-x-auto rounded-lg border border-gray-200">
                     <table class="w-full text-sm text-left">
@@ -195,6 +198,7 @@
                                 <th class="hidden sm:table-cell px-4 py-3">Akun Kas</th>
                                 <th class="hidden md:table-cell px-4 py-3">Keterangan</th>
                                 <th class="px-4 py-3 text-center">Bukti</th>
+                                <th class="px-4 py-3 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -207,8 +211,15 @@
                                     <td class="px-4 py-3 font-bold text-green-600 whitespace-nowrap">
                                         Rp {{ number_format($p->nominal_bayar, 0, ',', '.') }}
                                     </td>
-                                    <td class="hidden sm:table-cell px-4 py-3 text-gray-600 text-xs">
-                                        {{ $p->akunKas->nama_akun ?? '-' }}
+                                    <td class="px-4 py-3 text-gray-700">
+                                        @if ($p->is_pending)
+                                            <span
+                                                class="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                                                ⏳ Menunggu Konfirmasi
+                                            </span>
+                                        @else
+                                            {{ $p->akunKas->nama_akun ?? '-' }}
+                                        @endif
                                     </td>
                                     <td
                                         class="hidden md:table-cell px-4 py-3 text-gray-500 text-xs truncate max-w-[150px]">
@@ -221,6 +232,33 @@
                                                 <img src="{{ Storage::url($p->foto_bukti) }}" alt="Bukti"
                                                     class="w-10 h-10 object-cover rounded border border-gray-300 hover:opacity-80 transition cursor-pointer shadow-sm">
                                             </a>
+                                        @else
+                                            <span class="text-gray-300 text-xs">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        @if ($p->is_pending)
+                                            <div class="flex flex-col gap-1 justify-center">
+                                                {{-- Tombol ACC hanya muncul jika tagihan belum lunas --}}
+                                                @if ($pembayaran->sisa_tagihan > 0)
+                                                    <button type="button"
+                                                        onclick="bukaModalKonfirmasi({{ $p->id }})"
+                                                        class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] font-medium hover:bg-blue-700 transition">
+                                                        Konfirmasi
+                                                    </button>
+                                                @endif
+
+                                                <form action="{{ route('admin.pembayaran.reject', $p->id) }}"
+                                                    method="POST"
+                                                    onsubmit="return confirm('Apakah Anda yakin ingin menolak dan menghapus bukti pembayaran ini?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                        class="w-full bg-red-600 text-white px-2 py-1 rounded text-[10px] font-medium hover:bg-red-700 transition">
+                                                        Tolak
+                                                    </button>
+                                                </form>
+                                            </div>
                                         @else
                                             <span class="text-gray-300 text-xs">-</span>
                                         @endif
@@ -239,6 +277,7 @@
                                 <td class="hidden sm:table-cell"></td>
                                 <td class="hidden md:table-cell"></td>
                                 <td></td>
+                                <td></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -246,6 +285,45 @@
             </div>
         @endif
 
+    </div>
+
+    {{-- Modal Konfirmasi (Dibersihkan dari class 'flex' bawaan) --}}
+    <div id="modalKonfirmasi"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 mx-4">
+            <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">ACC Pembayaran Pelanggan</h3>
+            <form id="formKonfirmasi" method="POST" action="">
+                @csrf
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Masukkan Dana ke Akun Kas <span
+                            class="text-red-500">*</span></label>
+                    <select name="akun_kas_id" required
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">-- Pilih Akun Kas --</option>
+                        @foreach ($akunKas as $ak)
+                            <option value="{{ $ak->id }}">{{ $ak->nama_akun }} (Saldo: Rp
+                                {{ number_format($ak->saldo, 0, ',', '.') }})</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nominal yang Disetujui <span
+                            class="text-red-500">*</span></label>
+                    <input type="number" name="nominal_bayar" required min="1"
+                        max="{{ $pembayaran->sisa_tagihan }}" value="{{ $pembayaran->sisa_tagihan }}"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <p class="text-[10px] text-gray-400 mt-1">Sisa tagihan maksimal: Rp
+                        {{ number_format($pembayaran->sisa_tagihan, 0, ',', '.') }}</p>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="tutupModalKonfirmasi()"
+                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition">Batal</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition shadow-sm">Simpan
+                        & ACC</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script>
@@ -260,5 +338,30 @@
                 reader.readAsDataURL(input.files[0]);
             }
         }
+
+        // Script untuk mengatur aksi form modal
+        const modalAcc = document.getElementById('modalKonfirmasi');
+
+        function bukaModalKonfirmasi(pembayaranId) {
+            const form = document.getElementById('formKonfirmasi');
+            // Menyesuaikan action URL dengan ID pembayaran yang spesifik
+            form.action = `/admin/pembayaran/konfirmasi/${pembayaranId}`;
+
+            modalAcc.classList.remove('hidden');
+            modalAcc.classList.add('flex'); // Tambahkan flex saat dibuka
+        }
+
+        function tutupModalKonfirmasi() {
+            modalAcc.classList.add('hidden');
+            modalAcc.classList.remove('flex'); // Hapus flex saat ditutup
+        }
+
+        // Tutup modal kalau klik di luar area form
+        modalAcc.addEventListener('click', function(e) {
+            if (e.target === this) {
+                tutupModalKonfirmasi();
+            }
+        });
     </script>
+@endsection
 @endsection

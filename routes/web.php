@@ -30,9 +30,19 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('pelanggan', PelangganController::class);
     Route::resource('meter', MeterController::class);
+
+    // PEMBAYARAN ROUTES
     Route::get('/pembayaran', [PembayaranController::class, 'index'])->name('pembayaran.index');
-    Route::get('/pembayaran/{pembayaran}', [PembayaranController::class, 'show'])->name('pembayaran.show');
     Route::post('/pembayaran', [PembayaranController::class, 'store'])->name('pembayaran.store');
+
+    // RUTE KUSTOM KONFIRMASI DAN TOLAK HARUS DI ATAS rute {pembayaran} agar tidak dianggap sebagai ID
+    Route::post('/pembayaran/konfirmasi/{id}', [PembayaranController::class, 'confirm'])->name('pembayaran.confirm');
+    Route::delete('/pembayaran/tolak/{id}', [PembayaranController::class, 'reject'])->name('pembayaran.reject');
+
+    // Rute SHOW dengan parameter {pembayaran} ditaruh di bawah agar tidak membajak rute kustom
+    Route::get('/pembayaran/{pembayaran}', [PembayaranController::class, 'show'])->name('pembayaran.show');
+
+    // AKUN KAS & ARUS KAS
     Route::resource('akun-kas', AkunKasController::class)->parameters([
         'akun-kas' => 'akunKas'
     ]);
@@ -41,16 +51,22 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
     ]);
     Route::get('/mutasi', [ArusKasController::class, 'mutasi'])->name('mutasi.create');
     Route::post('/mutasi', [ArusKasController::class, 'storeMutasi'])->name('mutasi.store');
+
+    // INVENTARIS
     Route::resource('inventaris', InventarisController::class)->parameters([
         'inventaris' => 'inventaris'
     ]);
     Route::post('/inventaris/{inventaris}/mutasi', [InventarisController::class, 'mutasiStok'])->name('inventaris.mutasi');
+
+    // LAPORAN
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
     Route::get('/laporan/export-pdf', [LaporanController::class, 'exportPdf'])->name('laporan.pdf');
     Route::get('/laporan/export-excel', [LaporanController::class, 'exportExcel'])->name('laporan.excel');
     Route::post('/laporan/arus-kas/excel', [LaporanController::class, 'exportExcelArusKas'])->name('laporan.aruskas.excel');
     Route::post('/laporan/tagihan/excel', [LaporanController::class, 'exportExcelTagihan'])->name('laporan.tagihan.excel');
     Route::post('/laporan/inventaris/excel', [LaporanController::class, 'exportExcelInventaris'])->name('laporan.inventaris.excel');
+
+    // USER MANAGEMENT
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
     Route::get('/user/{user}', [UserController::class, 'show'])->name('user.show');
     Route::post('/user/{user}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');
@@ -78,4 +94,5 @@ Route::middleware(['auth', 'active', 'admin_or_ketua'])->prefix('ketua')->name('
 */
 Route::middleware(['auth', 'active', 'pelanggan'])->prefix('pelanggan')->name('pelanggan.')->group(function () {
     Route::get('/dashboard', [PelangganDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/pembayaran/submit', [PelangganDashboardController::class, 'submitBukti'])->name('pembayaran.submit');
 });

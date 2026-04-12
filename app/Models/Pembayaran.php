@@ -16,7 +16,12 @@ class Pembayaran extends Model
         'tanggal_bayar',
         'keterangan',
         'foto_bukti',
+        'is_pending',
         'dicatat_oleh'
+    ];
+
+    protected $casts = [
+        'is_pending' => 'boolean',
     ];
 
     public function tagihan()
