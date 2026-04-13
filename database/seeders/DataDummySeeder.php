@@ -47,7 +47,7 @@ class DataDummySeeder extends Seeder
 
         foreach ($names as $i => $name) {
             // Tentukan Kode Pelanggan duluan
-            $kodePelanggan = 'PLG-' . str_pad($i + 1, 3, '0', STR_PAD_LEFT);
+            $kodePelanggan = 'PLG-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT);
 
             // 4. Buat Akun User (Username = Kode Pelanggan)
             $userPelanggan = User::create([
@@ -120,5 +120,71 @@ class DataDummySeeder extends Seeder
                 $kasBendahara->increment('saldo', $total);
             }
         }
+
+        // 7. Buat Data Dummy Inventaris Aset
+        // Sesuai Model: kode_barang, nama_barang, jenis_aset, stok_awal, stok_saat_ini, kondisi, lokasi, tanggal_perolehan
+        $asets = [
+            [
+                'kode_barang'       => 'AT-001',
+                'nama_barang'       => 'Pompa Air Submersible 5 HP',
+                'jenis_aset'        => 'tetap',
+                'stok_awal'         => 1,
+                'stok_saat_ini'     => 1,
+                'kondisi'           => 'baik',
+                'lokasi'            => 'Sumur Bor Utama',
+                'tanggal_perolehan' => '2025-01-15',
+                'keterangan'        => 'Mesin pompa utama desa'
+            ],
+            [
+                'kode_barang'       => 'ATT-001',
+                'nama_barang'       => 'Pipa PVC 2 Dim',
+                'jenis_aset'        => 'tidak_tetap',
+                'stok_awal'         => 50,
+                'stok_saat_ini'     => 45,
+                'kondisi'           => 'baik',
+                'lokasi'            => 'Gudang Kantor',
+                'tanggal_perolehan' => '2025-02-10',
+                'keterangan'        => 'Stok pipa instalasi baru'
+            ],
+            [
+                'kode_barang'       => 'AT-002',
+                'nama_barang'       => 'Laptop Inventaris Admin',
+                'jenis_aset'        => 'tetap',
+                'stok_awal'         => 1,
+                'stok_saat_ini'     => 1,
+                'kondisi'           => 'baik',
+                'lokasi'            => 'Kantor PAMSIMAS',
+                'tanggal_perolehan' => '2025-03-05',
+                'keterangan'        => 'Laptop Asus untuk admin'
+            ],
+            [
+                'kode_barang'       => 'AT-003',
+                'nama_barang'       => 'Tandon Air 5000 Liter',
+                'jenis_aset'        => 'tetap',
+                'stok_awal'         => 2,
+                'stok_saat_ini'     => 2,
+                'kondisi'           => 'perlu_perbaikan',
+                'lokasi'            => 'Dusun Krajan',
+                'tanggal_perolehan' => '2024-11-20',
+                'keterangan'        => 'Ada kebocoran halus di sambungan'
+            ],
+            [
+                'kode_barang'       => 'ATT-002',
+                'nama_barang'       => 'Lem PVC (Kaleng)',
+                'jenis_aset'        => 'tidak_tetap',
+                'stok_awal'         => 10,
+                'stok_saat_ini'     => 8,
+                'kondisi'           => 'baik',
+                'lokasi'            => 'Gudang Kantor',
+                'tanggal_perolehan' => '2025-04-01',
+                'keterangan'        => 'Bahan habis pakai'
+            ],
+        ];
+
+        foreach ($asets as $data) {
+            \App\Models\Inventaris::create($data);
+        }
+
+        $this->command->info('Data Dummy Inventaris berhasil ditambahkan!');
     }
 }
