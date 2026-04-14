@@ -5,36 +5,30 @@
 
     {{-- Filter Kompak --}}
     <div class="bg-white rounded-lg shadow p-3 sm:p-4 mb-6 border border-gray-100">
-        <form method="GET" action="{{ route('admin.pembayaran.index') }}"
+        {{-- Tambahkan ID filterForm --}}
+        <form id="filterForm" method="GET" action="{{ route('admin.pembayaran.index') }}"
             class="flex flex-col md:flex-row gap-3 md:items-end">
 
-            <div class="w-full md:w-40">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Bulan</label>
-                <select name="bulan"
-                    class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    @foreach (range(1, 12) as $b)
-                        <option value="{{ $b }}" {{ $bulan == $b ? 'selected' : '' }}>
-                            {{ \Carbon\Carbon::create()->month($b)->isoFormat('MMMM') }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            {{-- Filter Bulan & Tahun (Input Type Month) --}}
+            <div class="w-full md:w-56">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Periode
+                    Tagihan</label>
 
-            <div class="w-full md:w-32">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Tahun</label>
-                <select name="tahun"
-                    class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    @foreach (range(date('Y'), 2020) as $t)
-                        <option value="{{ $t }}" {{ $tahun == $t ? 'selected' : '' }}>{{ $t }}
-                        </option>
-                    @endforeach
-                </select>
+                {{-- Input utama yang dilihat user --}}
+                <input type="month" id="periodeInput" value="{{ $tahun }}-{{ str_pad($bulan, 2, '0', STR_PAD_LEFT) }}"
+                    onchange="submitPeriode()"
+                    class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
+
+                {{-- Hidden input --}}
+                <input type="hidden" name="bulan" id="hiddenBulan" value="{{ $bulan }}">
+                <input type="hidden" name="tahun" id="hiddenTahun" value="{{ $tahun }}">
             </div>
 
             <div class="w-full md:w-48">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Status</label>
-                <select name="status"
-                    class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                {{-- Tambahkan auto-submit saat status diubah --}}
+                <select name="status" onchange="document.getElementById('filterForm').submit();"
+                    class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
                     <option value="">Semua Status</option>
                     <option value="belum_lunas" {{ $status === 'belum_lunas' ? 'selected' : '' }}>Belum Lunas</option>
                     <option value="mencicil" {{ $status === 'mencicil' ? 'selected' : '' }}>Mencicil</option>
@@ -42,12 +36,7 @@
                 </select>
             </div>
 
-            <div class="w-full md:w-auto mt-2 md:mt-0 md:ml-auto">
-                <button type="submit"
-                    class="w-full justify-center bg-blue-600 text-white px-5 py-1.5 rounded-md text-xs font-medium hover:bg-blue-700 transition">
-                    Filter
-                </button>
-            </div>
+            {{-- Tombol Filter Dihapus karena sudah auto-submit --}}
 
         </form>
     </div>
@@ -113,7 +102,7 @@
                             </td>
                             <td class="px-4 py-3 sm:px-6 text-center">
                                 <a href="{{ route('admin.pembayaran.show', $t) }}"
-                                    class="inline-block px-3 py-1.5 {{ $t->status_bayar === 'lunas' ? 'bg-gray-500 hover:bg-gray-600' : 'bg-blue-600 hover:bg-blue-700' }} text-white rounded text-[10px] sm:text-xs font-medium transition">
+                                    class="inline-block px-3 py-1.5 {{ $t->status_bayar === 'lunas' ? 'bg-gray-500 hover:bg-gray-600' : 'bg-blue-600 hover:bg-blue-700' }} text-white rounded text-[10px] sm:text-xs font-medium transition shadow-sm">
                                     {{ $t->status_bayar === 'lunas' ? 'Detail' : 'Bayar' }}
                                 </a>
                             </td>
@@ -142,4 +131,18 @@
             </div>
         @endif
     </div>
+
+    {{-- Script untuk auto-submit --}}
+    <script>
+        function submitPeriode() {
+            let val = document.getElementById('periodeInput').value;
+            if (val) {
+                let parts = val.split('-');
+                document.getElementById('hiddenTahun').value = parts[0];
+                document.getElementById('hiddenBulan').value = parseInt(parts[1], 10);
+
+                document.getElementById('filterForm').submit();
+            }
+        }
+    </script>
 @endsection

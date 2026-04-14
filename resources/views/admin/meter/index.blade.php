@@ -5,36 +5,25 @@
 
     {{-- Filter Periode & Action Button --}}
     <div class="bg-white rounded-lg shadow p-3 sm:p-4 mb-6 border border-gray-100">
-        <form method="GET" action="{{ route('admin.meter.index') }}" class="flex flex-col md:flex-row gap-3 md:items-end">
+        <form id="filterForm" method="GET" action="{{ route('admin.meter.index') }}"
+            class="flex flex-col md:flex-row gap-3 md:items-end">
 
-            <div class="w-full md:w-40">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Bulan</label>
-                <select name="bulan"
-                    class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    @foreach (range(1, 12) as $b)
-                        <option value="{{ $b }}" {{ $bulan == $b ? 'selected' : '' }}>
-                            {{ \Carbon\Carbon::create()->month($b)->isoFormat('MMMM') }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            {{-- Filter Bulan & Tahun Menjadi 1 (Input Type Month) --}}
+            <div class="w-full md:w-56">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Periode
+                    Pencatatan</label>
 
-            <div class="w-full md:w-32">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Tahun</label>
-                <select name="tahun"
-                    class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    @foreach (range(date('Y'), 2020) as $t)
-                        <option value="{{ $t }}" {{ $tahun == $t ? 'selected' : '' }}>{{ $t }}
-                        </option>
-                    @endforeach
-                </select>
+                {{-- Input utama yang dilihat user --}}
+                <input type="month" id="periodeInput" value="{{ $tahun }}-{{ str_pad($bulan, 2, '0', STR_PAD_LEFT) }}"
+                    onchange="submitPeriode()"
+                    class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
+
+                {{-- Hidden input yang dikirim ke Controller agar tidak perlu ubah backend --}}
+                <input type="hidden" name="bulan" id="hiddenBulan" value="{{ $bulan }}">
+                <input type="hidden" name="tahun" id="hiddenTahun" value="{{ $tahun }}">
             </div>
 
             <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto mt-2 md:mt-0 md:ml-auto">
-                <button type="submit"
-                    class="w-full sm:w-auto flex justify-center items-center bg-gray-800 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-gray-900 transition">
-                    Filter
-                </button>
                 <a href="{{ route('admin.meter.create') }}"
                     class="w-full sm:w-auto flex justify-center items-center bg-green-600 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-green-700 transition gap-1.5 shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,17 +117,6 @@
                                         class="text-center px-2 py-1.5 sm:px-3 sm:py-1.5 bg-blue-600 text-white rounded text-[10px] sm:text-xs font-medium hover:bg-blue-700 transition">
                                         Detail
                                     </a>
-                                    @if ($p->tagihanAir && $p->tagihanAir->status_bayar === 'belum_lunas')
-                                        <form action="{{ route('admin.meter.destroy', $p) }}" method="POST"
-                                            class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="w-full btn-hapus px-2 py-1.5 sm:px-3 sm:py-1.5 bg-red-600 text-white rounded text-[10px] sm:text-xs font-medium hover:bg-red-700 transition">
-                                                Hapus
-                                            </button>
-                                        </form>
-                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -166,4 +144,19 @@
             </div>
         @endif
     </div>
+
+    {{-- Script untuk memecah input month menjadi bulan dan tahun --}}
+    <script>
+        function submitPeriode() {
+            let val = document.getElementById('periodeInput').value; // Contoh format: "2026-04"
+            if (val) {
+                let parts = val.split('-');
+                document.getElementById('hiddenTahun').value = parts[0]; // "2026"
+                document.getElementById('hiddenBulan').value = parseInt(parts[1], 10); // "4"
+
+                // Submit form otomatis
+                document.getElementById('filterForm').submit();
+            }
+        }
+    </script>
 @endsection

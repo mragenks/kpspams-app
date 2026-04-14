@@ -58,13 +58,15 @@
 
     {{-- Filter & Tombol Tambah (Desain Kompak) --}}
     <div class="bg-white rounded-lg shadow p-3 mb-6 border border-gray-100">
-        <form method="GET" action="{{ route('admin.inventaris.index') }}"
+        {{-- Tambahkan ID filterForm --}}
+        <form id="filterForm" method="GET" action="{{ route('admin.inventaris.index') }}"
             class="flex flex-col md:flex-row gap-3 md:items-end">
 
             <div class="w-full md:w-40">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Jenis Aset</label>
-                <select name="jenis"
-                    class="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                {{-- Tambahkan auto-submit saat Jenis Aset diubah --}}
+                <select name="jenis" onchange="document.getElementById('filterForm').submit();"
+                    class="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
                     <option value="">Semua Jenis</option>
                     <option value="tetap" {{ $jenis === 'tetap' ? 'selected' : '' }}>Aset Tetap</option>
                     <option value="tidak_tetap" {{ $jenis === 'tidak_tetap' ? 'selected' : '' }}>Tidak Tetap</option>
@@ -73,8 +75,9 @@
 
             <div class="w-full md:w-40">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Kondisi</label>
-                <select name="kondisi"
-                    class="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                {{-- Tambahkan auto-submit saat Kondisi diubah --}}
+                <select name="kondisi" onchange="document.getElementById('filterForm').submit();"
+                    class="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
                     <option value="">Semua Kondisi</option>
                     <option value="baik" {{ $kondisi === 'baik' ? 'selected' : '' }}>Baik</option>
                     <option value="perlu_perbaikan" {{ $kondisi === 'perlu_perbaikan' ? 'selected' : '' }}>Perbaikan
@@ -84,12 +87,9 @@
             </div>
 
             <div class="flex flex-row gap-2 w-full md:w-auto mt-1 md:mt-0 md:ml-auto">
-                <button type="submit"
-                    class="flex-1 md:flex-none flex justify-center items-center bg-gray-800 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-gray-900 transition">
-                    Filter
-                </button>
+                {{-- Tombol Filter dihapus karena sudah auto-submit --}}
                 <a href="{{ route('admin.inventaris.create') }}"
-                    class="flex-1 md:flex-none flex justify-center items-center bg-blue-600 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-700 transition gap-1.5">
+                    class="flex-1 md:flex-none flex justify-center items-center bg-blue-600 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-blue-700 transition gap-1.5 shadow-sm">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>

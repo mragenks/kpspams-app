@@ -65,36 +65,30 @@
 
     {{-- Filter & Action Buttons (Utility Bar Kompak) --}}
     <div class="bg-white rounded-lg shadow p-3 mb-6 border border-gray-100">
-        <form method="GET" action="{{ route('admin.arus-kas.index') }}"
+        {{-- Tambahkan ID filterForm --}}
+        <form id="filterForm" method="GET" action="{{ route('admin.arus-kas.index') }}"
             class="flex flex-col md:flex-row gap-3 md:items-end">
 
-            <div class="w-full md:w-auto">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Bulan</label>
-                <select name="bulan"
-                    class="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    @foreach (range(1, 12) as $b)
-                        <option value="{{ $b }}" {{ $bulan == $b ? 'selected' : '' }}>
-                            {{ \Carbon\Carbon::create()->month($b)->isoFormat('MMMM') }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            {{-- Filter Bulan & Tahun (Input Type Month) --}}
+            <div class="w-full md:w-56">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Periode
+                    Transaksi</label>
 
-            <div class="w-full md:w-24">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Tahun</label>
-                <select name="tahun"
-                    class="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    @foreach (range(date('Y'), 2020) as $t)
-                        <option value="{{ $t }}" {{ $tahun == $t ? 'selected' : '' }}>{{ $t }}
-                        </option>
-                    @endforeach
-                </select>
+                {{-- Input utama yang dilihat user --}}
+                <input type="month" id="periodeInput"
+                    value="{{ $tahun }}-{{ str_pad($bulan, 2, '0', STR_PAD_LEFT) }}" onchange="submitPeriode()"
+                    class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
+
+                {{-- Hidden input --}}
+                <input type="hidden" name="bulan" id="hiddenBulan" value="{{ $bulan }}">
+                <input type="hidden" name="tahun" id="hiddenTahun" value="{{ $tahun }}">
             </div>
 
             <div class="w-full md:w-48">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Akun Kas</label>
-                <select name="akun_kas_id"
-                    class="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                {{-- Tambahkan auto-submit saat Akun Kas diubah --}}
+                <select name="akun_kas_id" onchange="document.getElementById('filterForm').submit();"
+                    class="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
                     <option value="">Semua Akun</option>
                     @foreach ($akunKasList as $ak)
                         <option value="{{ $ak->id }}" {{ $akunKasId == $ak->id ? 'selected' : '' }}>
@@ -105,19 +99,16 @@
             </div>
 
             <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto mt-2 md:mt-0 md:ml-auto">
-                <button type="submit"
-                    class="flex-1 md:flex-none justify-center bg-gray-800 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-gray-900 transition">
-                    Filter
-                </button>
+                {{-- Tombol Filter dihapus karena sudah digantikan oleh auto-submit --}}
                 <a href="{{ route('admin.arus-kas.create') }}?jenis=masuk"
-                    class="flex-1 md:flex-none flex justify-center items-center bg-green-600 text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-green-700 transition gap-1">
+                    class="flex-1 md:flex-none flex justify-center items-center bg-green-600 text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-green-700 transition gap-1 shadow-sm">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     Pemasukan
                 </a>
                 <a href="{{ route('admin.arus-kas.create') }}?jenis=keluar"
-                    class="flex-1 md:flex-none flex justify-center items-center bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-red-700 transition gap-1">
+                    class="flex-1 md:flex-none flex justify-center items-center bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-red-700 transition gap-1 shadow-sm">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
@@ -221,4 +212,18 @@
             </div>
         @endif
     </div>
+
+    {{-- Script untuk auto-submit dari tipe input bulan --}}
+    <script>
+        function submitPeriode() {
+            let val = document.getElementById('periodeInput').value;
+            if (val) {
+                let parts = val.split('-');
+                document.getElementById('hiddenTahun').value = parts[0];
+                document.getElementById('hiddenBulan').value = parseInt(parts[1], 10);
+
+                document.getElementById('filterForm').submit();
+            }
+        }
+    </script>
 @endsection
