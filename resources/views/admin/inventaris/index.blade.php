@@ -173,15 +173,6 @@
                                         class="text-center px-3 py-1.5 bg-yellow-500 text-white rounded text-xs font-medium hover:bg-yellow-600 transition">
                                         Edit
                                     </a>
-                                    <form action="{{ route('admin.inventaris.destroy', $item) }}" method="POST"
-                                        class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="w-full btn-hapus px-3 py-1.5 bg-red-600 text-white rounded text-xs font-medium hover:bg-red-700 transition">
-                                            Hapus
-                                        </button>
-                                    </form>
                                 </div>
                             </td>
                         </tr>

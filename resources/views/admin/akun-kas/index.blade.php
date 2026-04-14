@@ -129,18 +129,9 @@
                             <td class="px-4 py-3 sm:px-6">
                                 <div class="flex flex-col sm:flex-row gap-2 justify-center">
                                     <a href="{{ route('admin.akun-kas.edit', $ak) }}"
-                                        class="text-center px-3 py-1.5 bg-yellow-500 text-white rounded text-[10px] sm:text-xs font-medium hover:bg-yellow-600 transition">
+                                        class="text-center px-3 py-1.5 bg-yellow-500 text-white rounded text-[10px] sm:text-xs font-medium hover:bg-yellow-600 transition shadow-sm">
                                         Edit
                                     </a>
-                                    <form action="{{ route('admin.akun-kas.destroy', $ak) }}" method="POST"
-                                        class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="w-full btn-hapus px-3 py-1.5 bg-red-600 text-white rounded text-[10px] sm:text-xs font-medium hover:bg-red-700 transition">
-                                            Hapus
-                                        </button>
-                                    </form>
                                 </div>
                             </td>
                         </tr>

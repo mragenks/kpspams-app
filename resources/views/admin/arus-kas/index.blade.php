@@ -146,7 +146,7 @@
                         <th class="px-4 py-3 sm:px-6 text-right">Masuk</th>
                         <th class="px-4 py-3 sm:px-6 text-right">Keluar</th>
                         <th class="hidden lg:table-cell px-6 py-3">No. Bukti</th>
-                        <th class="px-4 py-3 sm:px-6 text-center">Aksi</th>
+                        <th class="px-4 py-3 sm:px-6 text-center">Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -189,17 +189,11 @@
                             </td>
                             <td class="px-4 py-3 sm:px-6 text-center">
                                 @if (!$ak->pembayaran_id)
-                                    <form action="{{ route('admin.arus-kas.destroy', $ak) }}" method="POST">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="btn-hapus px-3 py-1.5 bg-red-600 text-white rounded text-[10px] sm:text-xs font-medium hover:bg-red-700 transition">
-                                            Hapus
-                                        </button>
-                                    </form>
+                                    <span
+                                        class="px-2.5 py-1 bg-blue-100 text-blue-700 rounded text-[10px] font-medium tracking-wide">Manual</span>
                                 @else
                                     <span
-                                        class="px-2 py-1 bg-gray-100 text-gray-500 rounded text-[10px] font-medium">Sistem</span>
+                                        class="px-2.5 py-1 bg-gray-100 text-gray-500 rounded text-[10px] font-medium tracking-wide">Sistem</span>
                                 @endif
                             </td>
                         </tr>

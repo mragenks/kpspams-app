@@ -95,15 +95,6 @@
                                         class="text-center px-2 py-1.5 sm:px-3 bg-yellow-500 text-white rounded text-[10px] sm:text-xs font-medium hover:bg-yellow-600 transition shadow-sm">
                                         Edit
                                     </a>
-                                    <form action="{{ route('admin.pelanggan.destroy', $p) }}" method="POST"
-                                        class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="w-full btn-hapus px-2 py-1.5 sm:px-3 bg-red-600 text-white rounded text-[10px] sm:text-xs font-medium hover:bg-red-700 transition shadow-sm">
-                                            Hapus
-                                        </button>
-                                    </form>
                                 </div>
                             </td>
                         </tr>
