@@ -32,23 +32,25 @@ class PencatatanMeter extends Model
     public function hitungBiayaPemakaian()
     {
         $volume = $this->meter_akhir - $this->meter_awal;
-        $biayaPemakaian = 0;
+        if ($volume <= 0) return 0;
 
-        if ($volume <= 0) {
-            return 0;
-        }
+        // Ambil dari database
+        $tarif = \App\Models\PengaturanTarif::first();
+
+        $tarifBatasBawah = $tarif->tarif_batas_bawah ?? 10000;
+        $tarif11_20 = $tarif->tarif_11_20 ?? 2200;
+        $tarif21_30 = $tarif->tarif_21_30 ?? 2500;
+        $tarifAtas30 = $tarif->tarif_atas_30 ?? 3000;
 
         if ($volume <= 10) {
-            $biayaPemakaian = 10000;
+            return $tarifBatasBawah;
         } elseif ($volume <= 20) {
-            $biayaPemakaian = 10000 + (($volume - 10) * 2200);
+            return $tarifBatasBawah + (($volume - 10) * $tarif11_20);
         } elseif ($volume <= 30) {
-            $biayaPemakaian = 10000 + (10 * 2200) + (($volume - 20) * 2500);
+            return $tarifBatasBawah + (10 * $tarif11_20) + (($volume - 20) * $tarif21_30);
         } else {
-            $biayaPemakaian = 10000 + (10 * 2200) + (10 * 2500) + (($volume - 30) * 3000);
+            return $tarifBatasBawah + (10 * $tarif11_20) + (10 * $tarif21_30) + (($volume - 30) * $tarifAtas30);
         }
-
-        return $biayaPemakaian;
     }
 
     public function hitungTotalTagihan(): float

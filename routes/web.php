@@ -77,6 +77,12 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
     Route::get('/deposit', [DepositController::class, 'index'])->name('deposit.index');
     Route::post('/deposit', [DepositController::class, 'store'])->name('deposit.store');
     Route::post('/pembayaran/bayar-saldo/{tagihan}', [PembayaranController::class, 'payWithSaldo'])->name('pembayaran.bayar_saldo');
+
+    // PENGATURAN TARIF
+    Route::get('/pengaturan-tarif', [App\Http\Controllers\Admin\PengaturanTarifController::class, 'index'])->name('pengaturan-tarif.index');
+    Route::post('/pengaturan-tarif', [App\Http\Controllers\Admin\PengaturanTarifController::class, 'update'])->name('pengaturan-tarif.update');
+    Route::post('/pengaturan-tarif/unlock', [App\Http\Controllers\Admin\PengaturanTarifController::class, 'unlock'])->name('pengaturan-tarif.unlock');
+    Route::post('/pengaturan-tarif/lock', [App\Http\Controllers\Admin\PengaturanTarifController::class, 'lock'])->name('pengaturan-tarif.lock');
 });
 
 /*

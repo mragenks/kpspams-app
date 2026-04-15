@@ -135,7 +135,8 @@
                     </div>
                     <div class="flex justify-between text-gray-600">
                         <span>Biaya Beban:</span>
-                        <span class="font-medium text-gray-800">Rp 5.000</span>
+                        {{-- ID prev_beban ditambahkan di bawah ini --}}
+                        <span id="prev_beban" class="font-medium text-gray-800">Rp 5.000</span>
                     </div>
                     <div class="flex justify-between text-gray-600">
                         <span>Biaya Pemakaian:</span>
@@ -243,31 +244,46 @@
         }
 
         function hitungPreview() {
-            const meterAwal = parseFloat(document.getElementById('meter_awal_display').value) || 0;
-            const meterAkhir = parseFloat(document.getElementById('meter_akhir').value) || 0;
+            // Kita gunakan replace(',', '.') untuk jaga-jaga jika input browser pakai koma desimal
+            let strAwal = document.getElementById('meter_awal_display').value.toString().replace(',', '.');
+            let strAkhir = document.getElementById('meter_akhir').value.toString().replace(',', '.');
+
+            const meterAwal = parseFloat(strAwal) || 0;
+            const meterAkhir = parseFloat(strAkhir) || 0;
             const volume = meterAkhir - meterAwal;
 
-            if (volume <= 0) {
+            if (volume <= 0 || isNaN(volume)) {
                 document.getElementById('preview_tagihan').classList.add('hidden');
                 return;
             }
 
+            // AMBIL TARIF DINAMIS DARI DATABASE
+            const tarifBatasBawah = {{ $tarif->tarif_batas_bawah ?? 10000 }};
+            const tarif11_20 = {{ $tarif->tarif_11_20 ?? 2200 }};
+            const tarif21_30 = {{ $tarif->tarif_21_30 ?? 2500 }};
+            const tarifAtas30 = {{ $tarif->tarif_atas_30 ?? 3000 }};
+            const biayaBebanFix = {{ $tarif->biaya_beban ?? 5000 }};
+
             let biayaPemakaian = 0;
             if (volume <= 10) {
-                biayaPemakaian = 10000;
+                biayaPemakaian = tarifBatasBawah;
             } else if (volume <= 20) {
-                biayaPemakaian = 10000 + ((volume - 10) * 2200);
+                biayaPemakaian = tarifBatasBawah + ((volume - 10) * tarif11_20);
             } else if (volume <= 30) {
-                biayaPemakaian = 10000 + (10 * 2200) + ((volume - 20) * 2500);
+                biayaPemakaian = tarifBatasBawah + (10 * tarif11_20) + ((volume - 20) * tarif21_30);
             } else {
-                biayaPemakaian = 10000 + (10 * 2200) + (10 * 2500) + ((volume - 30) * 3000);
+                biayaPemakaian = tarifBatasBawah + (10 * tarif11_20) + (10 * tarif21_30) + ((volume - 30) * tarifAtas30);
             }
 
-            const total = biayaPemakaian + 5000;
+            const total = biayaPemakaian + biayaBebanFix;
 
-            document.getElementById('prev_volume').textContent = volume.toFixed(2) + ' m³';
+            // Update text ke layar dengan rapi
+            document.getElementById('prev_volume').textContent = volume.toFixed(2).replace('.', ',') + ' m³';
+            document.getElementById('prev_beban').textContent = 'Rp ' + biayaBebanFix.toLocaleString('id-ID');
             document.getElementById('prev_biaya').textContent = 'Rp ' + biayaPemakaian.toLocaleString('id-ID');
             document.getElementById('prev_total').textContent = 'Rp ' + total.toLocaleString('id-ID');
+
+            // Munculkan kotaknya
             document.getElementById('preview_tagihan').classList.remove('hidden');
         }
 

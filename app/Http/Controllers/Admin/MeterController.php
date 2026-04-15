@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\PencatatanMeter;
 use App\Models\Pelanggan;
+use App\Models\PengaturanTarif;
 use App\Models\TagihanAir;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -75,7 +76,10 @@ class MeterController extends Controller
             $selectedPelanggan = Pelanggan::find($request->pelanggan_id);
         }
 
-        return view('admin.meter.create', compact('pelanggan', 'selectedPelanggan'));
+        // Ambil data tarif dari database
+        $tarif = PengaturanTarif::first();
+
+        return view('admin.meter.create', compact('pelanggan', 'selectedPelanggan', 'tarif'));
     }
 
     public function store(Request $request)
@@ -144,7 +148,7 @@ class MeterController extends Controller
             ]);
 
             $biayaPemakaian = $pencatatan->hitungBiayaPemakaian();
-            $biayaBeban = 5000;
+            $biayaBeban = \App\Models\PengaturanTarif::first()->biaya_beban ?? 5000;
             $totalTagihan = $biayaPemakaian + $biayaBeban;
 
             TagihanAir::create([
