@@ -71,7 +71,8 @@
         <div class="flex-1 flex flex-col overflow-hidden min-w-0">
 
             {{-- Top Header --}}
-            <header class="bg-white shadow-sm h-16 flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
+            <header
+                class="bg-white shadow-sm h-16 flex items-center justify-between px-4 lg:px-6 flex-shrink-0 z-20 relative">
                 <div class="flex items-center">
                     {{-- Burger Button --}}
                     <button id="burgerBtn" onclick="toggleSidebar()"
@@ -85,8 +86,61 @@
                         @yield('title', 'Dashboard')
                     </h1>
                 </div>
-                <div class="text-xs lg:text-sm text-gray-500 hidden sm:block">
-                    {{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y') }}
+
+                {{-- Bagian Kanan Header --}}
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <div class="text-xs lg:text-sm text-gray-500 hidden sm:block pr-2 sm:pr-4 border-r border-gray-200">
+                        {{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y') }}
+                    </div>
+
+                    {{-- Lonceng Notifikasi Admin --}}
+                    <div class="relative">
+                        <button onclick="toggleNotifAdmin()" id="notifBtnAdmin"
+                            class="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-blue-600 rounded-full transition focus:outline-none">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+
+                            @if (auth()->user()->unreadNotifications->count() > 0)
+                                <span
+                                    class="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 flex items-center justify-center w-4 h-4 text-[9px] font-bold text-white bg-red-500 border-2 border-white rounded-full">
+                                    {{ auth()->user()->unreadNotifications->count() }}
+                                </span>
+                            @endif
+                        </button>
+
+                        <div id="notifDropdownAdmin"
+                            class="hidden absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
+                            <div class="p-3 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+                                <h3 class="text-sm font-bold text-gray-700">Notifikasi Admin</h3>
+                                @if (auth()->user()->unreadNotifications->count() > 0)
+                                    <form action="{{ route('admin.notif.markAllRead') }}" method="POST">
+                                        @csrf
+                                        <button type="submit"
+                                            class="text-[10px] text-blue-600 hover:text-blue-800 font-medium">Tandai
+                                            dibaca</button>
+                                    </form>
+                                @endif
+                            </div>
+                            <div class="max-h-80 overflow-y-auto">
+                                @forelse(auth()->user()->unreadNotifications as $notif)
+                                    <a href="{{ $notif->data['url'] ?? '#' }}"
+                                        class="block p-4 border-b border-gray-50 hover:bg-blue-50 transition">
+                                        <p class="text-xs font-semibold text-gray-800">{{ $notif->data['title'] }}</p>
+                                        <p class="text-[10px] text-gray-500 mt-1 line-clamp-2">
+                                            {{ $notif->data['message'] }}</p>
+                                        <p class="text-[9px] text-gray-400 mt-2">
+                                            {{ $notif->created_at->diffForHumans() }}</p>
+                                    </a>
+                                @empty
+                                    <div class="p-6 text-center text-gray-400">
+                                        <p class="text-xs">Belum ada notifikasi baru</p>
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </header>
 
@@ -144,6 +198,18 @@
                 sidebar.classList.remove('-translate-x-full');
                 overlay.classList.add('hidden');
                 document.body.classList.remove('overflow-hidden');
+            }
+        });
+
+        // Script untuk Dropdown Lonceng Notifikasi Admin
+        function toggleNotifAdmin() {
+            document.getElementById('notifDropdownAdmin').classList.toggle('hidden');
+        }
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('notifDropdownAdmin');
+            const btn = document.getElementById('notifBtnAdmin');
+            if (dropdown && btn && !dropdown.contains(event.target) && !btn.contains(event.target)) {
+                dropdown.classList.add('hidden');
             }
         });
     </script>

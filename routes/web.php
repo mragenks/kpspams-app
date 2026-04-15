@@ -83,6 +83,12 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
     Route::post('/pengaturan-tarif', [App\Http\Controllers\Admin\PengaturanTarifController::class, 'update'])->name('pengaturan-tarif.update');
     Route::post('/pengaturan-tarif/unlock', [App\Http\Controllers\Admin\PengaturanTarifController::class, 'unlock'])->name('pengaturan-tarif.unlock');
     Route::post('/pengaturan-tarif/lock', [App\Http\Controllers\Admin\PengaturanTarifController::class, 'lock'])->name('pengaturan-tarif.lock');
+
+    // ROUTE NOTIFIKASI
+    Route::post('/notifikasi/mark-all-read', function () {
+        auth()->user()->unreadNotifications->markAsRead();
+        return back();
+    })->name('notif.markAllRead');
 });
 
 /*
@@ -107,4 +113,8 @@ Route::middleware(['auth', 'active', 'admin_or_ketua'])->prefix('ketua')->name('
 Route::middleware(['auth', 'active', 'pelanggan'])->prefix('pelanggan')->name('pelanggan.')->group(function () {
     Route::get('/dashboard', [PelangganDashboardController::class, 'index'])->name('dashboard');
     Route::post('/pembayaran/submit', [PelangganDashboardController::class, 'submitBukti'])->name('pembayaran.submit');
+    Route::post('/notifikasi/mark-all-read', function () {
+        auth()->user()->unreadNotifications->markAsRead();
+        return back();
+    })->name('notif.markAllRead');
 });

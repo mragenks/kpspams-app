@@ -9,6 +9,7 @@ use App\Models\PengaturanTarif;
 use App\Models\TagihanAir;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Notifications\TagihanBaruNotification;
 use Illuminate\Support\Facades\Storage;
 
 class MeterController extends Controller
@@ -135,7 +136,8 @@ class MeterController extends Controller
             $fotoPath = $request->file('foto_meteran')->store('bukti/meteran', 'public');
         }
 
-        DB::transaction(function () use ($request, $meterAwal, $pelanggan, $fotoPath) {
+        // PERBAIKAN: Tangkap hasil return DB::transaction ke dalam variabel $tagihanTerbuat
+        $tagihanTerbuat = DB::transaction(function () use ($request, $meterAwal, $pelanggan, $fotoPath) {
             $pencatatan = PencatatanMeter::create([
                 'pelanggan_id'       => $request->pelanggan_id,
                 'bulan_periode'      => $request->bulan_periode,
@@ -151,7 +153,8 @@ class MeterController extends Controller
             $biayaBeban = \App\Models\PengaturanTarif::first()->biaya_beban ?? 5000;
             $totalTagihan = $biayaPemakaian + $biayaBeban;
 
-            TagihanAir::create([
+            // Return hasil tagihan agar bisa dipakai di luar transaksi
+            return TagihanAir::create([
                 'pelanggan_id'        => $request->pelanggan_id,
                 'pencatatan_meter_id' => $pencatatan->id,
                 'bulan_periode'       => $request->bulan_periode,
@@ -164,6 +167,11 @@ class MeterController extends Controller
                 'status_bayar'        => 'belum_lunas',
             ]);
         });
+
+        // Sekarang kita bisa memanggil notifikasi di sini dengan aman!
+        if ($pelanggan->user) {
+            $pelanggan->user->notify(new TagihanBaruNotification($tagihanTerbuat, $request->bulan_periode, $request->tahun_periode));
+        }
 
         return redirect()->route('admin.meter.index')
             ->with('success', 'Pencatatan meter berhasil disimpan dan tagihan otomatis terbit!');

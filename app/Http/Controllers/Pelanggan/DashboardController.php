@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Pelanggan;
 use App\Http\Controllers\Controller;
 use App\Models\TagihanAir;
 use App\Models\Pembayaran;
+use App\Models\User;
+use App\Notifications\PembayaranBaruNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 
 class DashboardController extends Controller
 {
@@ -53,8 +56,8 @@ class DashboardController extends Controller
         // Upload foto
         $fotoPath = $request->file('foto_bukti')->store('bukti/pelanggan', 'public');
 
-        // Simpan sebagai bukti pending (nominal 0, menunggu konfirmasi admin)
-        Pembayaran::create([
+        // Tangkap hasilnya ke dalam variabel $pembayaran
+        $pembayaran = Pembayaran::create([
             'tagihan_id'    => $tagihan->id,
             'pelanggan_id'  => $pelanggan->id,
             'akun_kas_id'   => null,
@@ -65,6 +68,16 @@ class DashboardController extends Controller
             'dicatat_oleh'  => auth()->id(),
             'is_pending'    => true,
         ]);
+
+        // ==========================================
+        // FITUR NOTIFIKASI OTOMATIS KE ADMIN & KETUA
+        // ==========================================
+
+        // 1. Ambil semua user dengan role admin dan ketua
+        $admins = User::whereIn('role', ['admin', 'ketua'])->get();
+
+        // 2. Kirim notifikasi menggunakan Facade Notification
+        Notification::send($admins, new PembayaranBaruNotification($pembayaran, $pelanggan));
 
         return back()->with('success', 'Bukti pembayaran berhasil dikirim! Admin akan segera memproses.');
     }
