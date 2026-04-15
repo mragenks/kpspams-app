@@ -32,12 +32,12 @@
     </svg>
     Manajemen User
 </a>
-{{-- Contoh penambahan di dalam blok PENGATURAN yang sudah ada --}}
+{{-- Pengaturan Tarif --}}
 <a href="{{ route('admin.pengaturan-tarif.index') }}"
-    class="flex items-center px-4 py-2 mt-1 text-sm {{ request()->routeIs('admin.pengaturan-tarif.*') ? 'bg-blue-800 text-white font-semibold rounded-lg' : 'text-blue-200 hover:bg-blue-800 hover:text-white rounded-lg transition' }}">
+    class="flex items-center px-4 py-2 mx-2 rounded-lg text-sm {{ request()->routeIs('admin.pengaturan-tarif.*') ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-700' }} transition mb-1">
     <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
     </svg>
     Pengaturan Tarif
 </a>
