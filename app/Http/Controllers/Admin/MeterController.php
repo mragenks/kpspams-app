@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Notifications\TagihanBaruNotification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http; // <-- WAJIB TAMBAHKAN INI UNTUK API
 
 class MeterController extends Controller
 {
@@ -30,9 +31,7 @@ class MeterController extends Controller
         // LOGIKA PENYEMPURNAAN
         $pelangganBelumDicatat = Pelanggan::where('status', 'aktif')
             ->where(function ($query) use ($batasWaktuFilter, $tahun, $bulan) {
-                // Kondisi 1: Didaftarkan sebelum atau pada bulan yang difilter
                 $query->where('created_at', '<=', $batasWaktuFilter)
-                    // Kondisi 2: ATAU punya riwayat tagihan di bulan-bulan sebelumnya (Kasus Backdate)
                     ->orWhereHas('pencatatanMeter', function ($subQuery) use ($tahun, $bulan) {
                         $subQuery->where('tahun_periode', '<', $tahun)
                             ->orWhere(function ($q) use ($tahun, $bulan) {
@@ -41,7 +40,6 @@ class MeterController extends Controller
                             });
                     });
             })
-            // Tetap pastikan dia BELUM dicatat di bulan yang sedang difilter ini
             ->whereDoesntHave('pencatatanMeter', function ($q) use ($bulan, $tahun) {
                 $q->where('bulan_periode', $bulan)
                     ->where('tahun_periode', $tahun);
@@ -94,7 +92,6 @@ class MeterController extends Controller
             'foto_meteran'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // 1. Cek duplikat di bulan & tahun yang sama (ini sudah benar)
         $exists = PencatatanMeter::where('pelanggan_id', $request->pelanggan_id)
             ->where('bulan_periode', $request->bulan_periode)
             ->where('tahun_periode', $request->tahun_periode)
@@ -104,16 +101,13 @@ class MeterController extends Controller
             return back()->withInput()->with('error', 'Pencatatan meter untuk pelanggan ini sudah ada di periode tersebut!');
         }
 
-        // 2. Ambil Data Master Pelanggan dan Pencatatan Paling Terakhir
         $pelanggan = Pelanggan::find($request->pelanggan_id);
         $prevMeter = PencatatanMeter::where('pelanggan_id', $request->pelanggan_id)
             ->orderByDesc('tahun_periode')
             ->orderByDesc('bulan_periode')
             ->first();
 
-        // 3. MENCEGAH BACKDATING (Logika Mesin Waktu)
         if ($prevMeter) {
-            // Ubah format input dan database menjadi YYYYMM (ex: 202604)
             $periodeInput = (int) sprintf("%04d%02d", $request->tahun_periode, $request->bulan_periode);
             $periodeTerakhir = (int) sprintf("%04d%02d", $prevMeter->tahun_periode, $prevMeter->bulan_periode);
 
@@ -123,20 +117,17 @@ class MeterController extends Controller
             }
         }
 
-        // 4. MENCEGAH METERAN MUNDUR (Angka meter akhir tidak boleh lebih kecil dari meter awal)
         $meterAwal = $prevMeter ? $prevMeter->meter_akhir : $pelanggan->meteran_awal;
 
         if ($request->meter_akhir < $meterAwal) {
             return back()->withInput()->with('error', "GAGAL: Angka meter akhir ({$request->meter_akhir}) tidak masuk akal karena lebih kecil dari meter sebelumnya ({$meterAwal})!");
         }
 
-        // Upload foto
         $fotoPath = null;
         if ($request->hasFile('foto_meteran')) {
             $fotoPath = $request->file('foto_meteran')->store('bukti/meteran', 'public');
         }
 
-        // PERBAIKAN: Tangkap hasil return DB::transaction ke dalam variabel $tagihanTerbuat
         $tagihanTerbuat = DB::transaction(function () use ($request, $meterAwal, $pelanggan, $fotoPath) {
             $pencatatan = PencatatanMeter::create([
                 'pelanggan_id'       => $request->pelanggan_id,
@@ -153,7 +144,6 @@ class MeterController extends Controller
             $biayaBeban = \App\Models\PengaturanTarif::first()->biaya_beban ?? 5000;
             $totalTagihan = $biayaPemakaian + $biayaBeban;
 
-            // Return hasil tagihan agar bisa dipakai di luar transaksi
             return TagihanAir::create([
                 'pelanggan_id'        => $request->pelanggan_id,
                 'pencatatan_meter_id' => $pencatatan->id,
@@ -168,13 +158,35 @@ class MeterController extends Controller
             ]);
         });
 
-        // Sekarang kita bisa memanggil notifikasi di sini dengan aman!
+        // 1. Kirim Notifikasi Lonceng (In-App)
         if ($pelanggan->user) {
             $pelanggan->user->notify(new TagihanBaruNotification($tagihanTerbuat, $request->bulan_periode, $request->tahun_periode));
         }
 
+        // 2. Kirim Notifikasi WhatsApp via Fonnte
+        if ($pelanggan->no_hp) {
+            $namaBulan = \Carbon\Carbon::create()->month($request->bulan_periode)->isoFormat('MMMM');
+            $nominal = number_format($tagihanTerbuat->total_tagihan, 0, ',', '.');
+            $volume = $tagihanTerbuat->pencatatanMeter->volume_m3;
+
+            // FORMAT PESAN DENGAN NOMOR REKENING
+            $pesanWA = "Halo, Bpk/Ibu *{$pelanggan->nama_pelanggan}*.\n\n";
+            $pesanWA .= "Tagihan air PAMSIMAS Tirta Wening untuk periode *{$namaBulan} {$request->tahun_periode}* telah terbit.\n\n";
+            $pesanWA .= "📊 *Rincian Pemakaian:*\n";
+            $pesanWA .= "💧 Volume: *{$volume} m³*\n";
+            $pesanWA .= "💰 Total Tagihan: *Rp {$nominal}*\n\n";
+            $pesanWA .= "Silakan lakukan pembayaran melalui kasir atau transfer ke rekening berikut:\n\n";
+            $pesanWA .= "🏦 *BANK BRI*\n";
+            $pesanWA .= "💳 No. Rek: *6892-01-023456-53-1*\n";
+            $pesanWA .= "👤 A.N: *siapa ya?*\n\n";
+            $pesanWA .= "Setelah melakukan transfer, mohon upload foto bukti pembayaran di Portal Pelanggan.\n\n";
+            $pesanWA .= "Terima kasih. 🙏";
+
+            $this->sendWhatsApp($pelanggan->no_hp, $pesanWA);
+        }
+
         return redirect()->route('admin.meter.index')
-            ->with('success', 'Pencatatan meter berhasil disimpan dan tagihan otomatis terbit!');
+            ->with('success', 'Pencatatan meter berhasil disimpan dan tagihan otomatis terbit (Notifikasi WA terkirim)!');
     }
 
     public function show(PencatatanMeter $meter)
@@ -185,11 +197,30 @@ class MeterController extends Controller
 
     public function destroy(PencatatanMeter $meter)
     {
-        // Hapus tagihan terkait juga
         $meter->tagihanAir()->delete();
         $meter->delete();
 
         return redirect()->route('admin.meter.index')
             ->with('success', 'Data pencatatan meter berhasil dihapus!');
+    }
+
+    // ==========================================
+    // FUNGSI HELPER UNTUK WHATSAPP (FONNTE)
+    // ==========================================
+    private function sendWhatsApp($no_hp, $pesan)
+    {
+        // GANTI INI DENGAN TOKEN DARI FONNTE KAMU
+        $token = config('services.fonnte.token');
+
+        // Pastikan format nomor HP diawali dengan 08 atau 628 (Fonnte bisa membaca keduanya)
+        $response = Http::withoutVerifying()->withHeaders([
+            'Authorization' => $token
+        ])->post('https://api.fonnte.com/send', [
+            'target' => $no_hp,
+            'message' => $pesan,
+            'delay' => '2', // Delay 2 detik agar tidak dibanned oleh WhatsApp
+        ]);
+
+        return $response->json();
     }
 }
