@@ -195,6 +195,68 @@ class MeterController extends Controller
         return view('admin.meter.show', compact('meter'));
     }
 
+    public function edit(PencatatanMeter $meter)
+    {
+        $meter->load('pelanggan');
+        return view('admin.meter.edit', compact('meter'));
+    }
+
+    public function update(Request $request, PencatatanMeter $meter)
+    {
+        // 1. Validasi input
+        $request->validate([
+            'meter_akhir'  => 'required|numeric|min:' . $meter->meter_awal,
+            'foto_meteran' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ], [
+            'meter_akhir.min' => "Angka meter akhir tidak boleh lebih kecil dari meter awal ({$meter->meter_awal})!"
+        ]);
+
+        DB::transaction(function () use ($request, $meter) {
+            // 2. Update Foto (Opsional: Jika ada foto baru yang diupload)
+            if ($request->hasFile('foto_meteran')) {
+                // Hapus foto lama jika ada
+                if ($meter->foto_meteran) {
+                    Storage::disk('public')->delete($meter->foto_meteran);
+                }
+                $fotoPath = $request->file('foto_meteran')->store('bukti/meteran', 'public');
+                $meter->foto_meteran = $fotoPath;
+            }
+
+            // 3. Update Angka Meter
+            $meter->meter_akhir = $request->meter_akhir;
+            $meter->save();
+
+            // 4. Hitung Ulang Tagihan
+            $tagihan = $meter->tagihanAir;
+            if ($tagihan) {
+                // Hitung ulang biaya berdasarkan meteran yang baru
+                $biayaPemakaian = $meter->hitungBiayaPemakaian();
+                $totalTagihan = $tagihan->biaya_beban + $biayaPemakaian;
+
+                $tagihan->biaya_pemakaian = $biayaPemakaian;
+                $tagihan->total_tagihan = $totalTagihan;
+
+                // Update sisa tagihan (Total Tagihan Baru - Yang Sudah Dibayar)
+                $tagihan->sisa_tagihan = $totalTagihan - $tagihan->total_terbayar;
+
+                // Sesuaikan kembali status pembayaran jika berubah
+                if ($tagihan->sisa_tagihan <= 0 && $tagihan->total_tagihan > 0) {
+                    $tagihan->status_bayar = 'lunas';
+                    $tagihan->sisa_tagihan = 0;
+                } elseif ($tagihan->total_terbayar > 0 && $tagihan->sisa_tagihan > 0) {
+                    $tagihan->status_bayar = 'cicil';
+                } else {
+                    $tagihan->status_bayar = 'belum_lunas';
+                }
+
+                $tagihan->save();
+            }
+        });
+
+        return redirect()->route('admin.meter.show', $meter->id)
+            ->with('success', 'Angka meteran berhasil diperbarui dan Tagihan telah dihitung ulang otomatis!');
+    }
+
     public function destroy(PencatatanMeter $meter)
     {
         $meter->tagihanAir()->delete();

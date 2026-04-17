@@ -5,14 +5,31 @@
     <div class="max-w-2xl mx-auto bg-white rounded-lg shadow p-4 sm:p-6">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-base sm:text-lg font-semibold text-gray-700">Detail Pencatatan Meter</h2>
-            <a href="{{ route('admin.meter.index') }}"
-                class="text-sm text-blue-600 hover:text-blue-800 transition flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
-                    </path>
-                </svg>
-                <span class="hidden sm:inline">Kembali</span>
-            </a>
+
+            {{-- WADAH TOMBOL AKSI --}}
+            <div class="flex items-center gap-3">
+                {{-- TOMBOL EDIT METERAN BARU --}}
+                <a href="{{ route('admin.meter.edit', $meter->id) }}"
+                    class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-1.5 px-3 sm:py-2 sm:px-4 rounded-lg text-xs sm:text-sm flex items-center transition-colors">
+                    <svg class="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
+                        </path>
+                    </svg>
+                    <span class="hidden sm:inline">Edit Meteran</span>
+                </a>
+
+                {{-- TOMBOL KEMBALI LAMA --}}
+                <a href="{{ route('admin.meter.index') }}"
+                    class="text-sm text-blue-600 hover:text-blue-800 transition flex items-center gap-1 bg-blue-50 hover:bg-blue-100 py-1.5 px-3 rounded-lg">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18">
+                        </path>
+                    </svg>
+                    <span class="hidden sm:inline">Kembali</span>
+                </a>
+            </div>
         </div>
 
         <div class="space-y-4">
