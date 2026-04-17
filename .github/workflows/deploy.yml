@@ -1,0 +1,15 @@
+name: Auto Deploy to cPanel
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Trigger cPanel Webhook
+      run: |
+        curl -s -X GET "${{ secrets.DEPLOY_WEBHOOK_URL }}"
