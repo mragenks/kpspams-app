@@ -66,6 +66,9 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
     Route::post('/laporan/arus-kas/excel', [LaporanController::class, 'exportExcelArusKas'])->name('laporan.aruskas.excel');
     Route::post('/laporan/tagihan/excel', [LaporanController::class, 'exportExcelTagihan'])->name('laporan.tagihan.excel');
     Route::post('/laporan/inventaris/excel', [LaporanController::class, 'exportExcelInventaris'])->name('laporan.inventaris.excel');
+    Route::get('/laporan/aruskas/cetak-pdf', [LaporanController::class, 'exportPDF'])->name('laporan.aruskas.pdf');
+    Route::get('/laporan/tagihan/cetak-pdf', [LaporanController::class, 'exportTagihanPDF'])->name('laporan.tagihan.pdf');
+    Route::get('/laporan/inventaris/cetak-pdf', [LaporanController::class, 'exportInventarisPDF'])->name('laporan.inventaris.pdf');
 
     // USER MANAGEMENT
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
@@ -96,12 +99,20 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
 | Ketua Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'active', 'admin_or_ketua'])->prefix('ketua')->name('ketua.')->group(function () {
+Route::middleware(['auth', 'active', 'ketua'])->prefix('ketua')->name('ketua.')->group(function () {
     Route::get('/dashboard', [KetuaDashboardController::class, 'index'])->name('dashboard');
+
+    // Laporan Ketua (Hanya Lihat & Cetak)
     Route::get('/laporan', [KetuaLaporanController::class, 'index'])->name('laporan.index');
-    Route::post('/laporan/arus-kas/excel', [KetuaLaporanController::class, 'exportExcelArusKas'])->name('laporan.aruskas.excel');
+    Route::post('/laporan/aruskas/excel', [KetuaLaporanController::class, 'exportExcelArusKas'])->name('laporan.aruskas.excel');
     Route::post('/laporan/tagihan/excel', [KetuaLaporanController::class, 'exportExcelTagihan'])->name('laporan.tagihan.excel');
     Route::post('/laporan/inventaris/excel', [KetuaLaporanController::class, 'exportExcelInventaris'])->name('laporan.inventaris.excel');
+
+    // PDF Routes Ketua
+    Route::get('/laporan/aruskas/cetak-pdf', [LaporanController::class, 'exportPDF'])->name('laporan.aruskas.pdf');
+    Route::get('/laporan/tagihan/cetak-pdf', [LaporanController::class, 'exportTagihanPDF'])->name('laporan.tagihan.pdf');
+    Route::get('/laporan/inventaris/cetak-pdf', [LaporanController::class, 'exportInventarisPDF'])->name('laporan.inventaris.pdf');
+
     Route::get('/arus-kas', [KetuaArusKasController::class, 'index'])->name('arus-kas.index');
 });
 
@@ -113,6 +124,8 @@ Route::middleware(['auth', 'active', 'admin_or_ketua'])->prefix('ketua')->name('
 Route::middleware(['auth', 'active', 'pelanggan'])->prefix('pelanggan')->name('pelanggan.')->group(function () {
     Route::get('/dashboard', [PelangganDashboardController::class, 'index'])->name('dashboard');
     Route::post('/pembayaran/submit', [PelangganDashboardController::class, 'submitBukti'])->name('pembayaran.submit');
+
+    // NOTIFIKASI PELANGGAN
     Route::post('/notifikasi/mark-all-read', function () {
         auth()->user()->unreadNotifications->markAsRead();
         return back();

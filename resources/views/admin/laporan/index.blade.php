@@ -35,19 +35,32 @@
                         <h3 class="text-lg font-medium text-gray-800">Buku Kas Umum</h3>
                         <p class="text-sm text-gray-500">Menampilkan mutasi masuk dan keluar.</p>
                     </div>
-                    <form action="{{ route('admin.laporan.aruskas.excel') }}" method="POST" class="w-full md:w-auto">
-                        @csrf
-                        <input type="hidden" name="start_date" value="{{ $startDate }}">
-                        <input type="hidden" name="end_date" value="{{ $endDate }}">
-                        <button type="submit"
-                            class="w-full md:w-auto justify-center bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg flex items-center transition-colors">
+
+                    <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                        <a href="{{ route('admin.laporan.aruskas.pdf', ['start_date' => $startDate, 'end_date' => $endDate]) }}"
+                            target="_blank"
+                            class="w-full sm:w-auto justify-center bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg flex items-center transition-colors">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                                 </path>
-                            </svg> Download Excel
-                        </button>
-                    </form>
+                            </svg> Cetak PDF
+                        </a>
+
+                        <form action="{{ route('admin.laporan.aruskas.excel') }}" method="POST" class="w-full sm:w-auto">
+                            @csrf
+                            <input type="hidden" name="start_date" value="{{ $startDate }}">
+                            <input type="hidden" name="end_date" value="{{ $endDate }}">
+                            <button type="submit"
+                                class="w-full sm:w-auto justify-center bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg flex items-center transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg> Download Excel
+                            </button>
+                        </form>
+                    </div>
                 </div>
 
                 <form action="{{ route('admin.laporan.index') }}" method="GET"
@@ -55,17 +68,13 @@
                     <input type="hidden" name="tab" value="arus-kas">
                     <div class="w-full md:flex-1">
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Dari Tanggal</label>
-                        <input type="date" name="start_date" value="{{ $startDate }}"
-                            class="w-full border rounded-lg px-3 py-2 text-sm">
+                        <input type="date" name="start_date" value="{{ $startDate }}" onchange="this.form.submit()"
+                            class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                     <div class="w-full md:flex-1">
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Sampai Tanggal</label>
-                        <input type="date" name="end_date" value="{{ $endDate }}"
-                            class="w-full border rounded-lg px-3 py-2 text-sm">
-                    </div>
-                    <div class="w-full md:w-auto mt-2 md:mt-0">
-                        <button type="submit"
-                            class="w-full bg-gray-800 text-white py-2 px-6 rounded-lg text-sm font-medium">Filter</button>
+                        <input type="date" name="end_date" value="{{ $endDate }}" onchange="this.form.submit()"
+                            class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                 </form>
 
@@ -94,12 +103,19 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-4 py-8 text-center text-gray-500">Tidak ada data.</td>
+                                    <td colspan="4" class="px-4 py-8 text-center text-gray-500">Tidak ada data transaksi.
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
+
+                @if ($data['arusKas']->hasPages())
+                    <div class="mt-4">
+                        {{ $data['arusKas']->appends(request()->query())->links() }}
+                    </div>
+                @endif
             </div>
         @endif
 
@@ -113,43 +129,67 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                     <div>
                         <h3 class="text-lg font-medium text-gray-800">Tagihan & Tunggakan</h3>
-                        <p class="text-sm text-gray-500">Menampilkan status pembayaran pelanggan bulan tertentu.</p>
+                        <p class="text-sm text-gray-500">Menampilkan tagihan berdasarkan rentang tanggal dan pelanggan.</p>
                     </div>
-                    <form action="{{ route('admin.laporan.tagihan.excel') }}" method="POST" class="w-full md:w-auto">
-                        @csrf
-                        <input type="hidden" name="bulan" value="{{ $bulan }}">
-                        <input type="hidden" name="tahun" value="{{ $tahun }}">
-                        <button type="submit"
-                            class="w-full md:w-auto justify-center bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg flex items-center transition-colors">
+
+                    <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                        <a href="{{ route('admin.laporan.tagihan.pdf', ['start_date' => $startDate, 'end_date' => $endDate, 'search_pelanggan' => $data['searchPelanggan'] ?? '']) }}"
+                            target="_blank"
+                            class="w-full sm:w-auto justify-center bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg flex items-center transition-colors">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                                 </path>
-                            </svg> Download Excel
-                        </button>
-                    </form>
+                            </svg> Cetak PDF
+                        </a>
+
+                        <form action="{{ route('admin.laporan.tagihan.excel') }}" method="POST" class="w-full sm:w-auto">
+                            @csrf
+                            <input type="hidden" name="start_date" value="{{ $startDate }}">
+                            <input type="hidden" name="end_date" value="{{ $endDate }}">
+                            <input type="hidden" name="search_pelanggan" value="{{ $data['searchPelanggan'] ?? '' }}">
+                            <button type="submit"
+                                class="w-full sm:w-auto justify-center bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg flex items-center transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg> Download Excel
+                            </button>
+                        </form>
+                    </div>
                 </div>
 
                 <form action="{{ route('admin.laporan.index') }}" method="GET"
                     class="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6 flex flex-col md:flex-row gap-4 md:items-end">
                     <input type="hidden" name="tab" value="tagihan">
-                    <div class="w-full md:flex-1">
-                        <label class="block text-xs font-semibold text-blue-800 mb-1">Bulan</label>
-                        <select name="bulan" class="w-full border rounded-lg px-3 py-2 text-sm bg-white">
-                            @foreach (range(1, 12) as $b)
-                                <option value="{{ $b }}" {{ $bulan == $b ? 'selected' : '' }}>Bulan
-                                    {{ $b }}</option>
-                            @endforeach
-                        </select>
+
+                    <div class="w-full md:w-1/4">
+                        <label class="block text-xs font-semibold text-blue-800 mb-1">Dari Tanggal</label>
+                        <input type="date" name="start_date" value="{{ $startDate }}"
+                            onchange="this.form.submit()"
+                            class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
-                    <div class="w-full md:flex-1">
-                        <label class="block text-xs font-semibold text-blue-800 mb-1">Tahun</label>
-                        <input type="number" name="tahun" value="{{ $tahun }}"
-                            class="w-full border rounded-lg px-3 py-2 text-sm bg-white">
+
+                    <div class="w-full md:w-1/4">
+                        <label class="block text-xs font-semibold text-blue-800 mb-1">Sampai Tanggal</label>
+                        <input type="date" name="end_date" value="{{ $endDate }}" onchange="this.form.submit()"
+                            class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
-                    <div class="w-full md:w-auto mt-2 md:mt-0">
-                        <button type="submit"
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg text-sm font-medium">Filter</button>
+
+                    <div class="w-full md:w-2/4">
+                        <label class="block text-xs font-semibold text-blue-800 mb-1">Cari Pelanggan (Tekan Enter)</label>
+                        <div class="relative">
+                            <input type="text" name="search_pelanggan" value="{{ $data['searchPelanggan'] ?? '' }}"
+                                placeholder="Masukkan Nama atau Kode Pelanggan..."
+                                class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none pr-10">
+                            <button type="submit" class="absolute right-2 top-1.5 text-blue-600 hover:text-blue-800">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </form>
 
@@ -157,6 +197,7 @@
                     <table class="w-full text-sm text-left text-gray-600">
                         <thead class="bg-gray-50 text-xs uppercase text-gray-700">
                             <tr>
+                                <th class="px-4 py-3">Tanggal</th>
                                 <th class="px-4 py-3">Pelanggan</th>
                                 <th class="px-4 py-3 whitespace-nowrap">Vol (m³)</th>
                                 <th class="px-4 py-3">Tagihan</th>
@@ -166,12 +207,19 @@
                         <tbody>
                             @forelse($data['tagihan'] as $tagih)
                                 <tr class="border-t hover:bg-gray-50">
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        {{ \Carbon\Carbon::parse($tagih->pencatatanMeter?->tanggal_pencatatan ?? $tagih->created_at)->format('d/m/Y') }}
+                                        <br>
+                                        <span class="text-[10px] text-gray-500 font-bold">Periode:
+                                            {{ \Carbon\Carbon::create(null, $tagih->bulan_periode, 1)->isoFormat('MMM') }}
+                                            {{ $tagih->tahun_periode }}</span>
+                                    </td>
                                     <td class="px-4 py-3 min-w-[150px]">
                                         <span
                                             class="font-medium text-gray-800">{{ $tagih->pelanggan->nama_pelanggan }}</span><br>
                                         <span class="text-xs text-gray-500">{{ $tagih->pelanggan->kode_pelanggan }}</span>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap">{{ $tagih->pencatatanMeter->volume_m3 ?? 0 }}
+                                    <td class="px-4 py-3 whitespace-nowrap">{{ $tagih->pencatatanMeter?->volume_m3 ?? 0 }}
                                         m³</td>
                                     <td class="px-4 py-3 text-red-600 font-medium whitespace-nowrap">Rp
                                         {{ number_format($tagih->total_tagihan, 0, ',', '.') }}</td>
@@ -184,13 +232,19 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-4 py-8 text-center text-gray-500">Tidak ada tagihan bulan
-                                        ini.</td>
+                                    <td colspan="5" class="px-4 py-8 text-center text-gray-500">Tidak ada tagihan pada
+                                        periode/pencarian ini.</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
+
+                @if ($data['tagihan']->hasPages())
+                    <div class="mt-4">
+                        {{ $data['tagihan']->appends(request()->query())->links() }}
+                    </div>
+                @endif
             </div>
         @endif
 
@@ -205,20 +259,33 @@
                         <h3 class="text-lg font-medium text-gray-800">Mutasi Inventaris</h3>
                         <p class="text-sm text-gray-500">Menampilkan rekam jejak barang masuk dan keluar.</p>
                     </div>
-                    <form action="{{ route('admin.laporan.inventaris.excel') }}" method="POST"
-                        class="w-full md:w-auto">
-                        @csrf
-                        <input type="hidden" name="start_date" value="{{ $startDate }}">
-                        <input type="hidden" name="end_date" value="{{ $endDate }}">
-                        <button type="submit"
-                            class="w-full md:w-auto justify-center bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg flex items-center transition-colors">
+
+                    <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                        <a href="{{ route('admin.laporan.inventaris.pdf', ['start_date' => $startDate, 'end_date' => $endDate]) }}"
+                            target="_blank"
+                            class="w-full sm:w-auto justify-center bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg flex items-center transition-colors">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                                 </path>
-                            </svg> Download Excel
-                        </button>
-                    </form>
+                            </svg> Cetak PDF
+                        </a>
+
+                        <form action="{{ route('admin.laporan.inventaris.excel') }}" method="POST"
+                            class="w-full sm:w-auto">
+                            @csrf
+                            <input type="hidden" name="start_date" value="{{ $startDate }}">
+                            <input type="hidden" name="end_date" value="{{ $endDate }}">
+                            <button type="submit"
+                                class="w-full sm:w-auto justify-center bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg flex items-center transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg> Download Excel
+                            </button>
+                        </form>
+                    </div>
                 </div>
 
                 <form action="{{ route('admin.laporan.index') }}" method="GET"
@@ -227,16 +294,13 @@
                     <div class="w-full md:flex-1">
                         <label class="block text-xs font-semibold text-purple-800 mb-1">Dari Tanggal</label>
                         <input type="date" name="start_date" value="{{ $startDate }}"
-                            class="w-full border rounded-lg px-3 py-2 text-sm bg-white">
+                            onchange="this.form.submit()"
+                            class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-purple-500">
                     </div>
                     <div class="w-full md:flex-1">
                         <label class="block text-xs font-semibold text-purple-800 mb-1">Sampai Tanggal</label>
-                        <input type="date" name="end_date" value="{{ $endDate }}"
-                            class="w-full border rounded-lg px-3 py-2 text-sm bg-white">
-                    </div>
-                    <div class="w-full md:w-auto mt-2 md:mt-0">
-                        <button type="submit"
-                            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg text-sm font-medium">Filter</button>
+                        <input type="date" name="end_date" value="{{ $endDate }}" onchange="this.form.submit()"
+                            class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-purple-500">
                     </div>
                 </form>
 
