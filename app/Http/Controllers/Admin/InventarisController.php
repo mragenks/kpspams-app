@@ -126,24 +126,27 @@ class InventarisController extends Controller
 
     public function mutasiStok(Request $request, Inventaris $inventaris)
     {
+        // Fitur Pengembalian ditambahkan pada validasi di sini
         $request->validate([
-            'jenis_mutasi' => 'required|in:masuk,keluar',
+            'jenis_mutasi' => 'required|in:masuk,keluar,pengembalian',
             'jumlah'       => 'required|integer|min:1',
             'keterangan'   => 'required|string|max:255',
             'tanggal'      => 'required|date',
         ]);
 
+        // Cek jika barang keluar tapi stok tidak cukup
         if (
             $request->jenis_mutasi === 'keluar' &&
             $inventaris->stok_saat_ini < $request->jumlah
         ) {
-            return back()->with('error', 'Stok tidak mencukupi! Stok saat ini: ' .
-                $inventaris->stok_saat_ini);
+            return back()->with('error', 'Stok tidak mencukupi! Sisa stok saat ini hanya ' . $inventaris->stok_saat_ini . ' unit.');
         }
 
         DB::transaction(function () use ($request, $inventaris) {
             $stokSebelum = $inventaris->stok_saat_ini;
-            $stokSesudah = $request->jenis_mutasi === 'masuk'
+
+            // Logika: Jika masuk / pengembalian -> Tambah Stok. Jika keluar -> Kurangi Stok.
+            $stokSesudah = in_array($request->jenis_mutasi, ['masuk', 'pengembalian'])
                 ? $stokSebelum + $request->jumlah
                 : $stokSebelum - $request->jumlah;
 

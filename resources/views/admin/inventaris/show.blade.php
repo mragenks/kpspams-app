@@ -96,6 +96,14 @@
         <div class="bg-white rounded-lg shadow p-4 sm:p-6 border-l-4 border-blue-500">
             <h3 class="text-base font-semibold text-gray-800 mb-4">Catat Mutasi Stok</h3>
 
+            {{-- Pesan Peringatan Jika Stok Tidak Cukup --}}
+            @if (session('error'))
+                <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 mb-4 rounded-r-lg text-sm">
+                    <p class="font-bold">Gagal!</p>
+                    <p>{{ session('error') }}</p>
+                </div>
+            @endif
+
             <form action="{{ route('admin.inventaris.mutasi', $inventaris) }}" method="POST">
                 @csrf
 
@@ -104,18 +112,25 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Jenis Mutasi <span class="text-red-500">*</span>
                         </label>
-                        <select name="jenis_mutasi"
+                        <select name="jenis_mutasi" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                            <option value="masuk">Barang Masuk (Penambahan)</option>
-                            <option value="keluar">Barang Keluar (Pengurangan)</option>
+                            <option value="masuk">Barang Masuk (Beli Baru / Penambahan)</option>
+                            <option value="keluar">Barang Keluar (Pemasangan / Pemakaian)</option>
+                            <option value="pengembalian">Pengembalian (Sisa Lapangan / Batal Pakai)</option>
                         </select>
+                        @error('jenis_mutasi')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Jumlah Mutasi <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" name="jumlah" value="{{ old('jumlah', 1) }}" min="1"
+                        <input type="number" name="jumlah" value="{{ old('jumlah', 1) }}" min="1" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        @error('jumlah')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
@@ -124,16 +139,22 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Keterangan <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" name="keterangan" value="{{ old('keterangan') }}"
+                        <input type="text" name="keterangan" value="{{ old('keterangan') }}" required
                             placeholder="Contoh: Pembelian baru, Pemakaian lapangan..."
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        @error('keterangan')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Tanggal <span class="text-red-500">*</span>
                         </label>
-                        <input type="date" name="tanggal" value="{{ old('tanggal', date('Y-m-d')) }}"
+                        <input type="date" name="tanggal" value="{{ old('tanggal', date('Y-m-d')) }}" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        @error('tanggal')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
@@ -181,15 +202,21 @@
                                         @elseif($r->jenis_mutasi === 'keluar')
                                             <span
                                                 class="inline-block px-2 py-1 bg-red-100 text-red-700 rounded text-[10px] font-bold uppercase tracking-wider">Keluar</span>
+                                        @elseif($r->jenis_mutasi === 'pengembalian')
+                                            <span
+                                                class="inline-block px-2 py-1 bg-blue-100 text-blue-700 rounded text-[10px] font-bold uppercase tracking-wider">Pengembalian</span>
                                         @else
                                             <span
                                                 class="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded text-[10px] font-bold uppercase tracking-wider">Penyesuaian</span>
                                         @endif
                                     </td>
+
+                                    {{-- Kolom jumlah mutasi: Hijau (+), Merah (-) --}}
                                     <td
-                                        class="px-4 py-3 font-bold text-center {{ $r->jenis_mutasi === 'masuk' ? 'text-green-600' : 'text-red-600' }}">
-                                        {{ $r->jenis_mutasi === 'masuk' ? '+' : '-' }}{{ $r->jumlah }}
+                                        class="px-4 py-3 font-bold text-center {{ in_array($r->jenis_mutasi, ['masuk', 'pengembalian']) ? 'text-green-600' : 'text-red-600' }}">
+                                        {{ $r->jumlah }}
                                     </td>
+
                                     <td class="px-4 py-3 text-center whitespace-nowrap">
                                         <span class="text-gray-500">{{ $r->stok_sebelum }}</span>
                                         <span class="mx-1 text-gray-300">➔</span>
