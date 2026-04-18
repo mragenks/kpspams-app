@@ -41,7 +41,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-sm text-gray-500">Selisih Bulan Ini</p>
+                <p class="text-sm text-gray-500">Selisih Periode Ini</p>
                 <p class="text-xl font-bold {{ $totalMasuk - $totalKeluar >= 0 ? 'text-blue-600' : 'text-red-600' }}">
                     Rp {{ number_format($totalMasuk - $totalKeluar, 0, ',', '.') }}
                 </p>
@@ -51,32 +51,22 @@
 
     {{-- Filter --}}
     <div class="bg-white rounded-lg shadow p-4 mb-6">
-        <form method="GET" action="{{ route('ketua.arus-kas.index') }}" class="flex gap-4 items-end flex-wrap">
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Bulan</label>
-                <select name="bulan"
-                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    @foreach (range(1, 12) as $b)
-                        <option value="{{ $b }}" {{ $bulan == $b ? 'selected' : '' }}>
-                            {{ \Carbon\Carbon::create()->month($b)->isoFormat('MMMM') }}
-                        </option>
-                    @endforeach
-                </select>
+        <form method="GET" action="{{ route('ketua.arus-kas.index') }}"
+            class="flex flex-col sm:flex-row gap-4 items-end flex-wrap">
+            <div class="w-full sm:w-auto md:flex-1">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Dari Tanggal</label>
+                <input type="date" name="start_date" value="{{ $startDate }}" onchange="this.form.submit()"
+                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full cursor-pointer">
             </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Tahun</label>
-                <select name="tahun"
-                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-28 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    @foreach (range(date('Y'), 2020) as $t)
-                        <option value="{{ $t }}" {{ $tahun == $t ? 'selected' : '' }}>{{ $t }}
-                        </option>
-                    @endforeach
-                </select>
+            <div class="w-full sm:w-auto md:flex-1">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Sampai Tanggal</label>
+                <input type="date" name="end_date" value="{{ $endDate }}" onchange="this.form.submit()"
+                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full cursor-pointer">
             </div>
-            <div>
+            <div class="w-full sm:w-auto md:flex-1">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Akun Kas</label>
-                <select name="akun_kas_id"
-                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select name="akun_kas_id" onchange="this.form.submit()"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                     <option value="">Semua Akun</option>
                     @foreach ($akunKasList as $ak)
                         <option value="{{ $ak->id }}" {{ $akunKasId == $ak->id ? 'selected' : '' }}>
@@ -85,10 +75,13 @@
                     @endforeach
                 </select>
             </div>
-            <button type="submit"
-                class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
-                Filter
-            </button>
+            {{-- Tombol Filter disembunyikan secara visual karena sudah otomatis pakai onchange --}}
+            <div class="hidden w-full sm:w-auto mt-2 sm:mt-0">
+                <button type="submit"
+                    class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+                    Filter
+                </button>
+            </div>
         </form>
     </div>
 
@@ -96,7 +89,8 @@
     <div class="bg-white rounded-lg shadow">
         <div class="p-6 border-b">
             <h2 class="text-lg font-semibold text-gray-700">
-                Buku Kas — {{ \Carbon\Carbon::create()->month($bulan)->isoFormat('MMMM') }} {{ $tahun }}
+                Buku Kas — {{ \Carbon\Carbon::parse($startDate)->isoFormat('D MMM Y') }} s/d
+                {{ \Carbon\Carbon::parse($endDate)->isoFormat('D MMM Y') }}
             </h2>
         </div>
 
@@ -109,7 +103,8 @@
                         <th class="px-6 py-4">Keterangan</th>
                         <th class="px-6 py-4">Akun Kas</th>
                         <th class="px-6 py-4">Jenis</th>
-                        <th class="px-6 py-4">Nominal</th>
+                        <th class="px-6 py-4 text-right">Masuk (Rp)</th>
+                        <th class="px-6 py-4 text-right">Keluar (Rp)</th>
                         <th class="px-6 py-4">No. Bukti</th>
                     </tr>
                 </thead>
@@ -119,12 +114,12 @@
                             <td class="px-6 py-4 text-gray-500">
                                 {{ ($arusKas->currentPage() - 1) * $arusKas->perPage() + $index + 1 }}
                             </td>
-                            <td class="px-6 py-4 text-gray-700">
+                            <td class="px-6 py-4 text-gray-700 whitespace-nowrap">
                                 {{ \Carbon\Carbon::parse($ak->tanggal)->isoFormat('D MMM Y') }}
                             </td>
                             <td class="px-6 py-4 text-gray-800">{{ $ak->keterangan }}</td>
                             <td class="px-6 py-4 text-gray-600">{{ $ak->akunKas->nama_akun }}</td>
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 whitespace-nowrap">
                                 @if (in_array($ak->jenis_transaksi, ['masuk', 'mutasi_masuk']))
                                     <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                                         {{ $ak->jenis_transaksi === 'mutasi_masuk' ? 'Mutasi Masuk' : 'Masuk' }}
@@ -135,16 +130,22 @@
                                     </span>
                                 @endif
                             </td>
-                            <td
-                                class="px-6 py-4 font-semibold {{ in_array($ak->jenis_transaksi, ['masuk', 'mutasi_masuk']) ? 'text-green-600' : 'text-red-600' }}">
-                                {{ in_array($ak->jenis_transaksi, ['masuk', 'mutasi_masuk']) ? '+' : '-' }}
-                                Rp {{ number_format($ak->nominal, 0, ',', '.') }}
+
+                            {{-- Kolom Masuk (Hijau) --}}
+                            <td class="px-6 py-4 text-right whitespace-nowrap font-semibold text-green-600">
+                                {{ in_array($ak->jenis_transaksi, ['masuk', 'mutasi_masuk']) ? number_format($ak->nominal, 0, ',', '.') : '-' }}
                             </td>
+
+                            {{-- Kolom Keluar (Merah) --}}
+                            <td class="px-6 py-4 text-right whitespace-nowrap font-semibold text-red-600">
+                                {{ in_array($ak->jenis_transaksi, ['keluar', 'mutasi_keluar']) ? number_format($ak->nominal, 0, ',', '.') : '-' }}
+                            </td>
+
                             <td class="px-6 py-4 text-gray-500">{{ $ak->no_bukti ?? '-' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-10 text-center text-gray-400">
+                            <td colspan="8" class="px-6 py-10 text-center text-gray-400">
                                 Belum ada transaksi di periode ini
                             </td>
                         </tr>
@@ -155,7 +156,7 @@
 
         @if ($arusKas->hasPages())
             <div class="p-4 border-t">
-                {{ $arusKas->links() }}
+                {{ $arusKas->appends(request()->query())->links() }}
             </div>
         @endif
     </div>

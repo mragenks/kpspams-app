@@ -6,32 +6,30 @@ use App\Http\Controllers\Controller;
 use App\Models\ArusKas;
 use App\Models\AkunKas;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class ArusKasController extends Controller
 {
     public function index(Request $request)
     {
-        $bulan = $request->bulan ?? date('n');
-        $tahun = $request->tahun ?? date('Y');
+        $startDate = $request->start_date ?: Carbon::now()->startOfMonth()->toDateString();
+        $endDate = $request->end_date ?: Carbon::now()->endOfMonth()->toDateString();
         $akunKasId = $request->akun_kas_id ?? '';
 
         $arusKas = ArusKas::with(['akunKas'])
-            ->whereMonth('tanggal', $bulan)
-            ->whereYear('tanggal', $tahun)
+            ->whereBetween('tanggal', [$startDate, $endDate])
             ->when($akunKasId, fn($q) => $q->where('akun_kas_id', $akunKasId))
             ->orderBy('tanggal', 'asc')
             ->paginate(15);
 
         $akunKasList = AkunKas::where('is_active', true)->get();
 
-        $totalMasuk = ArusKas::whereMonth('tanggal', $bulan)
-            ->whereYear('tanggal', $tahun)
+        $totalMasuk = ArusKas::whereBetween('tanggal', [$startDate, $endDate])
             ->when($akunKasId, fn($q) => $q->where('akun_kas_id', $akunKasId))
             ->whereIn('jenis_transaksi', ['masuk', 'mutasi_masuk'])
             ->sum('nominal');
 
-        $totalKeluar = ArusKas::whereMonth('tanggal', $bulan)
-            ->whereYear('tanggal', $tahun)
+        $totalKeluar = ArusKas::whereBetween('tanggal', [$startDate, $endDate])
             ->when($akunKasId, fn($q) => $q->where('akun_kas_id', $akunKasId))
             ->whereIn('jenis_transaksi', ['keluar', 'mutasi_keluar'])
             ->sum('nominal');
@@ -39,8 +37,8 @@ class ArusKasController extends Controller
         return view('ketua.arus-kas.index', compact(
             'arusKas',
             'akunKasList',
-            'bulan',
-            'tahun',
+            'startDate',
+            'endDate',
             'akunKasId',
             'totalMasuk',
             'totalKeluar'

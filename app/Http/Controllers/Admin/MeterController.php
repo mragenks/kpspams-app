@@ -17,39 +17,38 @@ class MeterController extends Controller
 {
     public function index(Request $request)
     {
-        $bulan = $request->bulan ?? date('n');
-        $tahun = $request->tahun ?? date('Y');
+        // 1. Ambil format YYYY-MM dari request, default ke bulan ini
+        $startPeriode = $request->start_periode ?? date('Y-m');
+        $endPeriode = $request->end_periode ?? date('Y-m');
 
+        // 2. Filter Pencatatan berdasarkan rentang CONCAT(tahun-bulan)
         $pencatatan = PencatatanMeter::with(['pelanggan', 'tagihanAir'])
-            ->where('bulan_periode', $bulan)
-            ->where('tahun_periode', $tahun)
-            ->latest()
+            ->whereRaw("CONCAT(tahun_periode, '-', LPAD(bulan_periode, 2, '0')) BETWEEN ? AND ?", [$startPeriode, $endPeriode])
+            ->orderBy('tahun_periode', 'desc')
+            ->orderBy('bulan_periode', 'desc')
             ->paginate(10);
 
-        $batasWaktuFilter = \Carbon\Carbon::create($tahun, $bulan)->endOfMonth();
+        // 3. Ekstrak tahun dan bulan untuk batas akhir pengecekan pelanggan yang nunggak/belum dicatat
+        $endYear = (int) substr($endPeriode, 0, 4);
+        $endMonth = (int) substr($endPeriode, 5, 2);
 
-        // LOGIKA PENYEMPURNAAN
+        $batasWaktuFilter = \Carbon\Carbon::create($endYear, $endMonth)->endOfMonth();
+
+        // 4. Logika pelanggan belum dicatat (dicek pada bulan terakhir dari rentang yang dipilih)
         $pelangganBelumDicatat = Pelanggan::where('status', 'aktif')
-            ->where(function ($query) use ($batasWaktuFilter, $tahun, $bulan) {
-                $query->where('created_at', '<=', $batasWaktuFilter)
-                    ->orWhereHas('pencatatanMeter', function ($subQuery) use ($tahun, $bulan) {
-                        $subQuery->where('tahun_periode', '<', $tahun)
-                            ->orWhere(function ($q) use ($tahun, $bulan) {
-                                $q->where('tahun_periode', $tahun)
-                                    ->where('bulan_periode', '<', $bulan);
-                            });
-                    });
-            })
-            ->whereDoesntHave('pencatatanMeter', function ($q) use ($bulan, $tahun) {
-                $q->where('bulan_periode', $bulan)
-                    ->where('tahun_periode', $tahun);
+            ->where('created_at', '<=', $batasWaktuFilter)
+            ->whereDoesntHave('pencatatanMeter', function ($q) use ($endMonth, $endYear) {
+                $q->where('bulan_periode', $endMonth)
+                    ->where('tahun_periode', $endYear);
             })->get();
 
         return view('admin.meter.index', compact(
             'pencatatan',
             'pelangganBelumDicatat',
-            'bulan',
-            'tahun'
+            'startPeriode',
+            'endPeriode',
+            'endMonth',
+            'endYear'
         ));
     }
 

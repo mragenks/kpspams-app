@@ -6,21 +6,21 @@
     {{-- Filter Periode & Action Button --}}
     <div class="bg-white rounded-lg shadow p-3 sm:p-4 mb-6 border border-gray-100">
         <form id="filterForm" method="GET" action="{{ route('admin.meter.index') }}"
-            class="flex flex-col md:flex-row gap-3 md:items-end">
+            class="flex flex-col md:flex-row gap-4 md:items-end">
 
-            {{-- Filter Bulan & Tahun Menjadi 1 (Input Type Month) --}}
-            <div class="w-full md:w-56">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Periode
-                    Pencatatan</label>
-
-                {{-- Input utama yang dilihat user --}}
-                <input type="month" id="periodeInput" value="{{ $tahun }}-{{ str_pad($bulan, 2, '0', STR_PAD_LEFT) }}"
-                    onchange="submitPeriode()"
+            {{-- Filter Dari Periode --}}
+            <div class="w-full md:w-48">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Dari Periode</label>
+                <input type="month" name="start_periode" value="{{ $startPeriode }}" onchange="this.form.submit()"
                     class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
+            </div>
 
-                {{-- Hidden input yang dikirim ke Controller agar tidak perlu ubah backend --}}
-                <input type="hidden" name="bulan" id="hiddenBulan" value="{{ $bulan }}">
-                <input type="hidden" name="tahun" id="hiddenTahun" value="{{ $tahun }}">
+            {{-- Filter Sampai Periode --}}
+            <div class="w-full md:w-48">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Sampai
+                    Periode</label>
+                <input type="month" name="end_periode" value="{{ $endPeriode }}" onchange="this.form.submit()"
+                    class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
             </div>
 
             <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto mt-2 md:mt-0 md:ml-auto">
@@ -35,12 +35,13 @@
         </form>
     </div>
 
-    {{-- Info pelanggan belum dicatat --}}
+    {{-- Info pelanggan belum dicatat (Dicek pada bulan target akhir) --}}
     @if ($pelangganBelumDicatat->count() > 0)
         <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-3 sm:p-4 mb-6">
             <p class="text-xs sm:text-sm text-yellow-800 font-medium leading-relaxed">
                 <span class="inline-block mr-1">⚠️</span>
-                <strong>{{ $pelangganBelumDicatat->count() }} pelanggan</strong> belum dicatat di periode ini:
+                <strong>{{ $pelangganBelumDicatat->count() }} pelanggan</strong> belum dicatat pada periode akhir
+                ({{ \Carbon\Carbon::createFromFormat('Y-m', $endPeriode)->isoFormat('MMMM Y') }}):
                 <span
                     class="text-gray-600 ml-1">{{ Str::limit($pelangganBelumDicatat->pluck('nama_pelanggan')->join(', '), 100) }}</span>
             </p>
@@ -51,7 +52,8 @@
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <div class="p-4 sm:p-6 border-b">
             <h2 class="text-base sm:text-lg font-semibold text-gray-700">
-                Pencatatan — {{ \Carbon\Carbon::create()->month($bulan)->isoFormat('MMMM') }} {{ $tahun }}
+                Pencatatan — {{ \Carbon\Carbon::createFromFormat('Y-m', $startPeriode)->isoFormat('MMM Y') }} s/d
+                {{ \Carbon\Carbon::createFromFormat('Y-m', $endPeriode)->isoFormat('MMM Y') }}
             </h2>
         </div>
 
@@ -60,7 +62,7 @@
                 <thead class="bg-gray-50 text-gray-600 uppercase text-[10px] sm:text-xs tracking-wider border-b">
                     <tr>
                         <th class="px-4 py-3 sm:px-6">No</th>
-                        <th class="px-4 py-3 sm:px-6 min-w-[150px]">Pelanggan</th>
+                        <th class="px-4 py-3 sm:px-6 min-w-[150px]">Pelanggan & Periode</th>
                         <th class="hidden md:table-cell px-6 py-3 text-center">Meter Awal</th>
                         <th class="hidden md:table-cell px-6 py-3 text-center">Meter Akhir</th>
                         <th class="hidden sm:table-cell px-6 py-3 text-center">Vol (m³)</th>
@@ -78,9 +80,14 @@
                             <td class="px-4 py-3 sm:px-6">
                                 <p class="font-medium text-gray-800 text-xs sm:text-sm">{{ $p->pelanggan->nama_pelanggan }}
                                 </p>
-                                <p class="text-[10px] sm:text-xs text-blue-600 font-mono">
+                                <p class="text-[10px] sm:text-xs text-blue-600 font-mono mb-1">
                                     {{ $p->pelanggan->kode_pelanggan }}</p>
-                                <p class="block sm:hidden mt-0.5 text-[10px] text-gray-500 font-medium">Vol:
+                                {{-- LABEL PERIODE DITAMBAHKAN DI SINI AGAR JELAS --}}
+                                <span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">
+                                    {{ \Carbon\Carbon::create(null, $p->bulan_periode, 1)->isoFormat('MMM') }}
+                                    {{ $p->tahun_periode }}
+                                </span>
+                                <p class="block sm:hidden mt-1 text-[10px] text-gray-500 font-medium">Vol:
                                     {{ number_format($p->volume_m3, 0) }} m³</p>
                             </td>
                             <td class="hidden md:table-cell px-6 py-3 text-center text-gray-500 font-mono text-xs">
@@ -129,7 +136,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                     </svg>
-                                    <p>Belum ada pencatatan meter di periode ini</p>
+                                    <p>Belum ada pencatatan meter di rentang periode ini</p>
                                 </div>
                             </td>
                         </tr>
@@ -140,23 +147,8 @@
 
         @if ($pencatatan->hasPages())
             <div class="p-4 border-t">
-                {{ $pencatatan->links() }}
+                {{ $pencatatan->appends(request()->query())->links() }}
             </div>
         @endif
     </div>
-
-    {{-- Script untuk memecah input month menjadi bulan dan tahun --}}
-    <script>
-        function submitPeriode() {
-            let val = document.getElementById('periodeInput').value; // Contoh format: "2026-04"
-            if (val) {
-                let parts = val.split('-');
-                document.getElementById('hiddenTahun').value = parts[0]; // "2026"
-                document.getElementById('hiddenBulan').value = parseInt(parts[1], 10); // "4"
-
-                // Submit form otomatis
-                document.getElementById('filterForm').submit();
-            }
-        }
-    </script>
 @endsection
