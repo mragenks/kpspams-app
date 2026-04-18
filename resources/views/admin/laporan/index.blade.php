@@ -129,11 +129,11 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                     <div>
                         <h3 class="text-lg font-medium text-gray-800">Tagihan & Tunggakan</h3>
-                        <p class="text-sm text-gray-500">Menampilkan tagihan berdasarkan rentang tanggal dan pelanggan.</p>
+                        <p class="text-sm text-gray-500">Menampilkan tagihan berdasarkan Periode Bulan.</p>
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                        <a href="{{ route('admin.laporan.tagihan.pdf', ['start_date' => $startDate, 'end_date' => $endDate, 'search_pelanggan' => $data['searchPelanggan'] ?? '']) }}"
+                        <a href="{{ route('admin.laporan.tagihan.pdf', ['start_periode' => $startPeriode, 'end_periode' => $endPeriode, 'search_pelanggan' => $data['searchPelanggan'] ?? '']) }}"
                             target="_blank"
                             class="w-full sm:w-auto justify-center bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg flex items-center transition-colors">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,8 +145,8 @@
 
                         <form action="{{ route('admin.laporan.tagihan.excel') }}" method="POST" class="w-full sm:w-auto">
                             @csrf
-                            <input type="hidden" name="start_date" value="{{ $startDate }}">
-                            <input type="hidden" name="end_date" value="{{ $endDate }}">
+                            <input type="hidden" name="start_periode" value="{{ $startPeriode }}">
+                            <input type="hidden" name="end_periode" value="{{ $endPeriode }}">
                             <input type="hidden" name="search_pelanggan" value="{{ $data['searchPelanggan'] ?? '' }}">
                             <button type="submit"
                                 class="w-full sm:w-auto justify-center bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg flex items-center transition-colors">
@@ -165,16 +165,17 @@
                     <input type="hidden" name="tab" value="tagihan">
 
                     <div class="w-full md:w-1/4">
-                        <label class="block text-xs font-semibold text-blue-800 mb-1">Dari Tanggal</label>
-                        <input type="date" name="start_date" value="{{ $startDate }}"
+                        <label class="block text-xs font-semibold text-blue-800 mb-1">Dari Periode</label>
+                        <input type="month" name="start_periode" value="{{ $startPeriode }}"
                             onchange="this.form.submit()"
-                            class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white cursor-pointer">
                     </div>
 
                     <div class="w-full md:w-1/4">
-                        <label class="block text-xs font-semibold text-blue-800 mb-1">Sampai Tanggal</label>
-                        <input type="date" name="end_date" value="{{ $endDate }}" onchange="this.form.submit()"
-                            class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block text-xs font-semibold text-blue-800 mb-1">Sampai Periode</label>
+                        <input type="month" name="end_periode" value="{{ $endPeriode }}"
+                            onchange="this.form.submit()"
+                            class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white cursor-pointer">
                     </div>
 
                     <div class="w-full md:w-2/4">
@@ -197,11 +198,11 @@
                     <table class="w-full text-sm text-left text-gray-600">
                         <thead class="bg-gray-50 text-xs uppercase text-gray-700">
                             <tr>
-                                <th class="px-4 py-3">Tanggal</th>
-                                <th class="px-4 py-3">Pelanggan</th>
+                                <th class="px-4 py-3">Tanggal Input</th>
+                                <th class="px-4 py-3">Pelanggan & Periode</th>
                                 <th class="px-4 py-3 whitespace-nowrap">Vol (m³)</th>
-                                <th class="px-4 py-3">Tagihan</th>
-                                <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3 text-right">Tagihan</th>
+                                <th class="px-4 py-3 text-center">Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -209,21 +210,24 @@
                                 <tr class="border-t hover:bg-gray-50">
                                     <td class="px-4 py-3 whitespace-nowrap">
                                         {{ \Carbon\Carbon::parse($tagih->pencatatanMeter?->tanggal_pencatatan ?? $tagih->created_at)->format('d/m/Y') }}
-                                        <br>
-                                        <span class="text-[10px] text-gray-500 font-bold">Periode:
-                                            {{ \Carbon\Carbon::create(null, $tagih->bulan_periode, 1)->isoFormat('MMM') }}
-                                            {{ $tagih->tahun_periode }}</span>
                                     </td>
                                     <td class="px-4 py-3 min-w-[150px]">
                                         <span
                                             class="font-medium text-gray-800">{{ $tagih->pelanggan->nama_pelanggan }}</span><br>
-                                        <span class="text-xs text-gray-500">{{ $tagih->pelanggan->kode_pelanggan }}</span>
+                                        <span
+                                            class="text-xs text-gray-500">{{ $tagih->pelanggan->kode_pelanggan }}</span><br>
+                                        <span
+                                            class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold mt-1 inline-block">
+                                            Periode:
+                                            {{ \Carbon\Carbon::create(null, $tagih->bulan_periode, 1)->isoFormat('MMM') }}
+                                            {{ $tagih->tahun_periode }}
+                                        </span>
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap">{{ $tagih->pencatatanMeter?->volume_m3 ?? 0 }}
                                         m³</td>
-                                    <td class="px-4 py-3 text-red-600 font-medium whitespace-nowrap">Rp
+                                    <td class="px-4 py-3 text-red-600 font-bold whitespace-nowrap text-right">Rp
                                         {{ number_format($tagih->total_tagihan, 0, ',', '.') }}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap">
+                                    <td class="px-4 py-3 whitespace-nowrap text-center">
                                         <span
                                             class="px-2 py-1.5 rounded-full text-[10px] font-bold {{ $tagih->status_bayar == 'lunas' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
                                             {{ strtoupper(str_replace('_', ' ', $tagih->status_bayar)) }}

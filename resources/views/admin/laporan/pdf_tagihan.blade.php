@@ -76,7 +76,8 @@
     <div class="header">
         <h2>LAPORAN TAGIHAN & TUNGGAKAN AIR KP-SPAMS TIRTA WENING</h2>
         <div>DESA SINGODUTAN, KEC/KAB: SELOGIRI / WONOGIRI</div>
-        <div class="filter-info">PERIODE : {{ strtoupper($startDate) }} - {{ strtoupper($endDate) }}</div>
+        {{-- Menampilkan Bulan & Tahun Periode Tagihan --}}
+        <div class="filter-info">PERIODE TAGIHAN: {{ $periodeLabel }}</div>
 
         @if ($searchPelanggan)
             <div class="filter-info" style="color: #d97706; margin-top: 3px;">
@@ -89,8 +90,8 @@
         <thead>
             <tr>
                 <th width="5%">NO</th>
-                <th width="15%">TANGGAL</th>
-                <th width="23%">NAMA PELANGGAN</th>
+                <th width="15%">TANGGAL INPUT</th>
+                <th width="23%">NAMA PELANGGAN & PERIODE</th>
                 <th width="10%">VOL (m³)</th>
                 <th width="15%">TOTAL TAGIHAN</th>
                 <th width="12%">SUDAH BAYAR</th>
@@ -103,16 +104,15 @@
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td class="text-center">
-                        {{-- PERBAIKAN BUG: Gunakan nullsafe operator ?-> --}}
                         {{ \Carbon\Carbon::parse($item->pencatatanMeter?->tanggal_pencatatan ?? $item->created_at)->format('d/m/Y') }}
-                        <br>
-                        <small style="color: #666;">Periode:
-                            {{ \Carbon\Carbon::create(null, $item->bulan_periode, 1)->isoFormat('MMM') }}
-                            {{ $item->tahun_periode }}</small>
                     </td>
                     <td>
-                        {{ $item->pelanggan->nama_pelanggan }}<br>
-                        <small style="color: #666;">{{ $item->pelanggan->kode_pelanggan }}</small>
+                        <strong>{{ $item->pelanggan->nama_pelanggan }}</strong><br>
+                        <small style="color: #666;">{{ $item->pelanggan->kode_pelanggan }}</small><br>
+                        <small style="color: #0044cc; font-weight: bold;">
+                            Periode: {{ \Carbon\Carbon::create(null, $item->bulan_periode, 1)->isoFormat('MMM') }}
+                            {{ $item->tahun_periode }}
+                        </small>
                     </td>
                     <td class="text-center">{{ $item->pencatatanMeter?->volume_m3 ?? 0 }}</td>
                     <td class="text-right">Rp {{ number_format($item->total_tagihan, 0, ',', '.') }}</td>
