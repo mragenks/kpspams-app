@@ -66,4 +66,54 @@ class UserController extends Controller
         $user->load(['pelanggan', 'pengurus']);
         return view('admin.user.show', compact('user'));
     }
+
+    public function edit(\App\Models\User $user)
+    {
+        // Pastikan hanya role Admin dan Ketua yang bisa diedit di halaman ini
+        // (Karena data Pelanggan diedit di menu Data Pelanggan tersendiri)
+        if (!in_array($user->role, ['admin', 'ketua'])) {
+            return redirect()->route('admin.user.index')->with('error', 'Hanya role Admin dan Ketua yang dapat diedit melalui form ini.');
+        }
+
+        $user->load('pengurus'); // Load relasi pengurus
+        return view('admin.user.edit', compact('user'));
+    }
+
+    public function update(Request $request, \App\Models\User $user)
+    {
+        // 1. Validasi Input
+        $request->validate([
+            'username'      => 'required|string|max:255|unique:users,username,' . $user->id,
+            'role'          => 'required|in:admin,ketua',
+            'nama_pengurus' => 'required|string|max:255',
+            'jabatan'       => 'nullable|string|max:255',
+            'no_hp'         => 'nullable|string|max:20', // Tambahkan validasi No HP
+            'alamat'        => 'nullable|string',        // Tambahkan validasi Alamat
+        ]);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $user) {
+            // 2. Update Akun Login (User)
+            $user->update([
+                'username' => $request->username,
+                'role'     => $request->role,
+            ]);
+
+            // 3. Update atau Create Biodata (Pengurus)
+            $dataPengurus = [
+                'nama_pengurus' => $request->nama_pengurus,
+                'jabatan'       => $request->jabatan,
+                'no_hp'         => $request->no_hp,   // Simpan No HP
+                'alamat'        => $request->alamat,  // Simpan Alamat
+            ];
+
+            if ($user->pengurus) {
+                $user->pengurus->update($dataPengurus);
+            } else {
+                $user->pengurus()->create($dataPengurus);
+            }
+        });
+
+        return redirect()->route('admin.user.show', $user->id)
+            ->with('success', 'Data pengurus berhasil diperbarui!');
+    }
 }

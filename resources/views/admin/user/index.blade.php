@@ -5,7 +5,8 @@
 
     {{-- Filter & Search --}}
     <div class="bg-white rounded-lg shadow p-4 mb-4 sm:mb-6">
-        <form method="GET" action="{{ route('admin.user.index') }}" class="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-end">
+        <form method="GET" action="{{ route('admin.user.index') }}"
+            class="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-end">
             <div class="w-full sm:flex-1">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Cari Username</label>
                 <input type="text" name="search" value="{{ $search }}" placeholder="Ketik username..."
@@ -101,8 +102,18 @@
                                         class="w-full sm:w-auto px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition text-center whitespace-nowrap">
                                         Detail
                                     </a>
+
+                                    {{-- TOMBOL EDIT KHUSUS ADMIN & KETUA --}}
+                                    @if (in_array($user->role, ['admin', 'ketua']))
+                                        <a href="{{ route('admin.user.edit', $user) }}"
+                                            class="w-full sm:w-auto px-3 py-1.5 bg-yellow-500 text-white rounded text-xs font-medium hover:bg-yellow-600 transition text-center whitespace-nowrap">
+                                            Edit
+                                        </a>
+                                    @endif
+
                                     @if ($user->id !== auth()->id())
-                                        <form action="{{ route('admin.user.toggle-status', $user) }}" method="POST" class="w-full sm:w-auto m-0">
+                                        <form action="{{ route('admin.user.toggle-status', $user) }}" method="POST"
+                                            class="w-full sm:w-auto m-0">
                                             @csrf
                                             <button type="submit"
                                                 class="w-full sm:w-auto px-3 py-1.5 {{ $user->is_active ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700' }} text-white rounded text-xs font-medium transition whitespace-nowrap">

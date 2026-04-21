@@ -75,6 +75,8 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
     Route::get('/user/{user}', [UserController::class, 'show'])->name('user.show');
     Route::post('/user/{user}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');
     Route::post('/user/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('user.toggle-status');
+    Route::get('/user/{user}/edit', [\App\Http\Controllers\Admin\UserController::class, 'edit'])->name('user.edit');
+    Route::put('/user/{user}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('user.update');
 
     //DEPOSIT ROUTES
     Route::get('/deposit', [DepositController::class, 'index'])->name('deposit.index');

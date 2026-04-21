@@ -10,9 +10,70 @@ use App\Models\ArusKas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 
 class PembayaranController extends Controller
 {
+    // ==========================================
+    // FUNGSI HELPER UNTUK WHATSAPP (FONNTE)
+    // ==========================================
+    private function sendWhatsApp($no_hp, $pesan)
+    {
+        $token = config('services.fonnte.token');
+
+        try {
+            $response = Http::withoutVerifying()->withHeaders([
+                'Authorization' => $token
+            ])->post('https://api.fonnte.com/send', [
+                'target' => $no_hp,
+                'message' => $pesan,
+                'delay' => '2',
+            ]);
+
+            return $response->json();
+        } catch (\Exception $e) {
+            Log::error('Fonnte API Error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // ==========================================
+    // LOGIKA PENYUSUNAN PESAN WA PEMBAYARAN
+    // ==========================================
+    private function kirimNotifikasiWAPembayaran($tagihan, $nominalBayarTerakhir)
+    {
+        $pelanggan = $tagihan->pelanggan;
+
+        if (!empty($pelanggan->no_hp) && strlen($pelanggan->no_hp) >= 10) {
+            $pesan = "";
+            $bulanStr = \Carbon\Carbon::create(null, $tagihan->bulan_periode, 1)->isoFormat('MMMM Y');
+
+            $nominalBayar = "Rp " . number_format($nominalBayarTerakhir, 0, ',', '.');
+            $sisaTagihan = "Rp " . number_format($tagihan->sisa_tagihan, 0, ',', '.');
+
+            if ($tagihan->status_bayar === 'lunas') {
+                $pesan = "Halo, Bpk/Ibu *{$pelanggan->nama_pelanggan}*.\n\n";
+                $pesan .= "Terima kasih! Pembayaran tagihan air PAMSIMAS Tirta Wening untuk periode *{$bulanStr}* telah berhasil dikonfirmasi.\n\n";
+                $pesan .= "✅ Status: *LUNAS*\n";
+                $pesan .= "💰 Jumlah Dibayar: *{$nominalBayar}*\n\n";
+                $pesan .= "Terima kasih atas partisipasi Anda membayar tepat waktu. 🙏";
+            } elseif ($tagihan->status_bayar === 'mencicil') {
+                $pesan = "Halo, Bpk/Ibu *{$pelanggan->nama_pelanggan}*.\n\n";
+                $pesan .= "Terima kasih! Kami telah menerima pembayaran cicilan tagihan air PAMSIMAS Tirta Wening untuk periode *{$bulanStr}*.\n\n";
+                $pesan .= "⏳ Status: *MENCICIL*\n";
+                $pesan .= "💰 Jumlah Dibayar: *{$nominalBayar}*\n";
+                $pesan .= "❗️ Sisa Tunggakan: *{$sisaTagihan}*\n\n";
+                $pesan .= "Mohon untuk segera melunasi sisa tagihan Anda. Terima kasih. 🙏";
+            }
+
+            if ($pesan !== "") {
+                $this->sendWhatsApp($pelanggan->no_hp, $pesan);
+            }
+        }
+    }
+
+
     public function index(Request $request)
     {
         $bulan = $request->bulan ?? date('n');
@@ -30,13 +91,8 @@ class PembayaranController extends Controller
         return view('admin.pembayaran.index', compact('tagihan', 'bulan', 'tahun', 'status'));
     }
 
-    // 1. UBAH NAMA VARIABEL $pembayaran MENJADI $tagihan DI SINI
-    // Laravel Implicit Binding akan mencari ID TagihanAir, bukan Pembayaran
     public function show($id)
     {
-        // Cari TagihanAir berdasarkan ID, lalu load SEMUA relasi yang dibutuhkan
-        // Kita tidak menggunakan implicit binding (TagihanAir $tagihan) untuk mencegah
-        // kebingungan jika route parameter bernama {pembayaran}
         $tagihan = TagihanAir::with(['pelanggan', 'pencatatanMeter', 'pembayaran.akunKas'])
             ->findOrFail($id);
 
@@ -61,22 +117,20 @@ class PembayaranController extends Controller
 
         $tagihan = TagihanAir::findOrFail($request->tagihan_id);
 
-        // 2. CEGAH PEMBAYARAN JIKA SUDAH LUNAS
         if ($tagihan->status_bayar === 'lunas' || $tagihan->sisa_tagihan <= 0) {
             return back()->with('error', 'Gagal: Tagihan ini sudah lunas.');
         }
 
         if ($request->nominal_bayar > $tagihan->sisa_tagihan) {
-            return back()->withInput()->with('error', 'Nominal pembayaran (Rp ' . number_format($request->nominal_bayar, 0, ',', '.') . ') melebihi sisa tagihan (Rp ' . number_format($tagihan->sisa_tagihan, 0, ',', '.') . ')!');
+            return back()->withInput()->with('error', 'Nominal pembayaran melebihi sisa tagihan!');
         }
 
-        // Upload foto
         $fotoPath = null;
         if ($request->hasFile('foto_bukti')) {
             $fotoPath = $request->file('foto_bukti')->store('bukti/pembayaran', 'public');
         }
 
-        DB::transaction(function () use ($request, $tagihan, $fotoPath) {
+        DB::transaction(function () use ($request, &$tagihan, $fotoPath) {
             $pembayaran = Pembayaran::create([
                 'tagihan_id'    => $tagihan->id,
                 'pelanggan_id'  => $tagihan->pelanggan_id,
@@ -88,70 +142,6 @@ class PembayaranController extends Controller
                 'dicatat_oleh'  => auth()->id(),
             ]);
 
-            // 3. LOGIKA PERHITUNGAN YANG LEBIH AMAN
-            $totalTerbayarBaru = $tagihan->total_terbayar + $request->nominal_bayar;
-            $sisaTagihanBaru = $tagihan->total_tagihan - $totalTerbayarBaru;
-
-            $status = 'belum_lunas';
-            // Pengecekan status yang paling aman adalah <= 0 (bukan == 0) untuk mencegah nilai minus
-            if ($sisaTagihanBaru <= 0) {
-                $status = 'lunas';
-                $sisaTagihanBaru = 0; // Kunci agar tidak minus
-            } elseif ($totalTerbayarBaru > 0) {
-                $status = 'mencicil';
-            }
-
-            $tagihan->update([
-                'total_terbayar' => $totalTerbayarBaru,
-                'sisa_tagihan'   => $sisaTagihanBaru,
-                'status_bayar'   => $status,
-            ]);
-
-            $akunKas = AkunKas::find($request->akun_kas_id);
-            ArusKas::create([
-                'akun_kas_id'     => $request->akun_kas_id,
-                'jenis_transaksi' => 'masuk',
-                'nominal'         => $request->nominal_bayar,
-                'keterangan'      => 'Pembayaran tagihan air ' .
-                    $tagihan->pelanggan->nama_pelanggan . ' - ' .
-                    \Carbon\Carbon::create()->month($tagihan->bulan_periode)->isoFormat('MMMM') . ' ' .
-                    $tagihan->tahun_periode,
-                'tanggal'         => $request->tanggal_bayar,
-                'dicatat_oleh'    => auth()->id(),
-                'pembayaran_id'   => $pembayaran->id,
-            ]);
-
-            $akunKas->increment('saldo', $request->nominal_bayar);
-        });
-
-        return redirect()->route('admin.pembayaran.show', $request->tagihan_id)
-            ->with('success', 'Pembayaran sebesar Rp ' . number_format($request->nominal_bayar, 0, ',', '.') . ' berhasil dicatat!');
-    }
-
-    public function confirm(Request $request, $id)
-    {
-        $pembayaranPending = Pembayaran::findOrFail($id);
-        $tagihan = TagihanAir::findOrFail($pembayaranPending->tagihan_id);
-
-        // Validasi jika tagihan sudah lunas duluan
-        if ($tagihan->sisa_tagihan <= 0) {
-            return back()->with('error', 'Tagihan sudah lunas! Silakan tolak/hapus bukti pending ini.');
-        }
-
-        $request->validate([
-            'nominal_bayar' => 'required|numeric|min:1|max:' . $tagihan->sisa_tagihan,
-            'akun_kas_id'   => 'required|exists:akun_kas,id',
-        ]);
-
-        DB::transaction(function () use ($request, $pembayaranPending, $tagihan) {
-            // 1. Update bukti pending menjadi pembayaran sah
-            $pembayaranPending->update([
-                'nominal_bayar' => $request->nominal_bayar,
-                'akun_kas_id'   => $request->akun_kas_id,
-                'is_pending'    => false,
-            ]);
-
-            // 2. Kalkulasi Tagihan
             $totalTerbayarBaru = $tagihan->total_terbayar + $request->nominal_bayar;
             $sisaTagihanBaru = $tagihan->total_tagihan - $totalTerbayarBaru;
 
@@ -169,20 +159,83 @@ class PembayaranController extends Controller
                 'status_bayar'   => $status,
             ]);
 
-            // 3. Catat ke Arus Kas
+            $akunKas = AkunKas::find($request->akun_kas_id);
+            ArusKas::create([
+                'akun_kas_id'     => $request->akun_kas_id,
+                'jenis_transaksi' => 'masuk',
+                'nominal'         => $request->nominal_bayar,
+                'keterangan'      => 'Pembayaran tagihan air ' . $tagihan->pelanggan->nama_pelanggan,
+                'tanggal'         => $request->tanggal_bayar,
+                'dicatat_oleh'    => auth()->id(),
+                'pembayaran_id'   => $pembayaran->id,
+            ]);
+
+            $akunKas->increment('saldo', $request->nominal_bayar);
+        });
+
+        // PANGGIL FUNGSI WA
+        $tagihan->refresh();
+        $this->kirimNotifikasiWAPembayaran($tagihan, $request->nominal_bayar);
+
+        return redirect()->route('admin.pembayaran.show', $request->tagihan_id)
+            ->with('success', 'Pembayaran sebesar Rp ' . number_format($request->nominal_bayar, 0, ',', '.') . ' berhasil dicatat!');
+    }
+
+    public function confirm(Request $request, $id)
+    {
+        $pembayaranPending = Pembayaran::findOrFail($id);
+        $tagihan = TagihanAir::findOrFail($pembayaranPending->tagihan_id);
+
+        if ($tagihan->sisa_tagihan <= 0) {
+            return back()->with('error', 'Tagihan sudah lunas! Silakan tolak/hapus bukti pending ini.');
+        }
+
+        $request->validate([
+            'nominal_bayar' => 'required|numeric|min:1|max:' . $tagihan->sisa_tagihan,
+            'akun_kas_id'   => 'required|exists:akun_kas,id',
+        ]);
+
+        DB::transaction(function () use ($request, $pembayaranPending, &$tagihan) {
+            $pembayaranPending->update([
+                'nominal_bayar' => $request->nominal_bayar,
+                'akun_kas_id'   => $request->akun_kas_id,
+                'is_pending'    => false,
+            ]);
+
+            $totalTerbayarBaru = $tagihan->total_terbayar + $request->nominal_bayar;
+            $sisaTagihanBaru = $tagihan->total_tagihan - $totalTerbayarBaru;
+
+            $status = 'belum_lunas';
+            if ($sisaTagihanBaru <= 0) {
+                $status = 'lunas';
+                $sisaTagihanBaru = 0;
+            } elseif ($totalTerbayarBaru > 0) {
+                $status = 'mencicil';
+            }
+
+            $tagihan->update([
+                'total_terbayar' => $totalTerbayarBaru,
+                'sisa_tagihan'   => $sisaTagihanBaru,
+                'status_bayar'   => $status,
+            ]);
+
             $akunKas = AkunKas::find($request->akun_kas_id);
             ArusKas::create([
                 'akun_kas_id'     => $request->akun_kas_id,
                 'jenis_transaksi' => 'masuk',
                 'nominal'         => $request->nominal_bayar,
                 'keterangan'      => 'Konfirmasi transfer: ' . $tagihan->pelanggan->nama_pelanggan,
-                'tanggal'         => $pembayaranPending->tanggal_bayar, // Pakai tanggal upload pelanggan
+                'tanggal'         => $pembayaranPending->tanggal_bayar,
                 'dicatat_oleh'    => auth()->id(),
                 'pembayaran_id'   => $pembayaranPending->id,
             ]);
 
             $akunKas->increment('saldo', $request->nominal_bayar);
         });
+
+        // PANGGIL FUNGSI WA
+        $tagihan->refresh();
+        $this->kirimNotifikasiWAPembayaran($tagihan, $request->nominal_bayar);
 
         return back()->with('success', 'Bukti pembayaran berhasil dikonfirmasi dan masuk ke Kas!');
     }
@@ -191,7 +244,6 @@ class PembayaranController extends Controller
     {
         $pembayaranPending = Pembayaran::findOrFail($id);
 
-        // Hapus file foto dari server agar tidak memenuhi harddisk
         if ($pembayaranPending->foto_bukti) {
             Storage::disk('public')->delete($pembayaranPending->foto_bukti);
         }
@@ -203,18 +255,18 @@ class PembayaranController extends Controller
 
     public function payWithSaldo(Request $request, $tagihanId)
     {
-        $tagihan = \App\Models\TagihanAir::findOrFail($tagihanId);
+        $tagihan = TagihanAir::findOrFail($tagihanId);
         $pelanggan = $tagihan->pelanggan;
+        $nominalPotong = 0;
 
         if ($pelanggan->saldo <= 0) {
             return back()->with('error', 'Saldo pelanggan tidak mencukupi (Rp 0).');
         }
 
-        DB::transaction(function () use ($tagihan, $pelanggan) {
+        DB::transaction(function () use (&$tagihan, $pelanggan, &$nominalPotong) {
             $nominalPotong = min($pelanggan->saldo, $tagihan->sisa_tagihan);
 
-            // 1. Buat catatan Pembayaran
-            $pembayaran = \App\Models\Pembayaran::create([
+            $pembayaran = Pembayaran::create([
                 'tagihan_id'    => $tagihan->id,
                 'pelanggan_id'  => $pelanggan->id,
                 'nominal_bayar' => $nominalPotong,
@@ -224,26 +276,27 @@ class PembayaranController extends Controller
                 'dicatat_oleh'  => auth()->id(),
             ]);
 
-            // 2. Update Tagihan
             $tagihan->total_terbayar += $nominalPotong;
             $tagihan->sisa_tagihan   -= $nominalPotong;
             $tagihan->status_bayar    = ($tagihan->sisa_tagihan <= 0) ? 'lunas' : 'mencicil';
             $tagihan->save();
 
-            // 3. Potong Saldo Pelanggan
             $pelanggan->decrement('saldo', $nominalPotong);
 
-            // 4. TAMBAHKAN KE ARUS KAS SEBAGAI MEMO (NOMINAL 0)
-            \App\Models\ArusKas::create([
-                'akun_kas_id'     => 1, // Opsional: arahkan ke kas utama atau kas manapun
+            ArusKas::create([
+                'akun_kas_id'     => 1,
                 'jenis_transaksi' => 'masuk',
-                'nominal'         => 0, // <--- Kunci: Nominal 0 agar tidak merusak saldo riil
+                'nominal'         => 0,
                 'keterangan'      => "Pelunasan Tagihan: {$pelanggan->nama_pelanggan} (Via Saldo - Rp " . number_format($nominalPotong, 0, ',', '.') . ")",
                 'tanggal'         => now(),
                 'pembayaran_id'   => $pembayaran->id,
                 'dicatat_oleh'    => auth()->id(),
             ]);
         });
+
+        // PANGGIL FUNGSI WA
+        $tagihan->refresh();
+        $this->kirimNotifikasiWAPembayaran($tagihan, $nominalPotong);
 
         return back()->with('success', 'Tagihan berhasil dibayar menggunakan saldo!');
     }

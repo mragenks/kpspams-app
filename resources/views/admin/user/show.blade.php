@@ -6,10 +6,22 @@
 
         {{-- Info User --}}
         <div class="bg-white rounded-lg shadow p-4 sm:p-6">
-            <div class="flex flex-row justify-between items-center mb-4 sm:mb-6">
+            <div
+                class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 border-b pb-4 sm:border-none sm:pb-0 gap-3 sm:gap-0">
                 <h2 class="text-base sm:text-lg font-semibold text-gray-700">Detail User</h2>
-                <a href="{{ route('admin.user.index') }}" class="text-xs sm:text-sm text-blue-600 hover:underline">←
-                    Kembali</a>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    {{-- TOMBOL EDIT KHUSUS ADMIN & KETUA DI HALAMAN SHOW --}}
+                    @if (in_array($user->role, ['admin', 'ketua']))
+                        <a href="{{ route('admin.user.edit', $user) }}"
+                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded text-xs sm:text-sm font-medium transition flex-1 sm:flex-none text-center">
+                            Edit User
+                        </a>
+                    @endif
+                    <a href="{{ route('admin.user.index') }}"
+                        class="text-xs sm:text-sm text-blue-600 hover:underline flex-1 sm:flex-none text-right">
+                        ← Kembali
+                    </a>
+                </div>
             </div>
 
             <div class="space-y-4">
@@ -76,7 +88,6 @@
                     </div>
                 @endif
 
-                {{-- PERBAIKAN: Struktur If dipisah agar lebih aman dan logis --}}
                 @if ($user->pengurus)
                     <div class="border-t pt-4 mt-4">
                         <p class="text-[10px] sm:text-xs text-gray-400 uppercase mb-2">Info Pengurus</p>
