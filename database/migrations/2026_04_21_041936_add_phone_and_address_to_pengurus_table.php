@@ -12,18 +12,28 @@ return new class extends Migration
     public function up()
     {
         Schema::table('pengurus', function (Blueprint $table) {
-            $table->string('no_hp', 20)->nullable()->after('jabatan');
-            $table->text('alamat')->nullable()->after('no_hp');
+            // Cek apakah kolom no_hp belum ada, baru tambahkan
+            if (!Schema::hasColumn('pengurus', 'no_hp')) {
+                $table->string('no_hp', 20)->nullable()->after('jabatan');
+            }
+
+            // Cek apakah kolom alamat belum ada, baru tambahkan
+            if (!Schema::hasColumn('pengurus', 'alamat')) {
+                $table->text('alamat')->nullable()->after('no_hp');
+            }
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::table('pengurus', function (Blueprint $table) {
-            //
+            if (Schema::hasColumn('pengurus', 'no_hp')) {
+                $table->dropColumn('no_hp');
+            }
+
+            if (Schema::hasColumn('pengurus', 'alamat')) {
+                $table->dropColumn('alamat');
+            }
         });
     }
 };
