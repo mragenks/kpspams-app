@@ -164,4 +164,28 @@ class LaporanController extends Controller
         $pdf = Pdf::loadView('admin.laporan.pdf_tagihan', $data)->setPaper('a4', 'landscape');
         return $pdf->stream("Laporan_Tagihan_{$startPeriode}_sd_{$endPeriode}.pdf");
     }
+
+    public function exportInventarisPDF(Request $request)
+    {
+        $startDate = $request->start_date ?: \Carbon\Carbon::now()->startOfMonth()->toDateString();
+        $endDate = $request->end_date ?: \Carbon\Carbon::now()->endOfMonth()->toDateString();
+
+        // Ambil data riwayat mutasi beserta relasi barangnya
+        $inventaris = \App\Models\RiwayatInventaris::with('inventaris')
+            ->whereBetween('tanggal', [$startDate, $endDate])
+            ->orderBy('tanggal', 'asc') // Urutkan dari tanggal paling lama ke terbaru
+            ->get();
+
+        $data = [
+            'inventaris' => $inventaris,
+            'startDate' => \Carbon\Carbon::parse($startDate)->isoFormat('D MMM Y'),
+            'endDate' => \Carbon\Carbon::parse($endDate)->isoFormat('D MMM Y'),
+            'tanggalCetak' => \Carbon\Carbon::now()->isoFormat('D MMMM Y')
+        ];
+
+        // Menggunakan kertas A4 Portrait (Tegak) karena kolomnya tidak terlalu banyak
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.laporan.pdf_inventaris', $data)->setPaper('a4', 'portrait');
+
+        return $pdf->stream("Laporan_Mutasi_Inventaris_{$startDate}_sd_{$endDate}.pdf");
+    }
 }
