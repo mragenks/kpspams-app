@@ -11,31 +11,34 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Notifications\TagihanBaruNotification;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Http; // <-- WAJIB TAMBAHKAN INI UNTUK API
+use Illuminate\Support\Facades\Http;
 
 class MeterController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Ambil format YYYY-MM dari request, default ke bulan ini
         $startPeriode = $request->start_periode ?? date('Y-m');
         $endPeriode = $request->end_periode ?? date('Y-m');
 
-        // 2. Filter Pencatatan berdasarkan rentang CONCAT(tahun-bulan)
         $pencatatan = PencatatanMeter::with(['pelanggan', 'tagihanAir'])
             ->whereRaw("CONCAT(tahun_periode, '-', LPAD(bulan_periode, 2, '0')) BETWEEN ? AND ?", [$startPeriode, $endPeriode])
             ->orderBy('tahun_periode', 'desc')
             ->orderBy('bulan_periode', 'desc')
             ->paginate(10);
 
-        // 3. Ekstrak tahun dan bulan untuk batas akhir pengecekan pelanggan yang nunggak/belum dicatat
         $endYear = (int) substr($endPeriode, 0, 4);
         $endMonth = (int) substr($endPeriode, 5, 2);
 
         $batasWaktuFilter = \Carbon\Carbon::create($endYear, $endMonth)->endOfMonth();
 
-        // 4. Logika pelanggan belum dicatat (dicek pada bulan terakhir dari rentang yang dipilih)
+        // LOGIKA BARU: Cek Pelanggan Aktif + Cek User Aktif (Jika Punya Akun)
         $pelangganBelumDicatat = Pelanggan::where('status', 'aktif')
+            ->where(function ($query) {
+                $query->doesntHave('user')
+                    ->orWhereHas('user', function ($q) {
+                        $q->where('is_active', true);
+                    });
+            })
             ->where('created_at', '<=', $batasWaktuFilter)
             ->whereDoesntHave('pencatatanMeter', function ($q) use ($endMonth, $endYear) {
                 $q->where('bulan_periode', $endMonth)
@@ -54,7 +57,14 @@ class MeterController extends Controller
 
     public function create(Request $request)
     {
+        // LOGIKA BARU: Hilangkan Pelanggan yang akun User-nya nonaktif dari Dropdown
         $pelanggan = Pelanggan::where('status', 'aktif')
+            ->where(function ($query) {
+                $query->doesntHave('user')
+                    ->orWhereHas('user', function ($q) {
+                        $q->where('is_active', true);
+                    });
+            })
             ->with(['pencatatanMeter' => function ($query) {
                 $query->latest('tahun_periode')->latest('bulan_periode');
             }])
@@ -74,7 +84,6 @@ class MeterController extends Controller
             $selectedPelanggan = Pelanggan::find($request->pelanggan_id);
         }
 
-        // Ambil data tarif dari database
         $tarif = PengaturanTarif::first();
 
         return view('admin.meter.create', compact('pelanggan', 'selectedPelanggan', 'tarif'));
@@ -91,6 +100,15 @@ class MeterController extends Controller
             'foto_meteran'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
+        // PROTEKSI KEAMANAN BACKEND: Tolak jika status fisik mati ATAU akun mati
+        $pelanggan = Pelanggan::findOrFail($request->pelanggan_id);
+        if (
+            strtolower($pelanggan->status) !== 'aktif' ||
+            ($pelanggan->user && !$pelanggan->user->is_active)
+        ) {
+            return back()->withInput()->with('error', 'GAGAL: Pelanggan ini atau akun loginnya sudah dinonaktifkan!');
+        }
+
         $exists = PencatatanMeter::where('pelanggan_id', $request->pelanggan_id)
             ->where('bulan_periode', $request->bulan_periode)
             ->where('tahun_periode', $request->tahun_periode)
@@ -100,7 +118,6 @@ class MeterController extends Controller
             return back()->withInput()->with('error', 'Pencatatan meter untuk pelanggan ini sudah ada di periode tersebut!');
         }
 
-        $pelanggan = Pelanggan::find($request->pelanggan_id);
         $prevMeter = PencatatanMeter::where('pelanggan_id', $request->pelanggan_id)
             ->orderByDesc('tahun_periode')
             ->orderByDesc('bulan_periode')
@@ -168,7 +185,6 @@ class MeterController extends Controller
             $nominal = number_format($tagihanTerbuat->total_tagihan, 0, ',', '.');
             $volume = $tagihanTerbuat->pencatatanMeter->volume_m3;
 
-            // FORMAT PESAN DENGAN NOMOR REKENING
             $pesanWA = "Halo, Bpk/Ibu *{$pelanggan->nama_pelanggan}*.\n\n";
             $pesanWA .= "Tagihan air PAMSIMAS Tirta Wening untuk periode *{$namaBulan} {$request->tahun_periode}* telah terbit.\n\n";
             $pesanWA .= "📊 *Rincian Pemakaian:*\n";
@@ -202,7 +218,6 @@ class MeterController extends Controller
 
     public function update(Request $request, PencatatanMeter $meter)
     {
-        // 1. Validasi input
         $request->validate([
             'meter_akhir'  => 'required|numeric|min:' . $meter->meter_awal,
             'foto_meteran' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -211,9 +226,7 @@ class MeterController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $meter) {
-            // 2. Update Foto (Opsional: Jika ada foto baru yang diupload)
             if ($request->hasFile('foto_meteran')) {
-                // Hapus foto lama jika ada
                 if ($meter->foto_meteran) {
                     Storage::disk('public')->delete($meter->foto_meteran);
                 }
@@ -221,24 +234,18 @@ class MeterController extends Controller
                 $meter->foto_meteran = $fotoPath;
             }
 
-            // 3. Update Angka Meter
             $meter->meter_akhir = $request->meter_akhir;
             $meter->save();
 
-            // 4. Hitung Ulang Tagihan
             $tagihan = $meter->tagihanAir;
             if ($tagihan) {
-                // Hitung ulang biaya berdasarkan meteran yang baru
                 $biayaPemakaian = $meter->hitungBiayaPemakaian();
                 $totalTagihan = $tagihan->biaya_beban + $biayaPemakaian;
 
                 $tagihan->biaya_pemakaian = $biayaPemakaian;
                 $tagihan->total_tagihan = $totalTagihan;
-
-                // Update sisa tagihan (Total Tagihan Baru - Yang Sudah Dibayar)
                 $tagihan->sisa_tagihan = $totalTagihan - $tagihan->total_terbayar;
 
-                // Sesuaikan kembali status pembayaran jika berubah
                 if ($tagihan->sisa_tagihan <= 0 && $tagihan->total_tagihan > 0) {
                     $tagihan->status_bayar = 'lunas';
                     $tagihan->sisa_tagihan = 0;
@@ -270,16 +277,14 @@ class MeterController extends Controller
     // ==========================================
     private function sendWhatsApp($no_hp, $pesan)
     {
-        // GANTI INI DENGAN TOKEN DARI FONNTE KAMU
         $token = config('services.fonnte.token');
 
-        // Pastikan format nomor HP diawali dengan 08 atau 628 (Fonnte bisa membaca keduanya)
         $response = Http::withoutVerifying()->withHeaders([
             'Authorization' => $token
         ])->post('https://api.fonnte.com/send', [
             'target' => $no_hp,
             'message' => $pesan,
-            'delay' => '2', // Delay 2 detik agar tidak dibanned oleh WhatsApp
+            'delay' => '2',
         ]);
 
         return $response->json();

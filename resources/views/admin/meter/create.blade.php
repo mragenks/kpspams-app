@@ -30,9 +30,7 @@
         .ts-dropdown .option:hover,
         .ts-dropdown .option.active {
             background-color: #eff6ff;
-            /* blue-50 */
             color: #1d4ed8;
-            /* blue-700 */
         }
     </style>
 
@@ -45,16 +43,17 @@
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Pelanggan <span
                         class="text-red-500">*</span></label>
-                {{-- Hapus class bawaan Tailwind karena akan digantikan Tom Select, Hapus juga onchange bawaan HTML --}}
                 <select name="pelanggan_id" id="pelanggan_id" autocomplete="off"
                     placeholder="Ketik Kode atau Nama Pelanggan...">
                     <option value="" data-bulan="0" data-tahun="0">-- Pilih Pelanggan --</option>
                     @foreach ($pelanggan as $p)
-                        <option value="{{ $p->id }}" data-meteran="{{ $p->meter_terakhir }}"
-                            data-bulan="{{ $p->bulan_terakhir }}" data-tahun="{{ $p->tahun_terakhir }}"
-                            {{ old('pelanggan_id') == $p->id ? 'selected' : '' }}>
-                            {{ $p->kode_pelanggan }} - {{ $p->nama_pelanggan }}
-                        </option>
+                        @if (strtolower($p->status) === 'aktif')
+                            <option value="{{ $p->id }}" data-meteran="{{ $p->meter_terakhir }}"
+                                data-bulan="{{ $p->bulan_terakhir }}" data-tahun="{{ $p->tahun_terakhir }}"
+                                {{ old('pelanggan_id') == $p->id ? 'selected' : '' }}>
+                                {{ $p->kode_pelanggan }} - {{ $p->nama_pelanggan }}
+                            </option>
+                        @endif
                     @endforeach
                 </select>
                 @error('pelanggan_id')
@@ -68,18 +67,15 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Periode Tagihan <span
                             class="text-red-500">*</span></label>
                     @php
-                        // Menyiapkan format YYYY-MM untuk old input
                         $oldBulan = old('bulan_periode', date('n'));
                         $oldTahun = old('tahun_periode', date('Y'));
                         $oldPeriode = $oldTahun . '-' . str_pad($oldBulan, 2, '0', STR_PAD_LEFT);
                     @endphp
 
-                    {{-- Input Tipe Month (Gabungan Bulan & Tahun) --}}
                     <input type="month" id="periode_input" value="{{ $oldPeriode }}"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                         onchange="updateHiddenPeriode()">
 
-                    {{-- Hidden Input untuk dikirim ke Controller --}}
                     <input type="hidden" name="bulan_periode" id="bulan_periode" value="{{ $oldBulan }}">
                     <input type="hidden" name="tahun_periode" id="tahun_periode" value="{{ $oldTahun }}">
                 </div>
@@ -135,7 +131,6 @@
                     </div>
                     <div class="flex justify-between text-gray-600">
                         <span>Biaya Beban:</span>
-                        {{-- ID prev_beban ditambahkan di bawah ini --}}
                         <span id="prev_beban" class="font-medium text-gray-800">Rp 5.000</span>
                     </div>
                     <div class="flex justify-between text-gray-600">
@@ -166,14 +161,12 @@
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Inisialisasi Fitur Search Pelanggan dengan Tom Select
             new TomSelect("#pelanggan_id", {
                 create: false,
                 sortField: {
                     field: "text",
                     direction: "asc"
                 },
-                // Trigger fungsi loadMeterAwal saat user selesai memilih di pencarian
                 onChange: function(value) {
                     loadMeterAwal(value);
                 }
@@ -181,14 +174,12 @@
 
             updateHiddenPeriode();
 
-            // Jika ada nilai lama (misal error validasi), load ulang datanya
             const existingPelanggan = document.getElementById('pelanggan_id').value;
             if (existingPelanggan !== "") {
                 loadMeterAwal(existingPelanggan);
             }
         });
 
-        // Sinkronisasi Input "Month" ke Hidden "Tahun" & "Bulan"
         function updateHiddenPeriode() {
             const val = document.getElementById('periode_input').value;
             if (val) {
@@ -198,10 +189,8 @@
             }
         }
 
-        // Modifikasi loadMeterAwal agar membaca element options secara aman
         function loadMeterAwal(pelangganId) {
             const select = document.getElementById('pelanggan_id');
-            // Cari tag <option> yang value-nya sama dengan ID yang sedang dipilih
             const selectedOpt = Array.from(select.options).find(opt => opt.value === pelangganId);
 
             if (!selectedOpt || !selectedOpt.value) {
@@ -210,11 +199,9 @@
                 return;
             }
 
-            // Tampilkan Meter Awal
             const meteranAwal = selectedOpt.getAttribute('data-meteran');
             document.getElementById('meter_awal_display').value = meteranAwal ?? 0;
 
-            // Kunci bulan & tahun menggunakan HTML5 Attribute 'min'
             const bulanTerakhir = parseInt(selectedOpt.getAttribute('data-bulan')) || 0;
             const tahunTerakhir = parseInt(selectedOpt.getAttribute('data-tahun')) || 0;
             const periodeInput = document.getElementById('periode_input');
@@ -244,7 +231,6 @@
         }
 
         function hitungPreview() {
-            // Kita gunakan replace(',', '.') untuk jaga-jaga jika input browser pakai koma desimal
             let strAwal = document.getElementById('meter_awal_display').value.toString().replace(',', '.');
             let strAkhir = document.getElementById('meter_akhir').value.toString().replace(',', '.');
 
@@ -257,7 +243,6 @@
                 return;
             }
 
-            // AMBIL TARIF DINAMIS DARI DATABASE
             const tarifBatasBawah = {{ $tarif->tarif_batas_bawah ?? 10000 }};
             const tarif11_20 = {{ $tarif->tarif_11_20 ?? 2200 }};
             const tarif21_30 = {{ $tarif->tarif_21_30 ?? 2500 }};
@@ -277,13 +262,11 @@
 
             const total = biayaPemakaian + biayaBebanFix;
 
-            // Update text ke layar dengan rapi
             document.getElementById('prev_volume').textContent = volume.toFixed(2).replace('.', ',') + ' m³';
             document.getElementById('prev_beban').textContent = 'Rp ' + biayaBebanFix.toLocaleString('id-ID');
             document.getElementById('prev_biaya').textContent = 'Rp ' + biayaPemakaian.toLocaleString('id-ID');
             document.getElementById('prev_total').textContent = 'Rp ' + total.toLocaleString('id-ID');
 
-            // Munculkan kotaknya
             document.getElementById('preview_tagihan').classList.remove('hidden');
         }
 
