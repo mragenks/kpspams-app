@@ -111,7 +111,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">
                                 Akun Kas <span class="text-red-500">*</span>
                             </label>
-                            <select name="akun_kas_id"
+                            <select name="akun_kas_id" required
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                                 <option value="">-- Pilih Akun Kas --</option>
                                 @foreach ($akunKas as $ak)
@@ -127,6 +127,7 @@
                                 Tanggal Bayar <span class="text-red-500">*</span>
                             </label>
                             <input type="date" name="tanggal_bayar" value="{{ old('tanggal_bayar', date('Y-m-d')) }}"
+                                required
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                         </div>
                         <div>
@@ -159,10 +160,9 @@
                             Proses Pembayaran
                         </button>
 
-                        {{-- Tombol Bayar via Saldo --}}
+                        {{-- Tombol Bayar via Saldo memanggil Modal --}}
                         @if ($pembayaran->pelanggan->saldo > 0)
-                            <button type="button"
-                                onclick="if(confirm('Gunakan saldo sebesar Rp {{ number_format(min($pembayaran->pelanggan->saldo, $pembayaran->sisa_tagihan), 0, ',', '.') }} untuk membayar tagihan ini?')) { document.getElementById('formBayarSaldo').submit(); }"
+                            <button type="button" onclick="bukaModalSaldo()"
                                 class="w-full sm:w-auto flex justify-center items-center gap-2 bg-indigo-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-indigo-700 transition shadow-sm">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -175,7 +175,7 @@
                     </div>
                 </form>
 
-                {{-- Hidden Form untuk Bayar Saldo --}}
+                {{-- Hidden Form untuk eksekusi Bayar Saldo --}}
                 <form id="formBayarSaldo" action="{{ route('admin.pembayaran.bayar_saldo', $pembayaran->id) }}"
                     method="POST" class="hidden">
                     @csrf
@@ -260,7 +260,7 @@
 
     </div>
 
-    {{-- Modal Konfirmasi --}}
+    {{-- Modal Konfirmasi ACC Bukti Transfer --}}
     <div id="modalKonfirmasi"
         class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 mx-4">
@@ -271,7 +271,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Masuk ke Kas <span
                             class="text-red-500">*</span></label>
                     <select name="akun_kas_id" required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
                         <option value="">-- Pilih Akun Kas --</option>
                         @foreach ($akunKas as $ak)
                             <option value="{{ $ak->id }}">{{ $ak->nama_akun }}</option>
@@ -283,7 +283,7 @@
                             class="text-red-500">*</span></label>
                     <input type="number" name="nominal_bayar" required min="1"
                         max="{{ $pembayaran->sisa_tagihan }}" value="{{ $pembayaran->sisa_tagihan }}"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50">
                 </div>
                 <div class="flex justify-end gap-2">
                     <button type="button" onclick="tutupModalKonfirmasi()"
@@ -295,6 +295,57 @@
             </form>
         </div>
     </div>
+
+    {{-- Modal Konfirmasi Bayar Pakai Saldo --}}
+    @if ($pembayaran->pelanggan && $pembayaran->pelanggan->saldo > 0)
+        <div id="modalSaldo"
+            class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity">
+            <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 mx-4">
+                <div class="flex items-center gap-3 mb-4 border-b pb-3">
+                    <div class="bg-indigo-100 p-2 rounded-full text-indigo-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800">Konfirmasi Pemotongan Saldo</h3>
+                </div>
+
+                <p class="text-sm text-gray-600 mb-4 leading-relaxed">
+                    Anda akan menggunakan saldo <span
+                        class="font-bold text-gray-800">{{ $pembayaran->pelanggan->nama_pelanggan }}</span> untuk membayar
+                    tagihan ini.
+                </p>
+
+                <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-3 mb-6 space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Saldo Tersedia:</span>
+                        <span class="font-semibold text-indigo-700">Rp
+                            {{ number_format($pembayaran->pelanggan->saldo, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Sisa Tagihan:</span>
+                        <span class="font-semibold text-red-600">Rp
+                            {{ number_format($pembayaran->sisa_tagihan, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="border-t border-indigo-200 pt-2 mt-2 flex justify-between text-sm font-bold">
+                        <span class="text-gray-800">Akan Dipotong:</span>
+                        <span class="text-green-600">- Rp
+                            {{ number_format(min($pembayaran->pelanggan->saldo, $pembayaran->sisa_tagihan), 0, ',', '.') }}</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="tutupModalSaldo()"
+                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition">Batal</button>
+                    <button type="button" onclick="document.getElementById('formBayarSaldo').submit();"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition">
+                        Ya, Potong Saldo
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <script>
         function previewFoto(input, previewId) {
@@ -309,6 +360,7 @@
             }
         }
 
+        // Modal ACC Transfer
         const modalAcc = document.getElementById('modalKonfirmasi');
 
         function bukaModalKonfirmasi(pembayaranId) {
@@ -322,9 +374,30 @@
             modalAcc.classList.add('hidden');
             modalAcc.classList.remove('flex');
         }
-
         modalAcc.addEventListener('click', function(e) {
             if (e.target === this) tutupModalKonfirmasi();
         });
+
+        // Modal Bayar Pakai Saldo
+        const modalSaldo = document.getElementById('modalSaldo');
+
+        function bukaModalSaldo() {
+            if (modalSaldo) {
+                modalSaldo.classList.remove('hidden');
+                modalSaldo.classList.add('flex');
+            }
+        }
+
+        function tutupModalSaldo() {
+            if (modalSaldo) {
+                modalSaldo.classList.add('hidden');
+                modalSaldo.classList.remove('flex');
+            }
+        }
+        if (modalSaldo) {
+            modalSaldo.addEventListener('click', function(e) {
+                if (e.target === this) tutupModalSaldo();
+            });
+        }
     </script>
 @endsection
