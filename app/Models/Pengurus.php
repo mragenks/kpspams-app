@@ -10,13 +10,26 @@ class Pengurus extends Model
 
     protected $fillable = [
         'user_id',
-        'nama_pengurus',
-        'jabatan',
-        'no_hp'
+        'jabatan'
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getNamaPengurusAttribute()
+    {
+        return $this->user ? $this->user->nama_lengkap : 'Tanpa Nama';
+    }
+
+    public function getNoHpAttribute()
+    {
+        return $this->user ? $this->user->no_hp : null;
+    }
+
+    public function getAlamatAttribute()
+    {
+        return $this->user ? $this->user->alamat : null;
     }
 }

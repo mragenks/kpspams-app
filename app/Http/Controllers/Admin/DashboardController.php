@@ -94,7 +94,7 @@ class DashboardController extends Controller
             ];
         }
 
-        $buktiPending = \App\Models\Pembayaran::where('is_pending', true)
+        $buktiPending = \App\Models\Pembayaran::where('status_validasi', 'pending')
             ->where('nominal_bayar', 0)
             ->with(['pelanggan', 'tagihan'])
             ->latest()

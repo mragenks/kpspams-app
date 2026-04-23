@@ -13,22 +13,22 @@ class TagihanExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
 {
     use Exportable;
 
-    protected $bulan;
-    protected $tahun;
+    protected $startPeriode;
+    protected $endPeriode;
 
-    public function __construct($bulan, $tahun)
+    public function __construct($startPeriode, $endPeriode)
     {
-        $this->bulan = $bulan;
-        $this->tahun = $tahun;
+        $this->startPeriode = $startPeriode;
+        $this->endPeriode = $endPeriode;
     }
 
     public function query()
     {
-        // Eager loading aktif. Mengambil tagihan beserta data pelanggan dan meteran
         return TagihanAir::query()
-            ->with(['pelanggan', 'pencatatanMeter'])
-            ->where('bulan_periode', $this->bulan)
-            ->where('tahun_periode', $this->tahun);
+            ->with(['pelanggan.user', 'pencatatanMeter'])
+            ->whereRaw("CONCAT(tahun_periode, '-', LPAD(bulan_periode, 2, '0')) BETWEEN ? AND ?", [$this->startPeriode, $this->endPeriode])
+            ->orderBy('tahun_periode', 'desc')
+            ->orderBy('bulan_periode', 'desc');
     }
 
     public function headings(): array
@@ -52,9 +52,9 @@ class TagihanExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
     public function map($row): array
     {
         return [
-            $row->bulan_periode . '/' . $row->tahun_periode,
+            str_pad($row->bulan_periode, 2, '0', STR_PAD_LEFT) . '/' . $row->tahun_periode,
             $row->pelanggan->kode_pelanggan ?? 'N/A',
-            $row->pelanggan->nama_pelanggan ?? 'N/A',
+            $row->pelanggan->nama_pelanggan ?? 'N/A', 
             $row->pencatatanMeter->meter_awal ?? 0,
             $row->pencatatanMeter->meter_akhir ?? 0,
             $row->pencatatanMeter->volume_m3 ?? 0,

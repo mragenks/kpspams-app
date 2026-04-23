@@ -11,13 +11,10 @@ class Pelanggan extends Model
     protected $fillable = [
         'user_id',
         'kode_pelanggan',
-        'nama_pelanggan',
         'nik',
-        'alamat',
-        'no_hp',
         'status',
-        'meteran_awal',
-        'saldo'
+        'saldo',
+        'meteran_awal'
     ];
 
     public function user()
@@ -38,5 +35,20 @@ class Pelanggan extends Model
     public function pembayaran()
     {
         return $this->hasMany(Pembayaran::class);
+    }
+
+    public function getNamaPelangganAttribute()
+    {
+        return $this->user ? $this->user->nama_lengkap : 'Tanpa Nama';
+    }
+
+    public function getNoHpAttribute()
+    {
+        return $this->user ? $this->user->no_hp : null;
+    }
+
+    public function getAlamatAttribute()
+    {
+        return $this->user ? $this->user->alamat : null;
     }
 }

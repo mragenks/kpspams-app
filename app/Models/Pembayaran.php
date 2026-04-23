@@ -16,7 +16,7 @@ class Pembayaran extends Model
         'tanggal_bayar',
         'keterangan',
         'foto_bukti',
-        'is_pending',
+        'status_validasi',
         'dicatat_oleh'
     ];
 
@@ -42,5 +42,10 @@ class Pembayaran extends Model
     public function arusKas()
     {
         return $this->hasOne(ArusKas::class);
+    }
+
+    public function getIsPendingAttribute()
+    {
+        return $this->status_validasi === 'pending';
     }
 }

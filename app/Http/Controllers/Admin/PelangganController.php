@@ -13,7 +13,6 @@ class PelangganController extends Controller
 {
     public function index()
     {
-        // $pelanggan = Pelanggan::with('user')->latest()->paginate(10);
         $pelanggan = Pelanggan::with(['pencatatanMeter' => function ($query) {
             $query->latest('tahun_periode')->latest('bulan_periode');
         }])->latest()->paginate(10);
@@ -41,22 +40,22 @@ class PelangganController extends Controller
             $newNumber = $lastPelanggan ? (intval(substr($lastPelanggan->kode_pelanggan, 4)) + 1) : 1;
             $kodePelanggan = 'PLG-' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
 
-            // Buat akun user untuk pelanggan
+            // 1. Buat akun user untuk pelanggan (KOLOM NAMA, HP, ALAMAT MASUK KE SINI)
             $user = User::create([
+                'nama_lengkap' => $request->nama_pelanggan, // Mapping dari input view
                 'username'  => $kodePelanggan,
                 'password'  => Hash::make('pelanggan123'),
+                'no_hp'     => $request->no_hp,
+                'alamat'    => $request->alamat,
                 'role'      => 'pelanggan',
                 'is_active' => true,
             ]);
 
-            // Buat data pelanggan
+            // 2. Buat data pelanggan (HANYA FOKUS PADA DATA FISIK TAGIHAN)
             Pelanggan::create([
                 'user_id'        => $user->id,
                 'kode_pelanggan' => $kodePelanggan,
-                'nama_pelanggan' => $request->nama_pelanggan,
                 'nik'            => $request->nik,
-                'alamat'         => $request->alamat,
-                'no_hp'          => $request->no_hp,
                 'meteran_awal'   => $request->meteran_awal,
                 'status'         => 'aktif',
             ]);
@@ -87,13 +86,22 @@ class PelangganController extends Controller
             'status'         => 'required|in:aktif,nonaktif',
         ]);
 
-        $pelanggan->update($request->only([
-            'nama_pelanggan',
-            'nik',
-            'alamat',
-            'no_hp',
-            'status'
-        ]));
+        DB::transaction(function () use ($request, $pelanggan) {
+            // 1. Update data identitas di tabel User
+            if ($pelanggan->user) {
+                $pelanggan->user->update([
+                    'nama_lengkap' => $request->nama_pelanggan,
+                    'no_hp'        => $request->no_hp,
+                    'alamat'       => $request->alamat,
+                ]);
+            }
+
+            // 2. Update data tagihan di tabel Pelanggan
+            $pelanggan->update([
+                'nik'    => $request->nik,
+                'status' => $request->status,
+            ]);
+        });
 
         return redirect()->route('admin.pelanggan.index')
             ->with('success', 'Data pelanggan berhasil diupdate!');
@@ -101,7 +109,7 @@ class PelangganController extends Controller
 
     public function destroy(Pelanggan $pelanggan)
     {
-        // Hapus user terkait sekaligus
+        // Hapus user terkait sekaligus (data pelanggan akan ikut terhapus karena on delete cascade)
         $pelanggan->user()->delete();
         $pelanggan->delete();
 

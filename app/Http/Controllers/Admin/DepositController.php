@@ -13,8 +13,13 @@ class DepositController extends Controller
 {
     public function index()
     {
-        $pelanggan = Pelanggan::where('status', 'aktif')->orderBy('nama_pelanggan')->get();
+        $pelanggan = Pelanggan::with('user')
+            ->where('status', 'aktif')
+            ->get()
+            ->sortBy('nama_pelanggan', SORT_NATURAL | SORT_FLAG_CASE);
+
         $akunKas = AkunKas::where('is_active', true)->get();
+
         return view('admin.deposit.index', compact('pelanggan', 'akunKas'));
     }
 

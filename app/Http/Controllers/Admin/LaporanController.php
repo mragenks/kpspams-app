@@ -45,8 +45,10 @@ class LaporanController extends Controller
 
             if ($searchPelanggan) {
                 $query->whereHas('pelanggan', function ($q) use ($searchPelanggan) {
-                    $q->where('nama_pelanggan', 'like', '%' . $searchPelanggan . '%')
-                        ->orWhere('kode_pelanggan', 'like', '%' . $searchPelanggan . '%');
+                    $q->where('kode_pelanggan', 'like', '%' . $searchPelanggan . '%')
+                        ->orWhereHas('user', function ($u) use ($searchPelanggan) {
+                            $u->where('nama_lengkap', 'like', '%' . $searchPelanggan . '%');
+                        });
                 });
             }
 
@@ -139,8 +141,10 @@ class LaporanController extends Controller
 
         if ($searchPelanggan) {
             $query->whereHas('pelanggan', function ($q) use ($searchPelanggan) {
-                $q->where('nama_pelanggan', 'like', '%' . $searchPelanggan . '%')
-                    ->orWhere('kode_pelanggan', 'like', '%' . $searchPelanggan . '%');
+                $q->where('kode_pelanggan', 'like', '%' . $searchPelanggan . '%')
+                    ->orWhereHas('user', function ($u) use ($searchPelanggan) {
+                        $u->where('nama_lengkap', 'like', '%' . $searchPelanggan . '%');
+                    });
             });
         }
 

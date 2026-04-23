@@ -69,41 +69,38 @@ class UserController extends Controller
 
     public function edit(\App\Models\User $user)
     {
-        // Pastikan hanya role Admin dan Ketua yang bisa diedit di halaman ini
-        // (Karena data Pelanggan diedit di menu Data Pelanggan tersendiri)
         if (!in_array($user->role, ['admin', 'ketua'])) {
             return redirect()->route('admin.user.index')->with('error', 'Hanya role Admin dan Ketua yang dapat diedit melalui form ini.');
         }
 
-        $user->load('pengurus'); // Load relasi pengurus
+        $user->load('pengurus');
         return view('admin.user.edit', compact('user'));
     }
 
     public function update(Request $request, \App\Models\User $user)
     {
-        // 1. Validasi Input
         $request->validate([
             'username'      => 'required|string|max:255|unique:users,username,' . $user->id,
             'role'          => 'required|in:admin,ketua',
             'nama_pengurus' => 'required|string|max:255',
             'jabatan'       => 'nullable|string|max:255',
-            'no_hp'         => 'nullable|string|max:20', // Tambahkan validasi No HP
-            'alamat'        => 'nullable|string',        // Tambahkan validasi Alamat
+            'no_hp'         => 'nullable|string|max:20',
+            'alamat'        => 'nullable|string',
         ]);
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($request, $user) {
-            // 2. Update Akun Login (User)
+            // 1. Update Akun Login & Identitas di tabel User
             $user->update([
-                'username' => $request->username,
-                'role'     => $request->role,
+                'nama_lengkap' => $request->nama_pengurus, // Mapping dari nama_pengurus
+                'username'     => $request->username,
+                'role'         => $request->role,
+                'no_hp'        => $request->no_hp,
+                'alamat'       => $request->alamat,
             ]);
 
-            // 3. Update atau Create Biodata (Pengurus)
+            // 2. Update Jabatan di tabel Pengurus
             $dataPengurus = [
-                'nama_pengurus' => $request->nama_pengurus,
-                'jabatan'       => $request->jabatan,
-                'no_hp'         => $request->no_hp,   // Simpan No HP
-                'alamat'        => $request->alamat,  // Simpan Alamat
+                'jabatan' => $request->jabatan,
             ];
 
             if ($user->pengurus) {

@@ -13,34 +13,36 @@ class AdminSeeder extends Seeder
     {
         // Create Admin account
         $admin = User::create([
-            'username'  => 'admin',
-            'email'     => 'admin@kpspams.com',
-            'password'  => Hash::make('admin123'),
-            'role'      => 'admin',
-            'is_active' => true,
+            'nama_lengkap' => 'Administrator', // Ditambahkan ke User
+            'username'     => 'admin',
+            'email'        => 'admin@kpspams.com',
+            'password'     => Hash::make('admin123'),
+            'no_hp'        => '085225003050',   // Ditambahkan ke User
+            'role'         => 'admin',
+            'is_active'    => true,
         ]);
 
         Pengurus::create([
-            'user_id'       => $admin->id,
-            'nama_pengurus' => 'Administrator',
-            'jabatan'       => 'admin',
-            'no_hp'         => '08123456789',
+            'user_id'      => $admin->id,
+            'jabatan'      => 'admin',
+            // nama_pengurus dan no_hp dihapus dari sini
         ]);
 
         // Create Ketua account
         $ketua = User::create([
-            'username'  => 'ketua',
-            'email'     => 'ketua@kpspams.com',
-            'password'  => Hash::make('ketua123'),
-            'role'      => 'ketua',
-            'is_active' => true,
+            'nama_lengkap' => 'Ketua KP-SPAMS', // Ditambahkan ke User
+            'username'     => 'ketua',
+            'email'        => 'ketua@kpspams.com',
+            'password'     => Hash::make('ketua123'),
+            'no_hp'        => '08198765432',    // Ditambahkan ke User
+            'role'         => 'ketua',
+            'is_active'    => true,
         ]);
 
         Pengurus::create([
-            'user_id'       => $ketua->id,
-            'nama_pengurus' => 'Ketua KP-SPAMS',
-            'jabatan'       => 'ketua',
-            'no_hp'         => '08198765432',
+            'user_id'      => $ketua->id,
+            'jabatan'      => 'ketua',
+            // nama_pengurus dan no_hp dihapus dari sini
         ]);
     }
 }

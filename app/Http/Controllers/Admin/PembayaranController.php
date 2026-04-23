@@ -199,7 +199,7 @@ class PembayaranController extends Controller
             $pembayaranPending->update([
                 'nominal_bayar' => $request->nominal_bayar,
                 'akun_kas_id'   => $request->akun_kas_id,
-                'is_pending'    => false,
+                'status_validasi' => 'disetujui',
             ]);
 
             $totalTerbayarBaru = $tagihan->total_terbayar + $request->nominal_bayar;
@@ -272,7 +272,7 @@ class PembayaranController extends Controller
                 'nominal_bayar' => $nominalPotong,
                 'tanggal_bayar' => now(),
                 'keterangan'    => 'Pelunasan via Saldo/Deposit',
-                'is_pending'    => false,
+                'status_validasi' => 'disetujui',
                 'dicatat_oleh'  => auth()->id(),
             ]);
 

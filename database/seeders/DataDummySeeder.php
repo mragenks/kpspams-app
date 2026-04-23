@@ -49,22 +49,23 @@ class DataDummySeeder extends Seeder
             // Tentukan Kode Pelanggan duluan
             $kodePelanggan = 'PLG-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT);
 
-            // 4. Buat Akun User (Username = Kode Pelanggan)
+            // 4. Buat Akun User (NAMA, HP, ALAMAT MASUK SINI)
             $userPelanggan = User::create([
-                'username'  => $kodePelanggan, // Menggunakan Kode Pelanggan untuk Login
-                'email'     => Str::slug($name) . "@kpspams.com",
-                'password'  => Hash::make('pelanggan123'),
-                'role'      => 'pelanggan',
-                'is_active' => true,
+                'nama_lengkap' => $name,
+                'no_hp'        => '0812' . rand(10000000, 99999999),
+                'alamat'       => 'Desa Singodutan RT 0' . rand(1, 5),
+                'username'     => $kodePelanggan,
+                'email'        => Str::slug($name) . "@kpspams.com",
+                'password'     => Hash::make('pelanggan123'),
+                'role'         => 'pelanggan',
+                'is_active'    => true,
             ]);
 
-            // 5. Buat Data Pelanggan
+            // 5. Buat Data Pelanggan (HANYA INFO TAGIHAN & FISIK)
             $pelanggan = Pelanggan::create([
                 'user_id'        => $userPelanggan->id,
                 'kode_pelanggan' => $kodePelanggan,
-                'nama_pelanggan' => $name,
-                'alamat'         => 'Desa Singodutan RT 0' . rand(1, 5),
-                'no_hp'          => '0812' . rand(10000000, 99999999),
+                // nama_pelanggan, alamat, dan no_hp dihapus dari sini
                 'meteran_awal'   => rand(10, 50),
                 'status'         => 'aktif',
                 'saldo'          => 0,
@@ -122,7 +123,6 @@ class DataDummySeeder extends Seeder
         }
 
         // 7. Buat Data Dummy Inventaris Aset
-        // Sesuai Model: kode_barang, nama_barang, jenis_aset, stok_awal, stok_saat_ini, kondisi, lokasi, tanggal_perolehan
         $asets = [
             [
                 'kode_barang'       => 'AT-001',
