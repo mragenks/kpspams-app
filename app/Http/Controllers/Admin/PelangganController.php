@@ -78,16 +78,18 @@ class PelangganController extends Controller
 
     public function update(Request $request, Pelanggan $pelanggan)
     {
+        // 1. Tambahkan meteran_awal ke dalam validasi
         $request->validate([
             'nama_pelanggan' => 'required|string|max:255',
             'nik'            => 'nullable|string|max:16',
             'alamat'         => 'nullable|string',
             'no_hp'          => 'nullable|string|max:15',
             'status'         => 'required|in:aktif,nonaktif',
+            'meteran_awal'   => 'required|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($request, $pelanggan) {
-            // 1. Update data identitas di tabel User
+            // Update data identitas di tabel User
             if ($pelanggan->user) {
                 $pelanggan->user->update([
                     'nama_lengkap' => $request->nama_pelanggan,
@@ -96,10 +98,11 @@ class PelangganController extends Controller
                 ]);
             }
 
-            // 2. Update data tagihan di tabel Pelanggan
+            // Update data tagihan & fisik di tabel Pelanggan
             $pelanggan->update([
-                'nik'    => $request->nik,
-                'status' => $request->status,
+                'nik'          => $request->nik,
+                'status'       => $request->status,
+                'meteran_awal' => $request->meteran_awal,
             ]);
         });
 
