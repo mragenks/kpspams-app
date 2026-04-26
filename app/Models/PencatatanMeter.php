@@ -31,26 +31,39 @@ class PencatatanMeter extends Model
 
     public function hitungBiayaPemakaian()
     {
-        $volume = $this->meter_akhir - $this->meter_awal;
-        if ($volume <= 0) return 0;
-
-        // Ambil dari database
         $tarif = \App\Models\PengaturanTarif::first();
+        $volume = $this->meter_akhir - $this->meter_awal;
+        $biaya = 0;
 
-        $tarifBatasBawah = $tarif->tarif_batas_bawah ?? 10000;
-        $tarif11_20 = $tarif->tarif_11_20 ?? 2200;
-        $tarif21_30 = $tarif->tarif_21_30 ?? 2500;
-        $tarifAtas30 = $tarif->tarif_atas_30 ?? 3000;
-
-        if ($volume <= 10) {
-            return $tarifBatasBawah;
-        } elseif ($volume <= 20) {
-            return $tarifBatasBawah + (($volume - 10) * $tarif11_20);
-        } elseif ($volume <= 30) {
-            return $tarifBatasBawah + (10 * $tarif11_20) + (($volume - 20) * $tarif21_30);
-        } else {
-            return $tarifBatasBawah + (10 * $tarif11_20) + (10 * $tarif21_30) + (($volume - 30) * $tarifAtas30);
+        if ($volume > 0) {
+            // Blok 1: 0 - 5 m3 (Dikenakan flat Rp 10.000)
+            $biaya += $tarif->tarif_0_5;
         }
+
+        if ($volume > 5) {
+            // Blok 2: 6 - 10 m3 (Dikenakan flat Rp 10.000 tambahan)
+            $biaya += $tarif->tarif_6_10;
+        }
+
+        if ($volume > 10) {
+            // Blok 3: 11 - 20 m3 (Dihitung per m3)
+            $sisa = min($volume, 20) - 10;
+            $biaya += $sisa * $tarif->tarif_11_20;
+        }
+
+        if ($volume > 20) {
+            // Blok 4: 21 - 30 m3 (Dihitung per m3)
+            $sisa = min($volume, 30) - 20;
+            $biaya += $sisa * $tarif->tarif_21_30;
+        }
+
+        if ($volume > 30) {
+            // Blok 5: > 30 m3 (Dihitung per m3)
+            $sisa = $volume - 30;
+            $biaya += $sisa * $tarif->tarif_atas_30;
+        }
+
+        return $biaya;
     }
 
     public function hitungTotalTagihan(): float

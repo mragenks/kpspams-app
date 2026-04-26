@@ -238,26 +238,40 @@
             const meterAkhir = parseFloat(strAkhir) || 0;
             const volume = meterAkhir - meterAwal;
 
-            if (volume <= 0 || isNaN(volume)) {
+            // Tampilkan preview HANYA JIKA volume >= 0 dan kolom input tidak kosong
+            if (volume < 0 || isNaN(volume) || strAkhir === '') {
                 document.getElementById('preview_tagihan').classList.add('hidden');
                 return;
             }
 
-            const tarifBatasBawah = {{ $tarif->tarif_batas_bawah ?? 10000 }};
+            // Ambil data tarif dari database (Opsi B)
+            const tarif0_5 = {{ $tarif->tarif_0_5 ?? 10000 }};
+            const tarif6_10 = {{ $tarif->tarif_6_10 ?? 10000 }};
             const tarif11_20 = {{ $tarif->tarif_11_20 ?? 2200 }};
             const tarif21_30 = {{ $tarif->tarif_21_30 ?? 2500 }};
             const tarifAtas30 = {{ $tarif->tarif_atas_30 ?? 3000 }};
             const biayaBebanFix = {{ $tarif->biaya_beban ?? 5000 }};
 
             let biayaPemakaian = 0;
-            if (volume <= 10) {
-                biayaPemakaian = tarifBatasBawah;
-            } else if (volume <= 20) {
-                biayaPemakaian = tarifBatasBawah + ((volume - 10) * tarif11_20);
-            } else if (volume <= 30) {
-                biayaPemakaian = tarifBatasBawah + (10 * tarif11_20) + ((volume - 20) * tarif21_30);
-            } else {
-                biayaPemakaian = tarifBatasBawah + (10 * tarif11_20) + (10 * tarif21_30) + ((volume - 30) * tarifAtas30);
+
+            // Rumus blok progresif Opsi B
+            if (volume > 0) {
+                biayaPemakaian += tarif0_5;
+            }
+            if (volume > 5) {
+                biayaPemakaian += tarif6_10;
+            }
+            if (volume > 10) {
+                let sisa = Math.min(volume, 20) - 10;
+                biayaPemakaian += sisa * tarif11_20;
+            }
+            if (volume > 20) {
+                let sisa = Math.min(volume, 30) - 20;
+                biayaPemakaian += sisa * tarif21_30;
+            }
+            if (volume > 30) {
+                let sisa = volume - 30;
+                biayaPemakaian += sisa * tarifAtas30;
             }
 
             const total = biayaPemakaian + biayaBebanFix;

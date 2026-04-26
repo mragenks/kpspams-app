@@ -98,13 +98,23 @@
                                 (Progresif)</h4>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Tarif Batas Bawah (0 - 10
-                                        m³)</label>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Tarif 0 - 5 m³
+                                        (Flat)</label>
                                     <div class="relative">
                                         <span
                                             class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">Rp</span>
-                                        <input type="number" name="tarif_batas_bawah"
-                                            value="{{ $tarif->tarif_batas_bawah }}" required
+                                        <input type="number" name="tarif_0_5" value="{{ $tarif->tarif_0_5 }}" required
+                                            class="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Tarif 6 - 10 m³
+                                        (Flat)</label>
+                                    <div class="relative">
+                                        <span
+                                            class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">Rp</span>
+                                        <input type="number" name="tarif_6_10" value="{{ $tarif->tarif_6_10 }}" required
                                             class="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
                                     </div>
                                 </div>
