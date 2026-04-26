@@ -18,7 +18,11 @@ class UserController extends Controller
 
         $users = User::with(['pelanggan', 'pengurus'])
             ->when($search, function ($q) use ($search) {
-                $q->where('username', 'like', "%$search%");
+                // Gunakan function ($subQuery) agar logika OR tidak bertabrakan dengan filter Role
+                $q->where(function ($subQuery) use ($search) {
+                    $subQuery->where('username', 'like', "%$search%")
+                        ->orWhere('nama_lengkap', 'like', "%$search%");
+                });
             })
             ->when($role, fn($q) => $q->where('role', $role))
             ->latest()

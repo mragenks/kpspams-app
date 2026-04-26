@@ -11,12 +11,30 @@ use Illuminate\Support\Facades\DB;
 
 class PelangganController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pelanggan = Pelanggan::with(['pencatatanMeter' => function ($query) {
+        // Tangkap kueri pencarian
+        $search = $request->search ?? '';
+
+        // Ambil data pelanggan dengan relasi
+        $pelanggan = Pelanggan::with(['user', 'pencatatanMeter' => function ($query) {
             $query->latest('tahun_periode')->latest('bulan_periode');
-        }])->latest()->paginate(10);
-        return view('admin.pelanggan.index', compact('pelanggan'));
+        }])
+            ->when($search, function ($query) use ($search) {
+                // Logika pencarian: bisa mencari Kode Pelanggan ATAU Nama Lengkap (dari tabel users)
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('kode_pelanggan', 'like', "%$search%")
+                        ->orWhereHas('user', function ($u) use ($search) {
+                            $u->where('nama_lengkap', 'like', "%$search%");
+                        });
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString(); // Mempertahankan parameter 'search' saat klik halaman pagination 2, 3, dst
+
+        // Kirim $search ke view agar input text tetap terisi
+        return view('admin.pelanggan.index', compact('pelanggan', 'search'));
     }
 
     public function create()

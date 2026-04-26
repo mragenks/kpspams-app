@@ -2,20 +2,35 @@
 @section('title', 'Data Pelanggan')
 
 @section('content')
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        {{-- Header --}}
-        <div class="p-4 sm:p-6 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h2 class="text-lg font-semibold text-gray-700">Data Pelanggan</h2>
-            <a href="{{ route('admin.pelanggan.create') }}"
-                class="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition inline-flex justify-center items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Tambah Pelanggan
-            </a>
-        </div>
+    {{-- Search & Tombol Tambah --}}
+    <div
+        class="bg-white rounded-lg shadow p-4 mb-4 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        {{-- Form Live Search --}}
+        <form id="form-filter" method="GET" action="{{ route('admin.pelanggan.index') }}" class="w-full sm:max-w-md">
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                <input type="text" name="search" id="input-search" value="{{ $search ?? '' }}"
+                    placeholder="Cari Kode atau Nama Pelanggan..."
+                    class="w-full border border-gray-300 rounded-lg pl-10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </form>
 
-        {{-- Table --}}
+        <a href="{{ route('admin.pelanggan.create') }}"
+            class="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition inline-flex justify-center items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Tambah Pelanggan
+        </a>
+    </div>
+
+    {{-- Tabel Pelanggan --}}
+    <div class="bg-white rounded-lg shadow overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm text-left">
                 <thead class="bg-gray-50 text-gray-600 uppercase text-[10px] sm:text-xs tracking-wider border-b">
@@ -123,4 +138,30 @@
             </div>
         @endif
     </div>
+
+    {{-- Script Live Search (Debounce) --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('form-filter');
+            const inputSearch = document.getElementById('input-search');
+
+            let typingTimer;
+            const doneTypingInterval = 500; // Jeda 0.5 detik
+
+            // Otomatis submit setelah selesai mengetik (Debounce)
+            inputSearch.addEventListener('input', function() {
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(function() {
+                    form.submit();
+                }, doneTypingInterval);
+            });
+
+            // Mengembalikan fokus kursor ke teks input setelah halaman ter-reload
+            if (inputSearch.value) {
+                const valLength = inputSearch.value.length;
+                inputSearch.focus();
+                inputSearch.setSelectionRange(valLength, valLength);
+            }
+        });
+    </script>
 @endsection
