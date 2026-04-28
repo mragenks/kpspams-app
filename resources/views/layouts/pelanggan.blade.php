@@ -123,6 +123,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         @if (session('success'))
             Swal.fire({
@@ -134,12 +135,37 @@
             });
         @endif
 
-        // Script untuk Dropdown Lonceng Notifikasi Pelanggan
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: "{{ session('error') }}",
+                confirmButtonColor: '#1e3a8a'
+            });
+        @endif
+
+        @if ($errors->any())
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops! Upload Gagal',
+                html: `{!! implode('<br>', $errors->all()) !!}`,
+                confirmButtonColor: '#1e3a8a'
+            });
+        @endif
+
+        @if ($errors->any())
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops! Upload Gagal',
+                html: `{!! implode('<br>', $errors->all()) !!}`, 
+                confirmButtonColor: '#1e3a8a'
+            });
+        @endif
+
         function toggleNotif() {
             document.getElementById('notifDropdown').classList.toggle('hidden');
         }
 
-        // Tutup dropdown kalau user klik di luar kotak notifikasi
         document.addEventListener('click', function(event) {
             const dropdown = document.getElementById('notifDropdown');
             const btn = document.getElementById('notifBtn');

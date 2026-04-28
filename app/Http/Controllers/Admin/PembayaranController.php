@@ -91,9 +91,16 @@ class PembayaranController extends Controller
         return view('admin.pembayaran.index', compact('tagihan', 'bulan', 'tahun', 'status'));
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $tagihan = TagihanAir::with(['pelanggan', 'pencatatanMeter', 'pembayaran.akunKas'])
+        if ($request->has('notif_id')) {
+            $notif = auth()->user()->notifications()->find($request->notif_id);
+            if ($notif) {
+                $notif->markAsRead();
+            }
+        }
+
+        $tagihan = TagihanAir::with(['pelanggan.user', 'pencatatanMeter', 'pembayaran.akunKas'])
             ->findOrFail($id);
 
         $akunKas = AkunKas::where('is_active', true)->get();
@@ -113,6 +120,10 @@ class PembayaranController extends Controller
             'tanggal_bayar' => 'required|date',
             'keterangan'    => 'nullable|string|max:255',
             'foto_bukti'    => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+        ], [
+            'foto_bukti.max'   => 'Gagal: Ukuran foto bukti maksimal adalah 5 MB.',
+            'foto_bukti.image' => 'Gagal: File yang diupload harus berupa gambar.',
+            'foto_bukti.mimes' => 'Gagal: Format gambar harus JPG, JPEG, atau PNG.'
         ]);
 
         $tagihan = TagihanAir::findOrFail($request->tagihan_id);

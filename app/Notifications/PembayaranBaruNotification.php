@@ -25,16 +25,17 @@ class PembayaranBaruNotification extends Notification
 
     public function toDatabase(object $notifiable): array
     {
-        // Sesuaikan nama field 'nominal' dengan field di tabel pembayaran kamu (bisa 'jumlah_bayar' atau 'nominal')
-        $nominal = $this->pembayaran->nominal ?? $this->pembayaran->jumlah_bayar ?? 0;
+        $nominal = $this->pembayaran->nominal_bayar ?? 0;
 
         return [
             'tipe' => 'pembayaran_baru',
             'title' => 'Pembayaran Baru: ' . $this->pelanggan->nama_pelanggan,
             'message' => $this->pelanggan->nama_pelanggan . ' telah mengirimkan bukti pembayaran sebesar Rp ' . number_format($nominal, 0, ',', '.') . '. Menunggu konfirmasi Anda.',
 
-            // Arahkan admin langsung ke halaman pembayaran saat notifikasi diklik
-            'url' => route('admin.pembayaran.index')
+            // PERBAIKAN: Gunakan route detail (show) dan simpan ID-nya
+            'url' => route('admin.pembayaran.show', $this->pembayaran->tagihan_id),
+            'tagihan_id' => $this->pembayaran->tagihan_id,
+            'pembayaran_id' => $this->pembayaran->id
         ];
     }
 }

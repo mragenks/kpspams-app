@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 
 class Handler extends ExceptionHandler
 {
@@ -43,6 +44,14 @@ class Handler extends ExceptionHandler
     {
         $this->reportable(function (Throwable $e) {
             //
+        });
+
+        $this->renderable(function (PostTooLargeException $e, $request) {
+            // Kita gunakan URL parameter (?upload_error=1) karena Session belum aktif di tahap ini
+            $url = url()->previous();
+            $separator = parse_url($url, PHP_URL_QUERY) ? '&' : '?';
+            
+            return redirect($url . $separator . 'upload_error=1');
         });
     }
 }

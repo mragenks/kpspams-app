@@ -41,8 +41,13 @@ class DashboardController extends Controller
     {
         $request->validate([
             'tagihan_id' => 'required|exists:tagihan_air,id',
-            'foto_bukti' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'foto_bukti' => 'required|image|mimes:jpg,jpeg,png|max:5120',
             'keterangan' => 'nullable|string|max:255',
+        ], [
+            'foto_bukti.max'   => 'Gagal: Ukuran foto bukti maksimal adalah 5 MB.',
+            'foto_bukti.image' => 'Gagal: File yang diupload harus berupa gambar.',
+            'foto_bukti.mimes' => 'Gagal: Format gambar harus JPG, JPEG, atau PNG.',
+            'foto_bukti.required' => 'Gagal: Anda belum memasukkan foto bukti pembayaran.'
         ]);
 
         $pelanggan = auth()->user()->pelanggan;

@@ -125,7 +125,23 @@
                             </div>
                             <div class="max-h-80 overflow-y-auto">
                                 @forelse(auth()->user()->unreadNotifications as $notif)
-                                    <a href="{{ $notif->data['url'] ?? '#' }}"
+                                    @php
+                                        $urlNotif = $notif->data['url'] ?? '#';
+
+                                        // Trik Pintar: Tambahkan parameter notif_id ke URL agar Controller bisa menandainya sebagai terbaca
+                                        if (
+                                            isset($notif->data['tipe']) &&
+                                            $notif->data['tipe'] === 'pembayaran_baru' &&
+                                            isset($notif->data['tagihan_id'])
+                                        ) {
+                                            $urlNotif = route('admin.pembayaran.show', [
+                                                'pembayaran' => $notif->data['tagihan_id'],
+                                                'notif_id' => $notif->id,
+                                            ]);
+                                        }
+                                    @endphp
+
+                                    <a href="{{ $urlNotif }}"
                                         class="block p-4 border-b border-gray-50 hover:bg-blue-50 transition">
                                         <p class="text-xs font-semibold text-gray-800">{{ $notif->data['title'] }}</p>
                                         <p class="text-[10px] text-gray-500 mt-1 line-clamp-2">
