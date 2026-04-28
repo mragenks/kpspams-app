@@ -74,6 +74,19 @@
                 </div>
             @endif
 
+            {{-- TOMBOL BARU: LIHAT SURAT TAGIHAN --}}
+            <div class="mt-3">
+                <a href="{{ route('pelanggan.tagihan.surat', $tagihanAktif->id) }}"
+                    class="w-full flex items-center justify-center gap-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 py-2.5 rounded-lg text-sm font-semibold transition shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                    Lihat & Cetak Detail Tagihan
+                </a>
+            </div>
+
             {{-- Form Submit Bukti --}}
             <div class="mt-4 border-t pt-4">
                 <p class="text-sm font-semibold text-gray-700 mb-3">📤 Upload Bukti Pembayaran</p>
@@ -171,11 +184,24 @@
                                     {{ \Carbon\Carbon::create()->month($tagihan->bulan_periode)->isoFormat('MMMM') }}
                                     {{ $tagihan->tahun_periode }}
                                 </p>
-                                @if ($tagihan->pencatatanMeter)
-                                    <p class="text-sm text-gray-500 mt-0.5">
-                                        Pemakaian: {{ number_format($tagihan->pencatatanMeter->volume_m3, 2) }} m³
-                                    </p>
-                                @endif
+                                <div class="flex flex-wrap items-center gap-2 mt-0.5">
+                                    @if ($tagihan->pencatatanMeter)
+                                        <p class="text-sm text-gray-500">
+                                            Pemakaian: {{ number_format($tagihan->pencatatanMeter->volume_m3, 2) }} m³
+                                        </p>
+                                    @endif
+                                    {{-- LINK SURAT TAGIHAN KECIL DI RIWAYAT --}}
+                                    <span class="text-gray-300">•</span>
+                                    <a href="{{ route('pelanggan.tagihan.surat', $tagihan->id) }}"
+                                        class="text-blue-600 hover:text-blue-800 text-xs font-semibold flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                            </path>
+                                        </svg>
+                                        Surat Tagihan
+                                    </a>
+                                </div>
                             </div>
                             <div class="text-right">
                                 <p class="font-bold text-gray-800">
@@ -188,7 +214,8 @@
                                     <span
                                         class="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">Mencicil</span>
                                 @else
-                                    <span class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">Belum
+                                    <span
+                                        class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">Belum
                                         Lunas</span>
                                 @endif
                             </div>
@@ -310,11 +337,18 @@
                                     {{ \Carbon\Carbon::create()->month($tagihan->bulan_periode)->isoFormat('MMMM') }}
                                     {{ $tagihan->tahun_periode }}
                                 </p>
-                                @if ($tagihan->pencatatanMeter)
-                                    <p class="text-sm text-gray-500">
-                                        💧 {{ number_format($tagihan->pencatatanMeter->volume_m3, 2) }} m³
-                                    </p>
-                                @endif
+                                <div class="flex items-center gap-2 mt-1">
+                                    @if ($tagihan->pencatatanMeter)
+                                        <p class="text-sm text-gray-500">
+                                            💧 {{ number_format($tagihan->pencatatanMeter->volume_m3, 2) }} m³
+                                        </p>
+                                    @endif
+                                    <span class="text-gray-300">•</span>
+                                    <a href="{{ route('pelanggan.tagihan.surat', $tagihan->id) }}"
+                                        class="text-blue-600 hover:text-blue-800 text-xs font-semibold flex items-center gap-1">
+                                        Surat Tagihan
+                                    </a>
+                                </div>
                             </div>
                             <div class="text-right">
                                 <p class="font-bold text-gray-800">
@@ -336,7 +370,7 @@
 
                         {{-- Progress --}}
                         @if ($tagihan->total_tagihan > 0)
-                            <div class="mb-2">
+                            <div class="mb-2 mt-2">
                                 <div class="w-full bg-gray-200 rounded-full h-1.5">
                                     <div class="h-1.5 rounded-full {{ $tagihan->status_bayar === 'lunas' ? 'bg-green-500' : 'bg-blue-500' }}"
                                         style="width: {{ ($tagihan->total_terbayar / $tagihan->total_tagihan) * 100 }}%">
@@ -346,7 +380,7 @@
                         @endif
 
                         {{-- Detail --}}
-                        <div class="grid grid-cols-3 gap-2 text-xs text-gray-500 mb-2">
+                        <div class="grid grid-cols-3 gap-2 text-xs text-gray-500 mb-2 mt-2">
                             <div>
                                 <span class="block text-gray-400">Biaya Beban</span>
                                 Rp {{ number_format($tagihan->biaya_beban, 0, ',', '.') }}
