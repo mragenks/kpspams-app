@@ -132,4 +132,5 @@ Route::middleware(['auth', 'active', 'pelanggan'])->prefix('pelanggan')->name('p
         auth()->user()->unreadNotifications->markAsRead();
         return back();
     })->name('notif.markAllRead');
+    Route::get('/tagihan/{id}/surat', [\App\Http\Controllers\Pelanggan\DashboardController::class, 'suratTagihan'])->name('tagihan.surat');
 });

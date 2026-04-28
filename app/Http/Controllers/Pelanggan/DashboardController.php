@@ -81,4 +81,28 @@ class DashboardController extends Controller
 
         return back()->with('success', 'Bukti pembayaran berhasil dikirim! Admin akan segera memproses.');
     }
+
+    public function suratTagihan(Request $request, $id)
+    {
+        // 1. Jika URL membawa notif_id, otomatis tandai notifikasi sebagai "Telah Dibaca"
+        if ($request->has('notif_id')) {
+            $notif = auth()->user()->notifications()->find($request->notif_id);
+            if ($notif) {
+                $notif->markAsRead();
+            }
+        }
+
+        // 2. Ambil data tagihan beserta relasinya, pastikan ini milik pelanggan yang sedang login
+        $pelanggan = auth()->user()->pelanggan;
+        if (!$pelanggan) {
+            abort(403, 'Data pelanggan tidak ditemukan.');
+        }
+
+        $tagihan = TagihanAir::with(['pelanggan.user', 'pencatatanMeter'])
+            ->where('id', $id)
+            ->where('pelanggan_id', $pelanggan->id)
+            ->firstOrFail();
+
+        return view('pelanggan.surat_tagihan', compact('tagihan'));
+    }
 }
