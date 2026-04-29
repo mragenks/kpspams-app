@@ -19,19 +19,29 @@ class MeterController extends Controller
     {
         $startPeriode = $request->start_periode ?? date('Y-m');
         $endPeriode = $request->end_periode ?? date('Y-m');
+        $search = $request->search;
 
         $pencatatan = PencatatanMeter::with(['pelanggan', 'tagihanAir'])
             ->whereRaw("CONCAT(tahun_periode, '-', LPAD(bulan_periode, 2, '0')) BETWEEN ? AND ?", [$startPeriode, $endPeriode])
+            ->when($search, function ($query) use ($search) {
+                $query->whereHas('pelanggan', function ($q) use ($search) {
+                    $q->where('kode_pelanggan', 'like', '%' . $search . '%')
+                        ->orWhereHas('user', function ($u) use ($search) {
+                            $u->where('nama_lengkap', 'like', '%' . $search . '%');
+                        });
+                });
+            })
+            ->latest()
             ->orderBy('tahun_periode', 'desc')
             ->orderBy('bulan_periode', 'desc')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         $endYear = (int) substr($endPeriode, 0, 4);
         $endMonth = (int) substr($endPeriode, 5, 2);
 
         $batasWaktuFilter = \Carbon\Carbon::create($endYear, $endMonth)->endOfMonth();
 
-        // LOGIKA BARU: Cek Pelanggan Aktif + Cek User Aktif (Jika Punya Akun)
         $pelangganBelumDicatat = Pelanggan::where('status', 'aktif')
             ->where(function ($query) {
                 $query->doesntHave('user')
@@ -51,7 +61,8 @@ class MeterController extends Controller
             'startPeriode',
             'endPeriode',
             'endMonth',
-            'endYear'
+            'endYear',
+            'search'
         ));
     }
 

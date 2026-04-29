@@ -73,22 +73,31 @@ class PembayaranController extends Controller
         }
     }
 
-
     public function index(Request $request)
     {
         $bulan = $request->bulan ?? date('n');
         $tahun = $request->tahun ?? date('Y');
         $status = $request->status ?? '';
+        $search = $request->search;
 
-        $tagihan = TagihanAir::with(['pelanggan', 'pencatatanMeter'])
+        $tagihan = TagihanAir::with(['pelanggan.user', 'pencatatanMeter'])
             ->whereHas('pelanggan', fn($q) => $q->where('status', 'aktif'))
             ->where('bulan_periode', $bulan)
             ->where('tahun_periode', $tahun)
             ->when($status, fn($q) => $q->where('status_bayar', $status))
+            ->when($search, function ($query) use ($search) {
+                $query->whereHas('pelanggan', function ($q) use ($search) {
+                    $q->where('kode_pelanggan', 'like', '%' . $search . '%')
+                        ->orWhereHas('user', function ($u) use ($search) {
+                            $u->where('nama_lengkap', 'like', '%' . $search . '%');
+                        });
+                });
+            })
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('admin.pembayaran.index', compact('tagihan', 'bulan', 'tahun', 'status'));
+        return view('admin.pembayaran.index', compact('tagihan', 'bulan', 'tahun', 'status', 'search'));
     }
 
     public function show(Request $request, $id)

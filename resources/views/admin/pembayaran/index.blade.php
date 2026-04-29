@@ -3,30 +3,41 @@
 
 @section('content')
 
-    {{-- Filter Kompak --}}
+    {{-- Filter Kompak & Pencarian --}}
     <div class="bg-white rounded-lg shadow p-3 sm:p-4 mb-6 border border-gray-100">
-        {{-- Tambahkan ID filterForm --}}
         <form id="filterForm" method="GET" action="{{ route('admin.pembayaran.index') }}"
             class="flex flex-col md:flex-row gap-3 md:items-end">
 
+            {{-- Kolom Pencarian --}}
+            <div class="w-full md:w-64">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Cari Pelanggan</label>
+                <div class="relative">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Kode atau Nama..."
+                        class="w-full border border-gray-300 rounded-md pl-8 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    <svg class="w-4 h-4 text-gray-400 absolute left-2.5 top-2" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+
             {{-- Filter Bulan & Tahun (Input Type Month) --}}
-            <div class="w-full md:w-56">
+            <div class="w-full md:w-48">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Periode
                     Tagihan</label>
-
-                {{-- Input utama yang dilihat user --}}
-                <input type="month" id="periodeInput" value="{{ $tahun }}-{{ str_pad($bulan, 2, '0', STR_PAD_LEFT) }}"
-                    onchange="submitPeriode()"
+                <input type="month" id="periodeInput"
+                    value="{{ $tahun }}-{{ str_pad($bulan, 2, '0', STR_PAD_LEFT) }}" onchange="submitPeriode()"
                     class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
 
-                {{-- Hidden input --}}
+                {{-- Hidden input untuk controller --}}
                 <input type="hidden" name="bulan" id="hiddenBulan" value="{{ $bulan }}">
                 <input type="hidden" name="tahun" id="hiddenTahun" value="{{ $tahun }}">
             </div>
 
-            <div class="w-full md:w-48">
+            {{-- Filter Status --}}
+            <div class="w-full md:w-40">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Status</label>
-                {{-- Tambahkan auto-submit saat status diubah --}}
                 <select name="status" onchange="document.getElementById('filterForm').submit();"
                     class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
                     <option value="">Semua Status</option>
@@ -36,17 +47,27 @@
                 </select>
             </div>
 
-            {{-- Tombol Filter Dihapus karena sudah auto-submit --}}
-
+            {{-- Tombol Cari --}}
+            <div class="flex w-full md:w-auto mt-2 md:mt-0 md:ml-auto">
+                <button type="submit"
+                    class="w-full px-5 py-1.5 bg-gray-800 text-white rounded-md text-xs font-medium hover:bg-gray-900 transition shadow-sm">
+                    Filter & Cari
+                </button>
+            </div>
         </form>
     </div>
 
     {{-- Tabel Cerdas --}}
     <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="p-4 sm:p-6 border-b">
+        <div class="p-4 sm:p-6 border-b flex justify-between items-center flex-wrap gap-2">
             <h2 class="text-base sm:text-lg font-semibold text-gray-700">
                 Tagihan Air — {{ \Carbon\Carbon::create()->month($bulan)->isoFormat('MMMM') }} {{ $tahun }}
             </h2>
+            @if (request('search'))
+                <span class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                    Mencari: "{{ request('search') }}"
+                </span>
+            @endif
         </div>
 
         <div class="overflow-x-auto">
@@ -70,14 +91,15 @@
                                 {{ ($tagihan->currentPage() - 1) * $tagihan->perPage() + $index + 1 }}
                             </td>
                             <td class="px-4 py-3 sm:px-6">
-                                <p class="font-medium text-gray-800 text-xs sm:text-sm">{{ $t->pelanggan->nama_pelanggan }}
+                                <p class="font-medium text-gray-800 text-xs sm:text-sm">
+                                    {{ $t->pelanggan->user->nama_lengkap ?? 'Tanpa Nama' }}
                                 </p>
                                 <p class="text-[10px] sm:text-xs text-blue-600">{{ $t->pelanggan->kode_pelanggan }}</p>
                                 <p class="block md:hidden mt-0.5 text-[10px] text-gray-500 font-medium">Tagihan: Rp
                                     {{ number_format($t->total_tagihan, 0, ',', '.') }}</p>
                             </td>
                             <td class="hidden sm:table-cell px-6 py-3 whitespace-nowrap">
-                                {{ number_format($t->pencatatanMeter->volume_m3, 2) }} m³
+                                {{ number_format($t->pencatatanMeter->volume_m3 ?? 0, 2) }} m³
                             </td>
                             <td class="hidden md:table-cell px-6 py-3 font-semibold whitespace-nowrap">
                                 Rp {{ number_format($t->total_tagihan, 0, ',', '.') }}
@@ -116,7 +138,11 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                                     </svg>
-                                    <p>Belum ada tagihan di periode ini</p>
+                                    @if (request('search'))
+                                        <p>Data tagihan air untuk "{{ request('search') }}" tidak ditemukan.</p>
+                                    @else
+                                        <p>Belum ada tagihan di periode ini</p>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -127,7 +153,7 @@
 
         @if ($tagihan->hasPages())
             <div class="p-4 border-t">
-                {{ $tagihan->links() }}
+                {{ $tagihan->appends(request()->query())->links() }}
             </div>
         @endif
     </div>

@@ -3,33 +3,52 @@
 
 @section('content')
 
-    {{-- Filter Periode & Action Button --}}
+    {{-- Filter Periode, Pencarian & Action Button --}}
     <div class="bg-white rounded-lg shadow p-3 sm:p-4 mb-6 border border-gray-100">
         <form id="filterForm" method="GET" action="{{ route('admin.meter.index') }}"
             class="flex flex-col md:flex-row gap-4 md:items-end">
 
+            {{-- Kolom Pencarian --}}
+            <div class="w-full md:w-64">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Cari Pelanggan</label>
+                <div class="relative">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Kode atau Nama..."
+                        class="w-full border border-gray-300 rounded-md pl-8 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    <svg class="w-4 h-4 text-gray-400 absolute left-2.5 top-2" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+
             {{-- Filter Dari Periode --}}
-            <div class="w-full md:w-48">
+            <div class="w-full md:w-40">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Dari Periode</label>
                 <input type="month" name="start_periode" value="{{ $startPeriode }}" onchange="this.form.submit()"
                     class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
             </div>
 
             {{-- Filter Sampai Periode --}}
-            <div class="w-full md:w-48">
+            <div class="w-full md:w-40">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Sampai
                     Periode</label>
                 <input type="month" name="end_periode" value="{{ $endPeriode }}" onchange="this.form.submit()"
                     class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto mt-2 md:mt-0 md:ml-auto">
+            {{-- Tombol Cari & Tambah --}}
+            <div class="flex gap-2 w-full md:w-auto mt-2 md:mt-0 md:ml-auto">
+                <button type="submit"
+                    class="w-full sm:w-auto px-5 py-1.5 bg-gray-800 text-white rounded-md text-xs font-medium hover:bg-gray-900 transition shadow-sm">
+                    Cari
+                </button>
                 <a href="{{ route('admin.meter.create') }}"
-                    class="w-full sm:w-auto flex justify-center items-center bg-green-600 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-green-700 transition gap-1.5 shadow-sm">
+                    class="w-full sm:w-auto flex justify-center items-center bg-green-600 text-white px-4 py-1.5 rounded-md text-xs font-medium hover:bg-green-700 transition gap-1.5 shadow-sm whitespace-nowrap">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Catat Meter Baru
+                    Catat Baru
                 </a>
             </div>
         </form>
@@ -50,11 +69,16 @@
 
     {{-- Tabel Pencatatan --}}
     <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="p-4 sm:p-6 border-b">
+        <div class="p-4 sm:p-6 border-b flex justify-between items-center">
             <h2 class="text-base sm:text-lg font-semibold text-gray-700">
                 Pencatatan — {{ \Carbon\Carbon::createFromFormat('Y-m', $startPeriode)->isoFormat('MMM Y') }} s/d
                 {{ \Carbon\Carbon::createFromFormat('Y-m', $endPeriode)->isoFormat('MMM Y') }}
             </h2>
+            @if (request('search'))
+                <span class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                    Mencari: "{{ request('search') }}"
+                </span>
+            @endif
         </div>
 
         <div class="overflow-x-auto">
@@ -136,7 +160,11 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                     </svg>
-                                    <p>Belum ada pencatatan meter di rentang periode ini</p>
+                                    @if (request('search'))
+                                        <p>Data pencatatan meter untuk "{{ request('search') }}" tidak ditemukan.</p>
+                                    @else
+                                        <p>Belum ada pencatatan meter di rentang periode ini</p>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
