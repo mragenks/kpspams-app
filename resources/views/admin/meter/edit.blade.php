@@ -24,6 +24,7 @@
                     ulang total tagihan pelanggan ini.</p>
             </div>
 
+            {{-- FORM UTAMA (UPDATE) --}}
             <form action="{{ route('admin.meter.update', $meter->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
@@ -56,13 +57,58 @@
                     @enderror
                 </div>
 
-                <div class="flex justify-end">
+                {{-- AREA TOMBOL BAWAH --}}
+                <div class="flex justify-between items-center pt-4 mt-6 border-t border-gray-100">
+
+                    {{-- 1. Tombol Hapus (Kiri) --}}
+                    <button type="button" onclick="confirmDelete()"
+                        class="text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                            </path>
+                        </svg>
+                        Hapus Pencatatan
+                    </button>
+
+                    {{-- 2. Tombol Simpan (Kanan) --}}
                     <button type="submit"
                         class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-6 rounded-lg transition-colors">
                         Simpan Perubahan
                     </button>
+
                 </div>
             </form>
+            {{-- AKHIR FORM UTAMA --}}
+
         </div>
     </div>
+
+    {{-- 3. Form Delete Tersembunyi (Di Luar Form Utama) --}}
+    <form id="delete-form-{{ $meter->id }}" action="{{ route('admin.meter.destroy', $meter->id) }}" method="POST"
+        class="hidden">
+        @csrf
+        @method('DELETE')
+    </form>
+
+    {{-- 4. Script SweetAlert --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmDelete() {
+            Swal.fire({
+                title: 'Hapus Data Pencatatan?',
+                text: "Data pencatatan meter beserta tagihan air bulan ini akan ikut terhapus permanen!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus Permanen!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-{{ $meter->id }}').submit();
+                }
+            });
+        }
+    </script>
 @endsection
