@@ -126,6 +126,7 @@ Route::middleware(['auth', 'active', 'ketua'])->prefix('ketua')->name('ketua.')-
 Route::middleware(['auth', 'active', 'pelanggan'])->prefix('pelanggan')->name('pelanggan.')->group(function () {
     Route::get('/dashboard', [PelangganDashboardController::class, 'index'])->name('dashboard');
     Route::post('/pembayaran/submit', [PelangganDashboardController::class, 'submitBukti'])->name('pembayaran.submit');
+    Route::post('/pelanggan/submit-bukti', [App\Http\Controllers\Pelanggan\DashboardController::class, 'submitBukti'])->name('pelanggan.pembayaran.submit');
 
     // NOTIFIKASI PELANGGAN
     Route::post('/notifikasi/mark-all-read', function () {

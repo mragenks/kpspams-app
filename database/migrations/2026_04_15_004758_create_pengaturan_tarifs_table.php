@@ -11,6 +11,7 @@ return new class extends Migration
     {
         Schema::create('pengaturan_tarif', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete()->comment('Admin yang mengubah tarif');
             $table->integer('biaya_beban')->default(5000);
             $table->integer('tarif_0_5')->default(10000)->comment('Harga flat untuk 0-5 m3');
             $table->integer('tarif_6_10')->default(10000)->comment('Harga flat untuk 6-10 m3');

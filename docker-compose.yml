@@ -6,6 +6,7 @@ services:
     image: mysql:8.0
     container_name: db_kpspams
     restart: always
+    hostname: localhost
     environment:
       MYSQL_DATABASE: db_kpspams
       MYSQL_ROOT_PASSWORD: rootpassword

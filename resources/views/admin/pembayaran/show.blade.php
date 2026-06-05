@@ -194,8 +194,6 @@
                             <tr>
                                 <th class="px-4 py-3 w-8">No</th>
                                 <th class="px-4 py-3 whitespace-nowrap">Tanggal</th>
-                                <th class="px-4 py-3">Nominal</th>
-                                <th class="px-4 py-3">Akun Kas</th>
                                 <th class="px-4 py-3 text-center">Bukti</th>
                                 <th class="px-4 py-3 text-center">Aksi</th>
                             </tr>
@@ -206,18 +204,6 @@
                                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $index + 1 }}</td>
                                     <td class="px-4 py-3 text-gray-800 font-medium whitespace-nowrap text-xs">
                                         {{ \Carbon\Carbon::parse($p->tanggal_bayar)->isoFormat('D MMM Y') }}
-                                    </td>
-                                    <td class="px-4 py-3 font-bold text-green-600 whitespace-nowrap">
-                                        Rp {{ number_format($p->nominal_bayar, 0, ',', '.') }}
-                                    </td>
-                                    <td class="px-4 py-3 text-gray-700 text-xs">
-                                        @if ($p->is_pending)
-                                            <span
-                                                class="px-2 py-1 bg-orange-100 text-orange-700 rounded-full font-medium">⏳
-                                                Pending</span>
-                                        @else
-                                            {{ $p->akunKas->nama_akun ?? '-' }}
-                                        @endif
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         @if ($p->foto_bukti)

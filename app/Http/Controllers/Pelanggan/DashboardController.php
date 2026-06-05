@@ -70,6 +70,7 @@ class DashboardController extends Controller
             'tanggal_bayar' => now()->toDateString(),
             'keterangan'    => '[BUKTI PELANGGAN] ' . ($request->keterangan ?? 'Bukti pembayaran dari pelanggan'),
             'foto_bukti'    => $fotoPath,
+            'status_validasi' => 'pending',
             'dicatat_oleh'  => auth()->id(),
             'is_pending'    => true,
         ]);
