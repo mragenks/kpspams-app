@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Buku Kas')
+@section('title', 'Arus Kas')
 
 @section('content')
 
@@ -89,7 +89,7 @@
     <div class="bg-white rounded-lg shadow">
         <div class="p-6 border-b">
             <h2 class="text-lg font-semibold text-gray-700">
-                Buku Kas — {{ \Carbon\Carbon::parse($startDate)->isoFormat('D MMM Y') }} s/d
+                Arus Kas — {{ \Carbon\Carbon::parse($startDate)->isoFormat('D MMM Y') }} s/d
                 {{ \Carbon\Carbon::parse($endDate)->isoFormat('D MMM Y') }}
             </h2>
         </div>

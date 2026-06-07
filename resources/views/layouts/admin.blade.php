@@ -94,69 +94,71 @@
                     </div>
 
                     {{-- Lonceng Notifikasi Admin --}}
-                    <div class="relative">
-                        <button onclick="toggleNotifAdmin()" id="notifBtnAdmin"
-                            class="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-blue-600 rounded-full transition focus:outline-none">
-                            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                            </svg>
+                    @if (Auth::user()->isAdmin())
+                        <div class="relative">
+                            <button onclick="toggleNotifAdmin()" id="notifBtnAdmin"
+                                class="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-blue-600 rounded-full transition focus:outline-none">
+                                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
 
-                            @if (auth()->user()->unreadNotifications->count() > 0)
-                                <span
-                                    class="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 flex items-center justify-center w-4 h-4 text-[9px] font-bold text-white bg-red-500 border-2 border-white rounded-full">
-                                    {{ auth()->user()->unreadNotifications->count() }}
-                                </span>
-                            @endif
-                        </button>
-
-                        <div id="notifDropdownAdmin"
-                            class="hidden absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
-                            <div class="p-3 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
-                                <h3 class="text-sm font-bold text-gray-700">Notifikasi Admin</h3>
                                 @if (auth()->user()->unreadNotifications->count() > 0)
-                                    <form action="{{ route('admin.notif.markAllRead') }}" method="POST">
-                                        @csrf
-                                        <button type="submit"
-                                            class="text-[10px] text-blue-600 hover:text-blue-800 font-medium">Tandai
-                                            dibaca</button>
-                                    </form>
+                                    <span
+                                        class="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 flex items-center justify-center w-4 h-4 text-[9px] font-bold text-white bg-red-500 border-2 border-white rounded-full">
+                                        {{ auth()->user()->unreadNotifications->count() }}
+                                    </span>
                                 @endif
-                            </div>
-                            <div class="max-h-80 overflow-y-auto">
-                                @forelse(auth()->user()->unreadNotifications as $notif)
-                                    @php
-                                        $urlNotif = $notif->data['url'] ?? '#';
+                            </button>
 
-                                        // Trik Pintar: Tambahkan parameter notif_id ke URL agar Controller bisa menandainya sebagai terbaca
-                                        if (
-                                            isset($notif->data['tipe']) &&
-                                            $notif->data['tipe'] === 'pembayaran_baru' &&
-                                            isset($notif->data['tagihan_id'])
-                                        ) {
-                                            $urlNotif = route('admin.pembayaran.show', [
-                                                'pembayaran' => $notif->data['tagihan_id'],
-                                                'notif_id' => $notif->id,
-                                            ]);
-                                        }
-                                    @endphp
+                            <div id="notifDropdownAdmin"
+                                class="hidden absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
+                                <div class="p-3 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+                                    <h3 class="text-sm font-bold text-gray-700">Notifikasi Admin</h3>
+                                    @if (auth()->user()->unreadNotifications->count() > 0)
+                                        <form action="{{ route('admin.notif.markAllRead') }}" method="POST">
+                                            @csrf
+                                            <button type="submit"
+                                                class="text-[10px] text-blue-600 hover:text-blue-800 font-medium">Tandai
+                                                dibaca</button>
+                                        </form>
+                                    @endif
+                                </div>
+                                <div class="max-h-80 overflow-y-auto">
+                                    @forelse(auth()->user()->unreadNotifications as $notif)
+                                        @php
+                                            $urlNotif = $notif->data['url'] ?? '#';
 
-                                    <a href="{{ $urlNotif }}"
-                                        class="block p-4 border-b border-gray-50 hover:bg-blue-50 transition">
-                                        <p class="text-xs font-semibold text-gray-800">{{ $notif->data['title'] }}</p>
-                                        <p class="text-[10px] text-gray-500 mt-1 line-clamp-2">
-                                            {{ $notif->data['message'] }}</p>
-                                        <p class="text-[9px] text-gray-400 mt-2">
-                                            {{ $notif->created_at->diffForHumans() }}</p>
-                                    </a>
-                                @empty
-                                    <div class="p-6 text-center text-gray-400">
-                                        <p class="text-xs">Belum ada notifikasi baru</p>
-                                    </div>
-                                @endforelse
+                                            // Trik Pintar: Tambahkan parameter notif_id ke URL agar Controller bisa menandainya sebagai terbaca
+                                            if (
+                                                isset($notif->data['tipe']) &&
+                                                $notif->data['tipe'] === 'pembayaran_baru' &&
+                                                isset($notif->data['tagihan_id'])
+                                            ) {
+                                                $urlNotif = route('admin.pembayaran.show', [
+                                                    'pembayaran' => $notif->data['tagihan_id'],
+                                                    'notif_id' => $notif->id,
+                                                ]);
+                                            }
+                                        @endphp
+
+                                        <a href="{{ $urlNotif }}"
+                                            class="block p-4 border-b border-gray-50 hover:bg-blue-50 transition">
+                                            <p class="text-xs font-semibold text-gray-800">{{ $notif->data['title'] }}</p>
+                                            <p class="text-[10px] text-gray-500 mt-1 line-clamp-2">
+                                                {{ $notif->data['message'] }}</p>
+                                            <p class="text-[9px] text-gray-400 mt-2">
+                                                {{ $notif->created_at->diffForHumans() }}</p>
+                                        </a>
+                                    @empty
+                                        <div class="p-6 text-center text-gray-400">
+                                            <p class="text-xs">Belum ada notifikasi baru</p>
+                                        </div>
+                                    @endforelse
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    @endif
                 </div>
             </header>
 
