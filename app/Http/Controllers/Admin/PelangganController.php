@@ -113,6 +113,7 @@ class PelangganController extends Controller
                     'nama_lengkap' => $request->nama_pelanggan,
                     'no_hp'        => $request->no_hp,
                     'alamat'       => $request->alamat,
+                    'is_active'    => $request->status === 'aktif',
                 ]);
             }
 

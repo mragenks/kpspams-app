@@ -15,6 +15,7 @@ use App\Http\Controllers\Ketua\DashboardController as KetuaDashboardController;
 use App\Http\Controllers\Ketua\LaporanController as KetuaLaporanController;
 use App\Http\Controllers\Ketua\ArusKasController as KetuaArusKasController;
 use App\Http\Controllers\Pelanggan\DashboardController as PelangganDashboardController;
+use App\Http\Middleware\PreventBackHistory;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -27,7 +28,7 @@ require __DIR__ . '/auth.php';
 | Admin Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'active', 'admin', 'prevent-back-history'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('pelanggan', PelangganController::class);
     Route::resource('meter', MeterController::class);
@@ -101,7 +102,7 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
 | Ketua Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'active', 'ketua'])->prefix('ketua')->name('ketua.')->group(function () {
+Route::middleware(['auth', 'active', 'ketua', 'prevent-back-history'])->prefix('ketua')->name('ketua.')->group(function () {
     Route::get('/dashboard', [KetuaDashboardController::class, 'index'])->name('dashboard');
 
     // Laporan Ketua (Hanya Lihat & Cetak)
@@ -123,7 +124,7 @@ Route::middleware(['auth', 'active', 'ketua'])->prefix('ketua')->name('ketua.')-
 | Pelanggan Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'active', 'pelanggan'])->prefix('pelanggan')->name('pelanggan.')->group(function () {
+Route::middleware(['auth', 'active', 'pelanggan', 'prevent-back-history'])->prefix('pelanggan')->name('pelanggan.')->group(function () {
     Route::get('/dashboard', [PelangganDashboardController::class, 'index'])->name('dashboard');
     Route::post('/pembayaran/submit', [PelangganDashboardController::class, 'submitBukti'])->name('pembayaran.submit');
     Route::post('/pelanggan/submit-bukti', [App\Http\Controllers\Pelanggan\DashboardController::class, 'submitBukti'])->name('pelanggan.pembayaran.submit');

@@ -22,7 +22,8 @@ class DashboardController extends Controller
 
         $tagihanAktif = TagihanAir::where('pelanggan_id', $pelanggan->id)
             ->whereIn('status_bayar', ['belum_lunas', 'mencicil'])
-            ->latest()
+            ->orderBy('tahun_periode', 'asc')
+            ->orderBy('bulan_periode', 'asc')
             ->first();
 
         $riwayatTagihan = TagihanAir::where('pelanggan_id', $pelanggan->id)

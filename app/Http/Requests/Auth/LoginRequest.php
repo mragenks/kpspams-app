@@ -32,11 +32,13 @@ class LoginRequest extends FormRequest
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'username' => trans('auth.failed'),
+                'username' => 'Username atau password salah.',
             ]);
         }
 
-        if (!Auth::user()->is_active) {
+        $user = Auth::user();
+
+        if (!$user->is_active || ($user->role === 'pelanggan' && $user->pelanggan && $user->pelanggan->status !== 'aktif')) {
             Auth::logout();
             RateLimiter::hit($this->throttleKey());
 

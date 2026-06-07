@@ -102,47 +102,14 @@
                         </p>
                     </div>
                 @else
-                    <form action="{{ route('pelanggan.pembayaran.submit') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <input type="hidden" name="tagihan_id" value="{{ $tagihanAktif->id }}">
-
-                        <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Foto Bukti Transfer/Pembayaran <span class="text-red-500">*</span>
-                            </label>
-                            <input type="file" name="foto_bukti" accept="image/*" required onchange="previewBukti(this)"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <p class="text-xs text-gray-400 mt-1">Format: JPG, PNG. Maks 2MB</p>
-                            <div id="previewBuktiContainer" class="hidden mt-2">
-                                <img id="previewBuktiImg" src="" alt="Preview"
-                                    class="w-32 h-32 object-cover rounded-lg border">
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Keterangan <span class="text-gray-400 font-normal">(Opsional)</span>
-                            </label>
-                            <input type="text" name="keterangan" placeholder="Contoh: Transfer BRI 10 April 2026"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
-                            <p class="text-xs text-yellow-700">
-                                ⚠️ Bukti yang dikirim akan diverifikasi oleh Admin. Pembayaran baru tercatat setelah
-                                dikonfirmasi.
-                            </p>
-                        </div>
-
-                        <button type="submit"
-                            class="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                            </svg>
-                            Kirim Bukti Pembayaran
-                        </button>
-                    </form>
+                    <button onclick="bukaModalUploadBukti()"
+                        class="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        Upload Bukti Pembayaran
+                    </button>
                 @endif
             </div>
         </div>
@@ -449,6 +416,68 @@
         </div>
     </div>
 
+    {{-- MODAL Upload Bukti Pembayaran --}}
+    @if ($tagihanAktif)
+    <div id="modalUploadBukti" class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-screen overflow-hidden flex flex-col">
+            {{-- Modal Header --}}
+            <div class="flex justify-between items-center p-6 border-b">
+                <h2 class="text-lg font-bold text-gray-800">Upload Bukti Pembayaran</h2>
+                <button onclick="tutupModalUploadBukti()" class="text-gray-400 hover:text-gray-600 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Modal Body --}}
+            <div class="overflow-y-auto p-6">
+                <form action="{{ route('pelanggan.pembayaran.submit') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" name="tagihan_id" value="{{ $tagihanAktif->id }}">
+
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Foto Bukti Transfer/Pembayaran <span class="text-red-500">*</span>
+                        </label>
+                        <input type="file" name="foto_bukti" accept="image/*" required onchange="previewBukti(this)"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <p class="text-xs text-gray-400 mt-1">Format: JPG, PNG. Maks 5MB</p>
+                        <div id="previewBuktiContainer" class="hidden mt-2">
+                            <img id="previewBuktiImg" src="" alt="Preview"
+                                class="w-32 h-32 object-cover rounded-lg border">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Keterangan <span class="text-gray-400 font-normal">(Opsional)</span>
+                        </label>
+                        <input type="text" name="keterangan" placeholder="Contoh: Transfer BRI 10 April 2026"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                        <p class="text-xs text-yellow-700">
+                            ⚠️ Bukti yang dikirim akan diverifikasi oleh Admin. Pembayaran baru tercatat setelah
+                            dikonfirmasi.
+                        </p>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        Kirim Bukti Pembayaran
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- Script Interaktif Modal & Preview Foto --}}
     <script>
         const modal = document.getElementById('modalRiwayat');
@@ -471,6 +500,37 @@
                 tutupModalRiwayat();
             }
         });
+
+        // Modal Upload Bukti
+        const modalBukti = document.getElementById('modalUploadBukti');
+
+        function bukaModalUploadBukti() {
+            if (modalBukti) {
+                modalBukti.classList.remove('hidden');
+                modalBukti.classList.add('flex');
+            }
+        }
+
+        function tutupModalUploadBukti() {
+            if (modalBukti) {
+                modalBukti.classList.add('hidden');
+                modalBukti.classList.remove('flex');
+            }
+        }
+
+        if (modalBukti) {
+            modalBukti.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    tutupModalUploadBukti();
+                }
+            });
+        }
+
+        @if ($errors->any())
+            document.addEventListener('DOMContentLoaded', () => {
+                bukaModalUploadBukti();
+            });
+        @endif
 
         // Preview Bukti Pembayaran
         function previewBukti(input) {
