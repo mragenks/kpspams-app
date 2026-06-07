@@ -3,16 +3,17 @@
 namespace App\Http\Controllers\Ketua;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ArusKasExport;
-use App\Exports\TagihanExport;
 use App\Exports\InventarisExport;
+use App\Exports\TagihanExport;
 use App\Models\ArusKas;
 use App\Models\RiwayatInventaris;
 use App\Models\TagihanAir;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LaporanController extends Controller
 {
@@ -20,8 +21,13 @@ class LaporanController extends Controller
     {
         $tab = $request->get('tab', 'arus-kas');
 
+        // Untuk Arus Kas & Inventaris
         $startDate = $request->start_date ?: Carbon::now()->startOfMonth()->format('Y-m-d');
         $endDate = $request->end_date ?: Carbon::now()->endOfMonth()->format('Y-m-d');
+
+        // Khusus Laporan Tagihan (Bulan & Tahun)
+        $startPeriode = $request->start_periode ?: Carbon::now()->format('Y-m');
+        $endPeriode = $request->end_periode ?: Carbon::now()->format('Y-m');
 
         $data = [];
 
@@ -33,24 +39,20 @@ class LaporanController extends Controller
         } elseif ($tab == 'tagihan') {
             $searchPelanggan = $request->search_pelanggan;
 
+            // LOGIKA SAMA DENGAN ADMIN: Filter berdasarkan Periode Tagihan
             $query = TagihanAir::with(['pelanggan', 'pencatatanMeter'])
-                ->where(function ($q) use ($startDate, $endDate) {
-                    $q->whereHas('pencatatanMeter', function ($sub) use ($startDate, $endDate) {
-                        $sub->whereBetween('tanggal_pencatatan', [$startDate, $endDate]);
-                    })->orWhere(function ($sub2) use ($startDate, $endDate) {
-                        $sub2->doesntHave('pencatatanMeter')
-                            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
-                    });
-                });
+                ->whereRaw("CONCAT(tahun_periode, '-', LPAD(bulan_periode, 2, '0')) BETWEEN ? AND ?", [$startPeriode, $endPeriode]);
 
             if ($searchPelanggan) {
                 $query->whereHas('pelanggan', function ($q) use ($searchPelanggan) {
-                    $q->where('nama_pelanggan', 'like', '%' . $searchPelanggan . '%')
-                        ->orWhere('kode_pelanggan', 'like', '%' . $searchPelanggan . '%');
+                    $q->where('kode_pelanggan', 'like', '%' . $searchPelanggan . '%')
+                        ->orWhereHas('user', function ($u) use ($searchPelanggan) {
+                            $u->where('nama_lengkap', 'like', '%' . $searchPelanggan . '%');
+                        });
                 });
             }
 
-            $data['tagihan'] = $query->orderBy('created_at', 'desc')->paginate(15);
+            $data['tagihan'] = $query->orderBy('tahun_periode', 'desc')->orderBy('bulan_periode', 'desc')->paginate(15);
             $data['searchPelanggan'] = $searchPelanggan;
         } elseif ($tab == 'inventaris') {
             $data['inventaris'] = RiwayatInventaris::with(['inventaris', 'dicatatOleh'])
@@ -59,40 +61,59 @@ class LaporanController extends Controller
                 ->get();
         }
 
-        return view('ketua.laporan.index', compact('tab', 'startDate', 'endDate', 'data'));
+        return view('ketua.laporan.index', compact('tab', 'startDate', 'endDate', 'startPeriode', 'endPeriode', 'data'));
     }
 
-    // ================= EXCEL EXPORTS =================
     public function exportExcelArusKas(Request $request)
     {
-        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
-        return Excel::download(new ArusKasExport($request->start_date, $request->end_date), 'laporan-arus-kas-' . $request->start_date . '-sd-' . $request->end_date . '.xlsx');
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $fileName = 'Buku_Kas_Pamsimas_' . $request->start_date . '_sd_' . $request->end_date . '.xlsx';
+        return Excel::download(new ArusKasExport($request->start_date, $request->end_date), $fileName);
     }
 
     public function exportExcelTagihan(Request $request)
     {
-        // Tagihan Excel memakai start_date dan end_date seperti Admin
-        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
-        return Excel::download(new TagihanExport($request->start_date, $request->end_date), 'laporan-tagihan-' . $request->start_date . '-sd-' . $request->end_date . '.xlsx');
+        $request->validate([
+            'start_periode' => 'required|date_format:Y-m',
+            'end_periode' => 'required|date_format:Y-m|after_or_equal:start_periode',
+        ]);
+
+        $fileName = 'Laporan_Tagihan_Pamsimas_' . $request->start_periode . '_sd_' . $request->end_periode . '.xlsx';
+        return Excel::download(new TagihanExport($request->start_periode, $request->end_periode), $fileName);
     }
 
     public function exportExcelInventaris(Request $request)
     {
-        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
-        return Excel::download(new InventarisExport($request->start_date, $request->end_date), 'laporan-inventaris-' . $request->start_date . '-sd-' . $request->end_date . '.xlsx');
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $fileName = 'Laporan_Mutasi_Inventaris_' . $request->start_date . '_sd_' . $request->end_date . '.xlsx';
+        return Excel::download(new InventarisExport($request->start_date, $request->end_date), $fileName);
     }
 
-    // ================= PDF EXPORTS =================
     public function exportPDF(Request $request)
     {
         $startDate = $request->start_date ?: Carbon::now()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?: Carbon::now()->endOfMonth()->toDateString();
 
-        $arusKas = ArusKas::with('akunKas')->whereBetween('tanggal', [$startDate, $endDate])->orderBy('tanggal', 'asc')->get();
-        $saldoAwal = ArusKas::where('tanggal', '<', $startDate)->selectRaw("SUM(CASE WHEN jenis_transaksi IN ('masuk', 'mutasi_masuk') THEN nominal ELSE -nominal END) as total")->first()->total ?? 0;
+        $arusKas = ArusKas::with('akunKas')
+            ->whereBetween('tanggal', [$startDate, $endDate])
+            ->orderBy('tanggal', 'asc')
+            ->get();
+
+        $saldoAwal = ArusKas::where('tanggal', '<', $startDate)
+            ->selectRaw("SUM(CASE WHEN jenis_transaksi IN ('masuk', 'mutasi_masuk') THEN nominal ELSE -nominal END) as total")
+            ->first()->total ?? 0;
 
         $totalMasuk = $arusKas->whereIn('jenis_transaksi', ['masuk', 'mutasi_masuk'])->sum('nominal');
         $totalKeluar = $arusKas->whereIn('jenis_transaksi', ['keluar', 'mutasi_keluar'])->sum('nominal');
+        $saldoAkhir = $saldoAwal + $totalMasuk - $totalKeluar;
 
         $data = [
             'arusKas' => $arusKas,
@@ -101,50 +122,51 @@ class LaporanController extends Controller
             'saldoAwal' => $saldoAwal,
             'totalMasuk' => $totalMasuk,
             'totalKeluar' => $totalKeluar,
-            'saldoAkhir' => $saldoAwal + $totalMasuk - $totalKeluar,
+            'saldoAkhir' => $saldoAkhir,
             'tanggalCetak' => Carbon::now()->isoFormat('D MMMM Y')
         ];
 
-        // Kita bisa me-reuse template PDF milik Admin!
+        // Memakai view PDF admin agar sama persis
         $pdf = Pdf::loadView('admin.laporan.pdf_aruskas', $data)->setPaper('a4', 'landscape');
         return $pdf->stream("Laporan_ArusKas_{$startDate}_sd_{$endDate}.pdf");
     }
 
     public function exportTagihanPDF(Request $request)
     {
-        $startDate = $request->start_date ?: Carbon::now()->startOfMonth()->toDateString();
-        $endDate = $request->end_date ?: Carbon::now()->endOfMonth()->toDateString();
+        $startPeriode = $request->start_periode ?: Carbon::now()->format('Y-m');
+        $endPeriode = $request->end_periode ?: Carbon::now()->format('Y-m');
         $searchPelanggan = $request->search_pelanggan;
 
         $query = TagihanAir::with(['pelanggan', 'pencatatanMeter'])
-            ->where(function ($q) use ($startDate, $endDate) {
-                $q->whereHas('pencatatanMeter', function ($sub) use ($startDate, $endDate) {
-                    $sub->whereBetween('tanggal_pencatatan', [$startDate, $endDate]);
-                })->orWhere(function ($sub2) use ($startDate, $endDate) {
-                    $sub2->doesntHave('pencatatanMeter')->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
-                });
-            });
+            ->whereRaw("CONCAT(tahun_periode, '-', LPAD(bulan_periode, 2, '0')) BETWEEN ? AND ?", [$startPeriode, $endPeriode]);
 
         if ($searchPelanggan) {
             $query->whereHas('pelanggan', function ($q) use ($searchPelanggan) {
-                $q->where('nama_pelanggan', 'like', '%' . $searchPelanggan . '%')->orWhere('kode_pelanggan', 'like', '%' . $searchPelanggan . '%');
+                $q->where('kode_pelanggan', 'like', '%' . $searchPelanggan . '%')
+                    ->orWhereHas('user', function ($u) use ($searchPelanggan) {
+                        $u->where('nama_lengkap', 'like', '%' . $searchPelanggan . '%');
+                    });
             });
         }
 
-        $tagihan = $query->orderBy('created_at', 'asc')->get();
+        $tagihan = $query->orderBy('tahun_periode', 'asc')->orderBy('bulan_periode', 'asc')->get();
+
+        $labelStart = Carbon::createFromFormat('Y-m', $startPeriode)->isoFormat('MMM Y');
+        $labelEnd = Carbon::createFromFormat('Y-m', $endPeriode)->isoFormat('MMM Y');
+        $periodeLabel = $labelStart === $labelEnd ? strtoupper($labelStart) : strtoupper($labelStart . ' - ' . $labelEnd);
 
         $data = [
             'tagihan' => $tagihan,
-            'startDate' => Carbon::parse($startDate)->isoFormat('D MMM Y'),
-            'endDate' => Carbon::parse($endDate)->isoFormat('D MMM Y'),
+            'periodeLabel' => $periodeLabel,
             'searchPelanggan' => $searchPelanggan,
             'totalTagihan' => $tagihan->sum('total_tagihan'),
             'totalTerbayar' => $tagihan->sum('total_terbayar'),
             'totalTunggakan' => $tagihan->sum('sisa_tagihan'),
+            'tanggalCetak' => Carbon::now()->isoFormat('D MMMM Y')
         ];
 
         $pdf = Pdf::loadView('admin.laporan.pdf_tagihan', $data)->setPaper('a4', 'landscape');
-        return $pdf->stream("Laporan_Tagihan_{$startDate}_sd_{$endDate}.pdf");
+        return $pdf->stream("Laporan_Tagihan_{$startPeriode}_sd_{$endPeriode}.pdf");
     }
 
     public function exportInventarisPDF(Request $request)
@@ -152,15 +174,20 @@ class LaporanController extends Controller
         $startDate = $request->start_date ?: Carbon::now()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?: Carbon::now()->endOfMonth()->toDateString();
 
-        $inventaris = RiwayatInventaris::with('inventaris')->whereBetween('tanggal', [$startDate, $endDate])->orderBy('tanggal', 'asc')->get();
+        $inventaris = RiwayatInventaris::with('inventaris')
+            ->whereBetween('tanggal', [$startDate, $endDate])
+            ->orderBy('tanggal', 'asc')
+            ->get();
 
         $data = [
             'inventaris' => $inventaris,
             'startDate' => Carbon::parse($startDate)->isoFormat('D MMM Y'),
             'endDate' => Carbon::parse($endDate)->isoFormat('D MMM Y'),
+            'tanggalCetak' => Carbon::now()->isoFormat('D MMMM Y')
         ];
 
         $pdf = Pdf::loadView('admin.laporan.pdf_inventaris', $data)->setPaper('a4', 'portrait');
-        return $pdf->stream("Laporan_Mutasi_Inventaris.pdf");
+
+        return $pdf->stream("Laporan_Mutasi_Inventaris_{$startDate}_sd_{$endDate}.pdf");
     }
 }
