@@ -133,7 +133,7 @@
     <div class="bg-white rounded-xl shadow p-6">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold text-gray-700">Riwayat Tagihan</h2>
-            @if ($riwayatTagihan->total() > 3)
+            @if ($riwayatTagihan->total() > 0)
                 <button onclick="bukaModalRiwayat()" class="text-sm text-blue-600 hover:underline font-medium">
                     Lihat semua ({{ $riwayatTagihan->total() }}) →
                 </button>
