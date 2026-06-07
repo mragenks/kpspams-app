@@ -55,6 +55,11 @@
                     <p class="font-mono text-sm bg-gray-100 px-2 py-1 rounded">{{ $pelanggan->user->username }}</p>
                 </div>
             </div>
+
+            <div class="p-4 bg-green-50 rounded-lg border border-green-100 mt-2">
+                <p class="text-xs text-green-600 uppercase font-semibold mb-1">Sisa Saldo (Deposit)</p>
+                <p class="text-xl font-bold text-green-700">Rp {{ number_format($pelanggan->saldo ?? 0, 0, ',', '.') }}</p>
+            </div>
         </div>
 
         <div class="mt-6 pt-4 border-t flex gap-3">
