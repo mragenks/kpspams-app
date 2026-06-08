@@ -56,7 +56,7 @@
                                         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                             </div>
-                            <input id="username" type="text" name="username" value="{{ old('username') }}" required
+                            <input id="username" type="text" name="username" value="{{ old('username') }}"
                                 autofocus autocomplete="username" placeholder="Masukkan username"
                                 class="w-full pl-10 pr-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition {{ $errors->has('username') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
                         </div>
@@ -85,7 +85,7 @@
                                         d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                 </svg>
                             </div>
-                            <input id="password" type="password" name="password" required
+                            <input id="password" type="password" name="password"
                                 autocomplete="current-password" placeholder="Masukkan password"
                                 class="w-full pl-10 pr-12 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition {{ $errors->has('password') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
 

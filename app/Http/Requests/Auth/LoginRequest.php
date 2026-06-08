@@ -24,6 +24,14 @@ class LoginRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'username.required' => 'Username tidak boleh kosong',
+            'password.required' => 'Password tidak boleh kosong',
+        ];
+    }
+
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
