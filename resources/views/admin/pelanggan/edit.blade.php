@@ -26,38 +26,11 @@
                 @enderror
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">No. HP / WhatsApp</label>
-                    <input type="text" name="no_hp" value="{{ old('no_hp', $pelanggan->no_hp) }}"
-                        class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('no_hp') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
-                    @error('no_hp')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Status <span
-                            class="text-red-500">*</span></label>
-                    <select name="status"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="aktif" {{ old('status', $pelanggan->status) === 'aktif' ? 'selected' : '' }}>Aktif
-                        </option>
-                        <option value="nonaktif" {{ old('status', $pelanggan->status) === 'nonaktif' ? 'selected' : '' }}>
-                            Non-Aktif</option>
-                    </select>
-                </div>
-            </div>
-
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Meteran Awal (m³) <span class="text-red-500">*</span>
-                </label>
-                <input type="number" name="meteran_awal" value="{{ old('meteran_awal', $pelanggan->meteran_awal) }}"
-                    step="0.01" min="0"
-                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('meteran_awal') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
-                <p class="text-[10px] sm:text-xs text-gray-400 mt-1">Hanya ubah jika ada kesalahan saat input pertama kali.
-                </p>
-                @error('meteran_awal')
+                <label class="block text-sm font-medium text-gray-700 mb-1">No. HP / WhatsApp</label>
+                <input type="text" name="no_hp" value="{{ old('no_hp', $pelanggan->no_hp) }}"
+                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('no_hp') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
+                @error('no_hp')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror
             </div>

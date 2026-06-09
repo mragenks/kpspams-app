@@ -45,11 +45,14 @@ class PelangganController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_pelanggan' => 'required|string|max:255',
+            'nama_pelanggan' => 'required|string|max:255|unique:users,nama_lengkap',
             'nik'            => 'nullable|string|max:16',
             'alamat'         => 'nullable|string',
             'no_hp'          => 'nullable|string|max:15',
             'meteran_awal'   => 'required|numeric|min:0',
+        ], [
+            'nama_pelanggan.required' => 'Nama Pelanggan tidak boleh kosong',
+            'nama_pelanggan.unique'   => 'Nama Pelanggan tidak boleh sama',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -96,14 +99,14 @@ class PelangganController extends Controller
 
     public function update(Request $request, Pelanggan $pelanggan)
     {
-        // 1. Tambahkan meteran_awal ke dalam validasi
         $request->validate([
-            'nama_pelanggan' => 'required|string|max:255',
+            'nama_pelanggan' => 'required|string|max:255|unique:users,nama_lengkap,' . $pelanggan->user_id,
             'nik'            => 'nullable|string|max:16',
             'alamat'         => 'nullable|string',
             'no_hp'          => 'nullable|string|max:15',
-            'status'         => 'required|in:aktif,nonaktif',
-            'meteran_awal'   => 'required|numeric|min:0',
+        ], [
+            'nama_pelanggan.required' => 'Nama Pelanggan tidak boleh kosong',
+            'nama_pelanggan.unique'   => 'Nama Pelanggan tidak boleh sama',
         ]);
 
         DB::transaction(function () use ($request, $pelanggan) {
@@ -113,15 +116,12 @@ class PelangganController extends Controller
                     'nama_lengkap' => $request->nama_pelanggan,
                     'no_hp'        => $request->no_hp,
                     'alamat'       => $request->alamat,
-                    'is_active'    => $request->status === 'aktif',
                 ]);
             }
 
             // Update data tagihan & fisik di tabel Pelanggan
             $pelanggan->update([
                 'nik'          => $request->nik,
-                'status'       => $request->status,
-                'meteran_awal' => $request->meteran_awal,
             ]);
         });
 
