@@ -51,18 +51,36 @@ class UserController extends Controller
             return back()->with('error', 'Tidak dapat mengubah status akun sendiri!');
         }
 
-        $user->update([
-            'is_active' => !$user->is_active,
-        ]);
+        // Simpan status baru (true/false) ke variabel untuk digunakan di 2 tabel
+        $newStatus = !$user->is_active;
 
-        // Hapus semua session user tersebut
-        DB::table('sessions')
-            ->where('user_id', $user->id)
-            ->delete();
+        DB::transaction(function () use ($user, $newStatus) {
+            // 1. Ubah status di tabel users
+            $user->update([
+                'is_active' => $newStatus,
+            ]);
 
-        $status = $user->is_active ? 'diaktifkan' : 'dinonaktifkan';
+            // 2. JIKA role-nya pelanggan, update juga status di tabel pelanggan
+            if ($user->role === 'pelanggan') {
+                $pelanggan = Pelanggan::where('user_id', $user->id)->first();
+                if ($pelanggan) {
+                    // Cek tipe data kolom status Anda di tabel pelanggan (aktif/nonaktif atau 1/0)
+                    // Asumsi: menggunakan ENUM ('aktif', 'nonaktif')
+                    $pelanggan->update([
+                        'status' => $newStatus ? 'aktif' : 'nonaktif'
+                    ]);
+                }
+            }
 
-        return back()->with('success', 'Akun ' . $user->username . ' berhasil ' . $status . '!');
+            // Hapus semua session user tersebut agar otomatis logout jika dinonaktifkan
+            DB::table('sessions')
+                ->where('user_id', $user->id)
+                ->delete();
+        });
+
+        $statusMsg = $newStatus ? 'diaktifkan' : 'dinonaktifkan';
+
+        return back()->with('success', 'Akun ' . $user->username . ' berhasil ' . $statusMsg . '!');
     }
 
     public function show(User $user)
