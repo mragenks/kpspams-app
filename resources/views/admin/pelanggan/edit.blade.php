@@ -19,7 +19,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Nama Pelanggan <span class="text-red-500">*</span>
                 </label>
-                <input type="text" name="nama_pelanggan" value="{{ old('nama_pelanggan', $pelanggan->nama_pelanggan) }}"
+            <input type="text" name="nama_pelanggan" value="{{ old('nama_pelanggan', $pelanggan->user->nama_lengkap) }}"
                     class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('nama_pelanggan') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
                 @error('nama_pelanggan')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -28,7 +28,7 @@
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">No. HP / WhatsApp</label>
-                <input type="text" name="no_hp" value="{{ old('no_hp', $pelanggan->no_hp) }}"
+            <input type="text" name="no_hp" value="{{ old('no_hp', $pelanggan->user->no_hp) }}"
                     class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('no_hp') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
                 @error('no_hp')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -38,7 +38,7 @@
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap</label>
                 <textarea name="alamat" rows="3"
-                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('alamat') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">{{ old('alamat', $pelanggan->alamat) }}</textarea>
+                class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('alamat') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">{{ old('alamat', $pelanggan->user->alamat) }}</textarea>
                 @error('alamat')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror

@@ -69,7 +69,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <p class="text-[10px] sm:text-xs text-gray-400">Nama</p>
-                                <p class="font-medium text-sm sm:text-base">{{ $user->pelanggan->nama_pelanggan }}</p>
+                            <p class="font-medium text-sm sm:text-base">{{ $user->nama_lengkap }}</p>
                             </div>
                             <div>
                                 <p class="text-[10px] sm:text-xs text-gray-400">Kode Pelanggan</p>
@@ -78,11 +78,11 @@
                             </div>
                             <div>
                                 <p class="text-[10px] sm:text-xs text-gray-400">No. HP</p>
-                                <p class="text-sm sm:text-base">{{ $user->pelanggan->no_hp ?? '-' }}</p>
+                            <p class="text-sm sm:text-base">{{ $user->no_hp ?? '-' }}</p>
                             </div>
                             <div>
                                 <p class="text-[10px] sm:text-xs text-gray-400">Alamat</p>
-                                <p class="text-sm sm:text-base">{{ $user->pelanggan->alamat ?? '-' }}</p>
+                            <p class="text-sm sm:text-base">{{ $user->alamat ?? '-' }}</p>
                             </div>
                         </div>
                     </div>
@@ -94,7 +94,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <p class="text-[10px] sm:text-xs text-gray-400">Nama</p>
-                                <p class="font-medium text-sm sm:text-base">{{ $user->pengurus->nama_pengurus }}</p>
+                            <p class="font-medium text-sm sm:text-base">{{ $user->nama_lengkap }}</p>
                             </div>
                             <div>
                                 <p class="text-[10px] sm:text-xs text-gray-400">Jabatan</p>

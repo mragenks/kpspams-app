@@ -4,10 +4,10 @@
 @section('content')
 
     {{-- Filter & Search --}}
-    <div class="bg-white rounded-lg shadow p-4 mb-4 sm:mb-6">
+    <div class="bg-white rounded-lg shadow p-4 mb-4 sm:mb-6 flex flex-col sm:flex-row gap-4 items-end">
         {{-- Tambahkan ID pada Form agar mudah dipanggil JS --}}
         <form id="form-filter" method="GET" action="{{ route('admin.user.index') }}"
-            class="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-end">
+            class="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-end w-full">
             <div class="w-full sm:flex-1">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Cari Username / Nama Lengkap</label>
                 <input type="text" name="search" id="input-search" value="{{ $search }}"
@@ -26,13 +26,20 @@
                 </select>
             </div>
             <div class="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                {{-- Tombol "Cari" Dihapus karena sudah otomatis --}}
                 <a href="{{ route('admin.user.index') }}"
                     class="flex-1 sm:flex-none text-center bg-gray-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-600 transition">
                     Reset Filter
                 </a>
             </div>
         </form>
+
+        <a href="{{ route('admin.user.create') }}"
+            class="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition inline-flex justify-center items-center gap-2 whitespace-nowrap">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Tambah User
+        </a>
     </div>
 
     {{-- Tabel --}}

@@ -61,8 +61,8 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap <span
                                 class="text-red-500">*</span></label>
-                        <input type="text" name="nama_pengurus"
-                            value="{{ old('nama_pengurus', $user->pengurus->nama_pengurus ?? '') }}" required
+                    <input type="text" name="nama_pengurus"
+                        value="{{ old('nama_pengurus', $user->nama_lengkap ?? '') }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 transition">
                         @error('nama_pengurus')
                             <span class="text-red-500 text-xs">{{ $message }}</span>
@@ -78,7 +78,7 @@
 
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nomor WhatsApp / HP</label>
-                    <input type="text" name="no_hp" value="{{ old('no_hp', $user->pengurus->no_hp ?? '') }}"
+                <input type="text" name="no_hp" value="{{ old('no_hp', $user->no_hp ?? '') }}"
                         placeholder="08xxxxxxxxxx"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 transition">
                     @error('no_hp')
@@ -89,7 +89,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap</label>
                     <textarea name="alamat" rows="3" placeholder="Masukkan alamat lengkap tempat tinggal..."
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 transition">{{ old('alamat', $user->pengurus->alamat ?? '') }}</textarea>
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 transition">{{ old('alamat', $user->alamat ?? '') }}</textarea>
                     @error('alamat')
                         <span class="text-red-500 text-xs">{{ $message }}</span>
                     @enderror

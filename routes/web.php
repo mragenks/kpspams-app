@@ -73,6 +73,8 @@ Route::middleware(['auth', 'active', 'admin', 'prevent-back-history'])->prefix('
 
     // USER MANAGEMENT
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
+    Route::get('/user/create', [UserController::class, 'create'])->name('user.create');
+    Route::post('/user', [UserController::class, 'store'])->name('user.store');
     Route::get('/user/{user}', [UserController::class, 'show'])->name('user.show');
     Route::post('/user/{user}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');
     Route::post('/user/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('user.toggle-status');

@@ -31,6 +31,43 @@ class UserController extends Controller
         return view('admin.user.index', compact('users', 'search', 'role'));
     }
 
+    public function create()
+    {
+        return view('admin.user.create');
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'username'      => 'required|string|max:255|unique:users,username',
+            'password'      => 'required|string|min:6|confirmed',
+            'role'          => 'required|in:admin,ketua',
+            'nama_pengurus' => 'required|string|max:255',
+            'jabatan'       => 'nullable|string|max:255',
+            'no_hp'         => 'nullable|string|max:20',
+            'alamat'        => 'nullable|string',
+        ]);
+
+        DB::transaction(function () use ($request) {
+            $user = User::create([
+                'nama_lengkap' => $request->nama_pengurus,
+                'username'     => $request->username,
+                'password'     => Hash::make($request->password),
+                'role'         => $request->role,
+                'no_hp'        => $request->no_hp,
+                'alamat'       => $request->alamat,
+                'is_active'    => true,
+            ]);
+
+            $user->pengurus()->create([
+                'jabatan' => $request->jabatan,
+            ]);
+        });
+
+        return redirect()->route('admin.user.index')
+            ->with('success', 'User pengurus berhasil ditambahkan!');
+    }
+
     public function resetPassword(Request $request, User $user)
     {
         $request->validate([

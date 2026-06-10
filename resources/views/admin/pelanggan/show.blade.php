@@ -26,7 +26,7 @@
 
             <div>
                 <p class="text-xs text-gray-400 uppercase">Nama Pelanggan</p>
-                <p class="font-medium">{{ $pelanggan->nama_pelanggan }}</p>
+            <p class="font-medium">{{ $pelanggan->user->nama_lengkap }}</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -36,13 +36,13 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase">No. HP</p>
-                    <p>{{ $pelanggan->no_hp ?? '-' }}</p>
+                <p>{{ $pelanggan->user->no_hp ?? '-' }}</p>
                 </div>
             </div>
 
             <div>
                 <p class="text-xs text-gray-400 uppercase">Alamat</p>
-                <p>{{ $pelanggan->alamat ?? '-' }}</p>
+            <p>{{ $pelanggan->user->alamat ?? '-' }}</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
