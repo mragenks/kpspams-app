@@ -85,9 +85,17 @@
                                     <div class="relative">
                                         <span
                                             class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">Rp</span>
-                                        <input type="number" name="biaya_beban" value="{{ $tarif->biaya_beban }}" required
-                                            class="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                                        <input type="number" name="biaya_beban"
+                                            value="{{ old('biaya_beban', $tarif->biaya_beban) }}" required min="0"
+                                            @class([
+                                                'w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono',
+                                                'border-red-500' => $errors->has('biaya_beban'),
+                                                'border-gray-300' => !$errors->has('biaya_beban'),
+                                            ])>
                                     </div>
+                                    @error('biaya_beban')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
@@ -103,9 +111,17 @@
                                     <div class="relative">
                                         <span
                                             class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">Rp</span>
-                                        <input type="number" name="tarif_0_5" value="{{ $tarif->tarif_0_5 }}" required
-                                            class="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                                        <input type="number" name="tarif_0_5"
+                                            value="{{ old('tarif_0_5', $tarif->tarif_0_5) }}" required min="0"
+                                            @class([
+                                                'w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono',
+                                                'border-red-500' => $errors->has('tarif_0_5'),
+                                                'border-gray-300' => !$errors->has('tarif_0_5'),
+                                            ])>
                                     </div>
+                                    @error('tarif_0_5')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
                                 <div>
@@ -114,9 +130,17 @@
                                     <div class="relative">
                                         <span
                                             class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">Rp</span>
-                                        <input type="number" name="tarif_6_10" value="{{ $tarif->tarif_6_10 }}" required
-                                            class="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                                        <input type="number" name="tarif_6_10"
+                                            value="{{ old('tarif_6_10', $tarif->tarif_6_10) }}" required min="0"
+                                            @class([
+                                                'w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono',
+                                                'border-red-500' => $errors->has('tarif_6_10'),
+                                                'border-gray-300' => !$errors->has('tarif_6_10'),
+                                            ])>
                                     </div>
+                                    @error('tarif_6_10')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
                                 <div>
@@ -125,9 +149,17 @@
                                     <div class="relative">
                                         <span
                                             class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">Rp</span>
-                                        <input type="number" name="tarif_11_20" value="{{ $tarif->tarif_11_20 }}" required
-                                            class="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                                        <input type="number" name="tarif_11_20"
+                                            value="{{ old('tarif_11_20', $tarif->tarif_11_20) }}" required min="0"
+                                            @class([
+                                                'w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono',
+                                                'border-red-500' => $errors->has('tarif_11_20'),
+                                                'border-gray-300' => !$errors->has('tarif_11_20'),
+                                            ])>
                                     </div>
+                                    @error('tarif_11_20')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
                                 <div>
@@ -136,9 +168,17 @@
                                     <div class="relative">
                                         <span
                                             class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">Rp</span>
-                                        <input type="number" name="tarif_21_30" value="{{ $tarif->tarif_21_30 }}" required
-                                            class="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                                        <input type="number" name="tarif_21_30"
+                                            value="{{ old('tarif_21_30', $tarif->tarif_21_30) }}" required min="0"
+                                            @class([
+                                                'w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono',
+                                                'border-red-500' => $errors->has('tarif_21_30'),
+                                                'border-gray-300' => !$errors->has('tarif_21_30'),
+                                            ])>
                                     </div>
+                                    @error('tarif_21_30')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
                                 <div>
@@ -147,10 +187,17 @@
                                     <div class="relative">
                                         <span
                                             class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">Rp</span>
-                                        <input type="number" name="tarif_atas_30" value="{{ $tarif->tarif_atas_30 }}"
-                                            required
-                                            class="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                                        <input type="number" name="tarif_atas_30"
+                                            value="{{ old('tarif_atas_30', $tarif->tarif_atas_30) }}" required
+                                            min="0" @class([
+                                                'w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono',
+                                                'border-red-500' => $errors->has('tarif_atas_30'),
+                                                'border-gray-300' => !$errors->has('tarif_atas_30'),
+                                            ])>
                                     </div>
+                                    @error('tarif_atas_30')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
