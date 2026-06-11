@@ -30,39 +30,51 @@
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Pelanggan</label>
                         {{-- ID pelanggan_id untuk inisialisasi Tom Select --}}
-                        <select name="pelanggan_id" id="pelanggan_id" required autocomplete="off"
+                        <select name="pelanggan_id" id="pelanggan_id" autocomplete="off"
                             placeholder="Ketik Kode atau Nama...">
                             <option value="">-- Cari Pelanggan --</option>
                             @foreach ($pelanggan as $p)
-                                <option value="{{ $p->id }}">
+                                <option value="{{ $p->id }}" {{ old('pelanggan_id') == $p->id ? 'selected' : '' }}>
                                     {{ $p->kode_pelanggan }} - {{ $p->nama_pelanggan }}
                                 </option>
                             @endforeach
                         </select>
+                        @error('pelanggan_id')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Masuk ke Kas</label>
-                        <select name="akun_kas_id" required
+                        <select name="akun_kas_id"
                             class="w-full border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500">
                             @foreach ($akunKas as $ak)
-                                <option value="{{ $ak->id }}">{{ $ak->nama_akun }}</option>
+                                <option value="{{ $ak->id }}" {{ old('akun_kas_id') == $ak->id ? 'selected' : '' }}>{{ $ak->nama_akun }}</option>
                             @endforeach
                         </select>
+                        @error('akun_kas_id')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nominal (Rp)</label>
-                        <input type="number" name="nominal" required min="1000"
+                        <input type="number" name="nominal" value="{{ old('nominal') }}"
                             class="w-full border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Contoh: 50000">
+                        @error('nominal')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Keterangan</label>
-                        <input type="text" name="keterangan"
+                        <input type="text" name="keterangan" value="{{ old('keterangan') }}"
                             class="w-full border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Opsional...">
+                        @error('keterangan')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <button type="submit"

@@ -30,6 +30,10 @@ class DepositController extends Controller
             'akun_kas_id'  => 'required|exists:akun_kas,id',
             'nominal'      => 'required|numeric|min:1000',
             'keterangan'   => 'nullable|string|max:255',
+        ], [
+            'pelanggan_id.required' => 'Pelanggan belum dipilih.',
+            'nominal.required'      => 'Nominal tidak boleh kosong.',
+            'nominal.min'           => 'Nominal minimal Rp 1.000.',
         ]);
 
         DB::transaction(function () use ($request) {
