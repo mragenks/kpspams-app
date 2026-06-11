@@ -76,6 +76,13 @@ class ArusKasController extends Controller
             'keterangan'      => 'required|string|max:255',
             'no_bukti'        => 'nullable|string|max:100',
             'tanggal'         => 'required|date',
+        ], [
+            'jenis_transaksi.required' => 'Jenis transaksi wajib dipilih.',
+            'akun_kas_id.required'     => 'Akun kas wajib dipilih.',
+            'nominal.required'         => 'Nominal wajib diisi.',
+            'nominal.min'              => 'Nominal minimal Rp 1.',
+            'keterangan.required'      => 'Keterangan wajib diisi.',
+            'tanggal.required'         => 'Tanggal wajib diisi.',
         ]);
 
         $akunKas = AkunKas::findOrFail($request->akun_kas_id);
@@ -123,6 +130,14 @@ class ArusKasController extends Controller
             'nominal'        => 'required|numeric|min:1',
             'keterangan'     => 'required|string|max:255',
             'tanggal'        => 'required|date',
+        ], [
+            'akun_asal_id.required'   => 'Akun asal wajib dipilih.',
+            'akun_tujuan_id.required' => 'Akun tujuan wajib dipilih.',
+            'akun_tujuan_id.different'=> 'Dana Asal dan Dana Tujuan tidak boleh sama.',
+            'nominal.required'        => 'Nominal mutasi wajib diisi.',
+            'nominal.min'             => 'Nominal mutasi minimal Rp 1.',
+            'keterangan.required'     => 'Keterangan wajib diisi.',
+            'tanggal.required'        => 'Tanggal wajib diisi.',
         ]);
 
         $akunAsal = AkunKas::findOrFail($request->akun_asal_id);
