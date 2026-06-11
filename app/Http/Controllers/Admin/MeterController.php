@@ -21,6 +21,13 @@ class MeterController extends Controller
         $endPeriode = $request->end_periode ?? date('Y-m');
         $search = $request->search;
 
+        // Proteksi: Jika "Dari Periode" lebih besar dari "Sampai Periode", tukar nilainya
+        if ($startPeriode > $endPeriode) {
+            $temp = $startPeriode;
+            $startPeriode = $endPeriode;
+            $endPeriode = $temp;
+        }
+
         $pencatatan = PencatatanMeter::with(['pelanggan', 'tagihanAir'])
             ->whereRaw("CONCAT(tahun_periode, '-', LPAD(bulan_periode, 2, '0')) BETWEEN ? AND ?", [$startPeriode, $endPeriode])
             ->when($search, function ($query) use ($search) {

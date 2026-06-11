@@ -25,7 +25,7 @@
             {{-- Filter Dari Periode --}}
             <div class="w-full md:w-40">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Dari Periode</label>
-                <input type="month" name="start_periode" value="{{ $startPeriode }}" onchange="this.form.submit()"
+                <input type="month" name="start_periode" value="{{ $startPeriode }}" max="{{ $endPeriode }}" onchange="this.form.submit()"
                     class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
             </div>
 
@@ -33,7 +33,7 @@
             <div class="w-full md:w-40">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Sampai
                     Periode</label>
-                <input type="month" name="end_periode" value="{{ $endPeriode }}" onchange="this.form.submit()"
+                <input type="month" name="end_periode" value="{{ $endPeriode }}" min="{{ $startPeriode }}" onchange="this.form.submit()"
                     class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
             </div>
 
