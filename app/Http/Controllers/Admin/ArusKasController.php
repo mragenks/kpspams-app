@@ -15,14 +15,23 @@ class ArusKasController extends Controller
         $bulan = $request->bulan ?? date('n');
         $tahun = $request->tahun ?? date('Y');
         $akunKasId = $request->akun_kas_id ?? '';
+        $jenis = $request->jenis ?? '';
 
         $arusKas = ArusKas::with(['akunKas', 'dicatatOleh'])
             ->whereMonth('tanggal', $bulan)
             ->whereYear('tanggal', $tahun)
             ->when($akunKasId, fn($q) => $q->where('akun_kas_id', $akunKasId))
+            ->when($jenis, function ($q) use ($jenis) {
+                if ($jenis === 'masuk') {
+                    $q->whereIn('jenis_transaksi', ['masuk', 'mutasi_masuk']);
+                } elseif ($jenis === 'keluar') {
+                    $q->whereIn('jenis_transaksi', ['keluar', 'mutasi_keluar']);
+                }
+            })
             ->orderBy('tanggal', 'asc')
             ->orderBy('id', 'asc')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         $akunKasList = AkunKas::where('is_active', true)->get();
 
@@ -45,6 +54,7 @@ class ArusKasController extends Controller
             'bulan',
             'tahun',
             'akunKasId',
+            'jenis',
             'totalMasuk',
             'totalKeluar'
         ));

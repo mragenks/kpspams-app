@@ -98,6 +98,16 @@
                 </select>
             </div>
 
+            <div class="w-full md:w-48">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Jenis Transaksi</label>
+                <select name="jenis" onchange="document.getElementById('filterForm').submit();"
+                    class="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer">
+                    <option value="">Semua Transaksi</option>
+                    <option value="masuk" {{ isset($jenis) && $jenis == 'masuk' ? 'selected' : '' }}>Pemasukan</option>
+                    <option value="keluar" {{ isset($jenis) && $jenis == 'keluar' ? 'selected' : '' }}>Pengeluaran</option>
+                </select>
+            </div>
+
             <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto mt-2 md:mt-0 md:ml-auto">
                 {{-- Tombol Filter dihapus karena sudah digantikan oleh auto-submit --}}
                 <a href="{{ route('admin.arus-kas.create') }}?jenis=masuk"
