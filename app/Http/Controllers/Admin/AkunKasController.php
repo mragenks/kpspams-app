@@ -22,10 +22,13 @@ class AkunKasController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_akun'   => 'required|string|max:255',
+            'nama_akun'   => 'required|string|max:255|unique:akun_kas,nama_akun',
             'jenis_akun'  => 'required|in:tunai,bank',
             'saldo'       => 'required|numeric|min:0',
             'keterangan'  => 'nullable|string',
+        ], [
+            'nama_akun.required' => 'Nama Akun Kas tidak boleh kosong.',
+            'nama_akun.unique'   => 'Nama Akun Kas sudah ada, silakan gunakan nama yang lain.',
         ]);
 
         AkunKas::create([
@@ -48,10 +51,13 @@ class AkunKasController extends Controller
     public function update(Request $request, AkunKas $akunKas)
     {
         $request->validate([
-            'nama_akun'  => 'required|string|max:255',
+            'nama_akun'  => 'required|string|max:255|unique:akun_kas,nama_akun,' . $akunKas->id,
             'jenis_akun' => 'required|in:tunai,bank',
             'keterangan' => 'nullable|string',
             'is_active'  => 'boolean',
+        ], [
+            'nama_akun.required' => 'Nama Akun Kas tidak boleh kosong.',
+            'nama_akun.unique'   => 'Nama Akun Kas sudah ada, silakan gunakan nama yang lain.',
         ]);
 
         $akunKas->update([
