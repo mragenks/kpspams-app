@@ -27,7 +27,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Username <span
                                 class="text-red-500">*</span></label>
-                        <input type="text" name="username" value="{{ old('username') }}" required
+                        <input type="text" name="username" value="{{ old('username') }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                         @error('username')
                             <span class="text-red-500 text-xs">{{ $message }}</span>
@@ -37,7 +37,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Role Akses <span
                                 class="text-red-500">*</span></label>
-                        <select name="role" required
+                        <select name="role"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white">
                             <option value="">Pilih Role...</option>
                             <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
@@ -53,7 +53,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Password <span
                                 class="text-red-500">*</span></label>
-                        <input type="password" name="password" required minlength="6"
+                        <input type="password" name="password"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                         @error('password')
                             <span class="text-red-500 text-xs">{{ $message }}</span>
@@ -63,8 +63,11 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password <span
                                 class="text-red-500">*</span></label>
-                        <input type="password" name="password_confirmation" required minlength="6"
+                        <input type="password" name="password_confirmation"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                        @error('password_confirmation')
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -79,7 +82,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap <span
                                 class="text-red-500">*</span></label>
                         <input type="text" name="nama_pengurus"
-                            value="{{ old('nama_pengurus') }}" required
+                            value="{{ old('nama_pengurus') }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                         @error('nama_pengurus')
                             <span class="text-red-500 text-xs">{{ $message }}</span>
@@ -90,6 +93,9 @@
                         <input type="text" name="jabatan" value="{{ old('jabatan') }}"
                             placeholder="Cont. Sekretaris, Bendahara..."
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                        @error('jabatan')
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
                     </div>
                 </div>
 

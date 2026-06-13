@@ -28,7 +28,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Username <span
                                 class="text-red-500">*</span></label>
-                        <input type="text" name="username" value="{{ old('username', $user->username) }}" required
+                        <input type="text" name="username" value="{{ old('username', $user->username) }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 transition">
                         @error('username')
                             <span class="text-red-500 text-xs">{{ $message }}</span>
@@ -38,7 +38,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Role Akses <span
                                 class="text-red-500">*</span></label>
-                        <select name="role" required
+                        <select name="role"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 transition bg-white">
                             <option value="admin" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Admin
                             </option>
@@ -73,6 +73,9 @@
                         <input type="text" name="jabatan" value="{{ old('jabatan', $user->pengurus->jabatan ?? '') }}"
                             placeholder="Cont. Sekretaris, Bendahara..."
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 transition">
+                        @error('jabatan')
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
                     </div>
                 </div>
 

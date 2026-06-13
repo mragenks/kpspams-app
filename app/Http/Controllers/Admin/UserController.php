@@ -46,6 +46,15 @@ class UserController extends Controller
             'jabatan'       => 'nullable|string|max:255',
             'no_hp'         => 'nullable|string|max:20',
             'alamat'        => 'nullable|string',
+        ], [
+            'username.required'      => 'Username wajib diisi!',
+            'username.unique'        => 'Username sudah terdaftar, silakan gunakan yang lain!',
+            'password.required'      => 'Password wajib diisi!',
+            'password.min'           => 'Password minimal harus 6 karakter!',
+            'password.confirmed'     => 'Konfirmasi password tidak sesuai!',
+            'role.required'          => 'Role akses wajib dipilih!',
+            'role.in'                => 'Pilihan role tidak valid!',
+            'nama_pengurus.required' => 'Nama lengkap pengurus wajib diisi!',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -72,6 +81,10 @@ class UserController extends Controller
     {
         $request->validate([
             'password_baru' => 'required|string|min:6|confirmed',
+        ], [
+            'password_baru.required'  => 'Password baru wajib diisi!',
+            'password_baru.min'       => 'Password baru minimal harus 6 karakter!',
+            'password_baru.confirmed' => 'Konfirmasi password baru tidak sesuai!',
         ]);
 
         $user->update([
@@ -145,6 +158,12 @@ class UserController extends Controller
             'jabatan'       => 'nullable|string|max:255',
             'no_hp'         => 'nullable|string|max:20',
             'alamat'        => 'nullable|string',
+        ], [
+            'username.required'      => 'Username wajib diisi!',
+            'username.unique'        => 'Username sudah terdaftar, silakan gunakan yang lain!',
+            'role.required'          => 'Role akses wajib dipilih!',
+            'role.in'                => 'Pilihan role tidak valid!',
+            'nama_pengurus.required' => 'Nama lengkap pengurus wajib diisi!',
         ]);
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($request, $user) {
