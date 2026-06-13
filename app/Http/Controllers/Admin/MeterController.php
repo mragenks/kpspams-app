@@ -116,6 +116,19 @@ class MeterController extends Controller
             'meter_akhir'        => 'required|numeric|min:0',
             'tanggal_pencatatan' => 'required|date',
             'foto_meteran'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ], [
+            'pelanggan_id.required'       => 'Pelanggan wajib dipilih!',
+            'pelanggan_id.exists'         => 'Pelanggan tidak valid!',
+            'bulan_periode.required'      => 'Bulan periode wajib diisi!',
+            'tahun_periode.required'      => 'Tahun periode wajib diisi!',
+            'meter_akhir.required'        => 'Angka meter akhir wajib diisi!',
+            'meter_akhir.numeric'         => 'Angka meter akhir harus berupa angka!',
+            'meter_akhir.min'             => 'Angka meter akhir tidak boleh kurang dari 0!',
+            'tanggal_pencatatan.required' => 'Tanggal pencatatan wajib dipilih!',
+            'tanggal_pencatatan.date'     => 'Format tanggal tidak valid!',
+            'foto_meteran.image'          => 'File harus berupa gambar!',
+            'foto_meteran.mimes'          => 'Format foto harus JPG, JPEG, atau PNG!',
+            'foto_meteran.max'            => 'Ukuran foto maksimal 2MB!',
         ]);
 
         // PROTEKSI KEAMANAN BACKEND: Tolak jika status fisik mati ATAU akun mati
@@ -240,7 +253,12 @@ class MeterController extends Controller
             'meter_akhir'  => 'required|numeric|min:' . $meter->meter_awal,
             'foto_meteran' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ], [
-            'meter_akhir.min' => "Angka meter akhir tidak boleh lebih kecil dari meter awal ({$meter->meter_awal})!"
+            'meter_akhir.required' => 'Angka meter akhir wajib diisi!',
+            'meter_akhir.numeric'  => 'Angka meter akhir harus berupa angka!',
+            'meter_akhir.min'      => "Angka meter akhir tidak boleh lebih kecil dari meter awal ({$meter->meter_awal})!",
+            'foto_meteran.image'   => 'File harus berupa gambar!',
+            'foto_meteran.mimes'   => 'Format foto harus JPG, JPEG, atau PNG!',
+            'foto_meteran.max'     => 'Ukuran foto maksimal 2MB!',
         ]);
 
         DB::transaction(function () use ($request, $meter) {
