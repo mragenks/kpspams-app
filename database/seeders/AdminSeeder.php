@@ -13,11 +13,11 @@ class AdminSeeder extends Seeder
     {
         // Create Admin account
         $admin = User::create([
-            'nama_lengkap' => 'Administrator', // Ditambahkan ke User
+            'nama_lengkap' => 'Administrator',
             'username'     => 'admin',
             'email'        => 'admin@kpspams.com',
             'password'     => Hash::make('admin123'),
-            'no_hp'        => '085225003050',   // Ditambahkan ke User
+            'no_hp'        => '',
             'role'         => 'admin',
             'is_active'    => true,
         ]);
@@ -25,16 +25,15 @@ class AdminSeeder extends Seeder
         Pengurus::create([
             'user_id'      => $admin->id,
             'jabatan'      => 'admin',
-            // nama_pengurus dan no_hp dihapus dari sini
         ]);
 
         // Create Ketua account
         $ketua = User::create([
-            'nama_lengkap' => 'Ketua KP-SPAMS', // Ditambahkan ke User
+            'nama_lengkap' => 'Ketua KP-SPAMS',
             'username'     => 'ketua',
             'email'        => 'ketua@kpspams.com',
             'password'     => Hash::make('ketua123'),
-            'no_hp'        => '08198765432',    // Ditambahkan ke User
+            'no_hp'        => '',
             'role'         => 'ketua',
             'is_active'    => true,
         ]);
@@ -42,7 +41,6 @@ class AdminSeeder extends Seeder
         Pengurus::create([
             'user_id'      => $ketua->id,
             'jabatan'      => 'ketua',
-            // nama_pengurus dan no_hp dihapus dari sini
         ]);
     }
 }
