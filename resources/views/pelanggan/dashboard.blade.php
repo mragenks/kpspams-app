@@ -92,16 +92,27 @@
                 <p class="text-sm font-semibold text-gray-700 mb-3">📤 Upload Bukti Pembayaran</p>
 
                 @php
-                    $sudahSubmit = $tagihanAktif->pembayaran->where('is_pending', true)->count() > 0;
+                    $pembayaranPending = $tagihanAktif->pembayaran->where('status_validasi', 'pending')->count() > 0;
+                    $pembayaranDitolak = $tagihanAktif->pembayaran->where('status_validasi', 'ditolak')->count() > 0;
                 @endphp
 
-                @if ($sudahSubmit)
+                @if ($pembayaranPending)
                     <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <p class="text-sm text-blue-700">
                             ✅ Bukti pembayaran sudah dikirim. Menunggu konfirmasi Admin.
                         </p>
                     </div>
                 @else
+                    @if ($pembayaranDitolak)
+                        <div class="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                            <svg class="w-5 h-5 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="text-sm text-red-700">
+                                <strong>Bukti ditolak!</strong> Bukti sebelumnya ditolak oleh Admin. Silakan periksa dan upload ulang bukti yang benar.
+                            </p>
+                        </div>
+                    @endif
                     <button onclick="bukaModalUploadBukti()"
                         class="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -259,7 +270,16 @@
                                                     @endif
                                                 </div>
                                             </div>
-                                            <span class="text-xs text-gray-400">{{ $p->akunKas->nama_akun ?? '-' }}</span>
+                                            <div class="text-right">
+                                                <span class="text-xs text-gray-400 block">{{ $p->akunKas->nama_akun ?? '-' }}</span>
+                                                @if($p->status_validasi === 'ditolak')
+                                                    <span class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] font-medium mt-1 inline-block">Ditolak</span>
+                                                @elseif($p->status_validasi === 'pending')
+                                                    <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-medium mt-1 inline-block">Menunggu</span>
+                                                @else
+                                                    <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-medium mt-1 inline-block">Disetujui</span>
+                                                @endif
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
@@ -394,6 +414,13 @@
                                                 <p class="text-gray-400">
                                                     {{ \Carbon\Carbon::parse($p->tanggal_bayar)->isoFormat('D MMM Y') }}
                                                 </p>
+                                                @if($p->status_validasi === 'ditolak')
+                                                    <span class="px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] font-medium">Ditolak</span>
+                                                @elseif($p->status_validasi === 'pending')
+                                                    <span class="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-medium">Menunggu</span>
+                                                @else
+                                                    <span class="px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-medium">Disetujui</span>
+                                                @endif
                                             </div>
                                         </div>
                                     @endforeach

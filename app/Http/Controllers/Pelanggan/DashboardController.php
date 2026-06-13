@@ -73,7 +73,6 @@ class DashboardController extends Controller
             'foto_bukti'    => $fotoPath,
             'status_validasi' => 'pending',
             'dicatat_oleh'  => auth()->id(),
-            'is_pending'    => true,
         ]);
 
         // ==========================================

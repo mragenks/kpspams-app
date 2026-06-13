@@ -263,14 +263,30 @@ class PembayaranController extends Controller
     public function reject($id)
     {
         $pembayaranPending = Pembayaran::findOrFail($id);
+        $tagihan = TagihanAir::findOrFail($pembayaranPending->tagihan_id);
+        $pelanggan = $tagihan->pelanggan;
 
         if ($pembayaranPending->foto_bukti) {
             Storage::disk('public')->delete($pembayaranPending->foto_bukti);
+            $pembayaranPending->foto_bukti = null;
         }
 
-        $pembayaranPending->delete();
+        $pembayaranPending->update([
+            'status_validasi' => 'ditolak',
+            'keterangan' => $pembayaranPending->keterangan . ' [DITOLAK ADMIN]'
+        ]);
 
-        return back()->with('success', 'Bukti pembayaran ditolak dan dihapus.');
+        // Kirim Notifikasi WA ke Pelanggan
+        if (!empty($pelanggan->no_hp) && strlen($pelanggan->no_hp) >= 10) {
+            $pesan = "Halo, Bpk/Ibu *{$pelanggan->nama_pelanggan}*.\n\n";
+            $pesan .= "Mohon maaf, bukti pembayaran tagihan air Anda untuk periode *" . \Carbon\Carbon::create(null, $tagihan->bulan_periode, 1)->isoFormat('MMMM Y') . "* *DITOLAK* oleh Admin.\n\n";
+            $pesan .= "Silakan login ke aplikasi PAMSIMAS untuk mengunggah ulang bukti pembayaran yang valid.\n\n";
+            $pesan .= "Terima kasih.";
+
+            $this->sendWhatsApp($pelanggan->no_hp, $pesan);
+        }
+
+        return back()->with('success', 'Bukti pembayaran ditolak. Status dikembalikan dan pelanggan dapat mengunggah ulang.');
     }
 
     public function payWithSaldo(Request $request, $tagihanId)
