@@ -23,9 +23,12 @@
                             @csrf
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Password Akun</label>
-                                <input type="password" name="password" required autofocus
-                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                <input type="password" name="password" autofocus
+                                    class="w-full border {{ $errors->has('password') ? 'border-red-500' : 'border-gray-300' }} rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="••••••••">
+                                @error('password')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <button type="submit"
                                 class="w-full bg-gray-800 text-white font-bold py-2.5 rounded-lg hover:bg-gray-900 transition flex items-center justify-center gap-2">
@@ -86,7 +89,7 @@
                                         <span
                                             class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">Rp</span>
                                         <input type="number" name="biaya_beban"
-                                            value="{{ old('biaya_beban', $tarif->biaya_beban) }}" required min="0"
+                                            value="{{ old('biaya_beban', $tarif->biaya_beban) }}" min="0"
                                             @class([
                                                 'w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono',
                                                 'border-red-500' => $errors->has('biaya_beban'),
@@ -112,7 +115,7 @@
                                         <span
                                             class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">Rp</span>
                                         <input type="number" name="tarif_0_5"
-                                            value="{{ old('tarif_0_5', $tarif->tarif_0_5) }}" required min="0"
+                                            value="{{ old('tarif_0_5', $tarif->tarif_0_5) }}" min="0"
                                             @class([
                                                 'w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono',
                                                 'border-red-500' => $errors->has('tarif_0_5'),
@@ -131,7 +134,7 @@
                                         <span
                                             class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">Rp</span>
                                         <input type="number" name="tarif_6_10"
-                                            value="{{ old('tarif_6_10', $tarif->tarif_6_10) }}" required min="0"
+                                            value="{{ old('tarif_6_10', $tarif->tarif_6_10) }}" min="0"
                                             @class([
                                                 'w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono',
                                                 'border-red-500' => $errors->has('tarif_6_10'),
@@ -150,7 +153,7 @@
                                         <span
                                             class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">Rp</span>
                                         <input type="number" name="tarif_11_20"
-                                            value="{{ old('tarif_11_20', $tarif->tarif_11_20) }}" required min="0"
+                                            value="{{ old('tarif_11_20', $tarif->tarif_11_20) }}" min="0"
                                             @class([
                                                 'w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono',
                                                 'border-red-500' => $errors->has('tarif_11_20'),
@@ -169,7 +172,7 @@
                                         <span
                                             class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">Rp</span>
                                         <input type="number" name="tarif_21_30"
-                                            value="{{ old('tarif_21_30', $tarif->tarif_21_30) }}" required min="0"
+                                            value="{{ old('tarif_21_30', $tarif->tarif_21_30) }}" min="0"
                                             @class([
                                                 'w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono',
                                                 'border-red-500' => $errors->has('tarif_21_30'),
@@ -188,7 +191,7 @@
                                         <span
                                             class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">Rp</span>
                                         <input type="number" name="tarif_atas_30"
-                                            value="{{ old('tarif_atas_30', $tarif->tarif_atas_30) }}" required
+                                            value="{{ old('tarif_atas_30', $tarif->tarif_atas_30) }}"
                                             min="0" @class([
                                                 'w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono',
                                                 'border-red-500' => $errors->has('tarif_atas_30'),

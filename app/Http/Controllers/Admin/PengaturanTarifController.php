@@ -29,7 +29,10 @@ class PengaturanTarifController extends Controller
 
     public function unlock(Request $request)
     {
-        $request->validate(['password' => 'required']);
+        $request->validate(['password' => 'required'], [
+            'password.required' => 'Password wajib diisi untuk membuka pengaturan!'
+        ]);
+        
         if (Hash::check($request->password, auth()->user()->password)) {
             session(['tarif_unlocked' => true]);
             return back()->with('success', 'Gembok Pengaturan Tarif berhasil dibuka!');
@@ -56,6 +59,25 @@ class PengaturanTarifController extends Controller
             'tarif_11_20'   => 'required|numeric|min:0',
             'tarif_21_30'   => 'required|numeric|min:0',
             'tarif_atas_30' => 'required|numeric|min:0',
+        ], [
+            'biaya_beban.required'   => 'Biaya beban wajib diisi!',
+            'biaya_beban.numeric'    => 'Biaya beban harus berupa angka!',
+            'biaya_beban.min'        => 'Biaya beban tidak boleh kurang dari 0!',
+            'tarif_0_5.required'     => 'Tarif 0-5 m³ wajib diisi!',
+            'tarif_0_5.numeric'      => 'Tarif 0-5 m³ harus berupa angka!',
+            'tarif_0_5.min'          => 'Tarif 0-5 m³ tidak boleh kurang dari 0!',
+            'tarif_6_10.required'    => 'Tarif 6-10 m³ wajib diisi!',
+            'tarif_6_10.numeric'     => 'Tarif 6-10 m³ harus berupa angka!',
+            'tarif_6_10.min'         => 'Tarif 6-10 m³ tidak boleh kurang dari 0!',
+            'tarif_11_20.required'   => 'Tarif 11-20 m³ wajib diisi!',
+            'tarif_11_20.numeric'    => 'Tarif 11-20 m³ harus berupa angka!',
+            'tarif_11_20.min'        => 'Tarif 11-20 m³ tidak boleh kurang dari 0!',
+            'tarif_21_30.required'   => 'Tarif 21-30 m³ wajib diisi!',
+            'tarif_21_30.numeric'    => 'Tarif 21-30 m³ harus berupa angka!',
+            'tarif_21_30.min'        => 'Tarif 21-30 m³ tidak boleh kurang dari 0!',
+            'tarif_atas_30.required' => 'Tarif > 30 m³ wajib diisi!',
+            'tarif_atas_30.numeric'  => 'Tarif > 30 m³ harus berupa angka!',
+            'tarif_atas_30.min'      => 'Tarif > 30 m³ tidak boleh kurang dari 0!',
         ]);
 
         $tarif = PengaturanTarif::first();
