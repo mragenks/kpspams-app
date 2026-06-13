@@ -12,24 +12,38 @@ class ArusKasController extends Controller
 {
     public function index(Request $request)
     {
-        $startDate = $request->start_date ?: Carbon::now()->startOfMonth()->toDateString();
-        $endDate = $request->end_date ?: Carbon::now()->endOfMonth()->toDateString();
+        $bulan = $request->bulan ?? date('n');
+        $tahun = $request->tahun ?? date('Y');
         $akunKasId = $request->akun_kas_id ?? '';
+        $jenis = $request->jenis ?? '';
 
-        $arusKas = ArusKas::with(['akunKas'])
-            ->whereBetween('tanggal', [$startDate, $endDate])
+        $arusKas = ArusKas::with(['akunKas', 'dicatatOleh'])
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
             ->when($akunKasId, fn($q) => $q->where('akun_kas_id', $akunKasId))
+            ->when($jenis, function ($q) use ($jenis) {
+                if ($jenis === 'masuk') {
+                    $q->whereIn('jenis_transaksi', ['masuk', 'mutasi_masuk']);
+                } elseif ($jenis === 'keluar') {
+                    $q->whereIn('jenis_transaksi', ['keluar', 'mutasi_keluar']);
+                }
+            })
             ->orderBy('tanggal', 'asc')
-            ->paginate(15);
+            ->orderBy('id', 'asc')
+            ->paginate(15)
+            ->withQueryString();
 
         $akunKasList = AkunKas::where('is_active', true)->get();
 
-        $totalMasuk = ArusKas::whereBetween('tanggal', [$startDate, $endDate])
+        // Summary
+        $totalMasuk = ArusKas::whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
             ->when($akunKasId, fn($q) => $q->where('akun_kas_id', $akunKasId))
             ->whereIn('jenis_transaksi', ['masuk', 'mutasi_masuk'])
             ->sum('nominal');
 
-        $totalKeluar = ArusKas::whereBetween('tanggal', [$startDate, $endDate])
+        $totalKeluar = ArusKas::whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
             ->when($akunKasId, fn($q) => $q->where('akun_kas_id', $akunKasId))
             ->whereIn('jenis_transaksi', ['keluar', 'mutasi_keluar'])
             ->sum('nominal');
@@ -37,9 +51,10 @@ class ArusKasController extends Controller
         return view('ketua.arus-kas.index', compact(
             'arusKas',
             'akunKasList',
-            'startDate',
-            'endDate',
+            'bulan',
+            'tahun',
             'akunKasId',
+            'jenis',
             'totalMasuk',
             'totalKeluar'
         ));
