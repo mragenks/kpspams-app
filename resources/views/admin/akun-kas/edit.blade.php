@@ -67,7 +67,7 @@
             </div>
         </form>
 
-        <div class="mt-8 pt-6 border-t border-gray-200">
+        {{-- <div class="mt-8 pt-6 border-t border-gray-200">
             <h3 class="text-sm font-semibold text-red-600 mb-2">Hapus Akun Kas</h3>
             <p class="text-sm text-gray-500 mb-4">Tindakan ini akan menghapus akun kas dari sistem. Pastikan tidak ada data arus kas atau pembayaran yang masih menggunakan akun ini.</p>
             
@@ -79,6 +79,6 @@
                     Hapus Akun
                 </button>
             </form>
-        </div>
+        </div> --}}
     </div>
 @endsection
