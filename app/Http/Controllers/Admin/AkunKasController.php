@@ -73,6 +73,11 @@ class AkunKasController extends Controller
 
     public function destroy(AkunKas $akunKas)
     {
+        // Cek apakah saldo masih tersisa
+        // if ($akunKas->saldo > 0) {
+        //     return back()->with('error', 'Gagal: Akun kas tidak dapat dihapus karena masih memiliki sisa saldo sebesar Rp ' . number_format($akunKas->saldo, 0, ',', '.') . '!');
+        // }
+
         // Cek apakah akun punya transaksi
         if ($akunKas->arusKas()->count() > 0) {
             return back()->with('error', 'Akun kas tidak dapat dihapus karena memiliki riwayat transaksi!');
