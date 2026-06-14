@@ -104,6 +104,7 @@ class PelangganController extends Controller
             'nik'            => 'nullable|string|max:16',
             'alamat'         => 'nullable|string',
             'no_hp'          => 'nullable|string|max:15',
+            'meteran_awal'   => 'required|numeric|min:0',
         ], [
             'nama_pelanggan.required' => 'Nama Pelanggan tidak boleh kosong',
             'nama_pelanggan.unique'   => 'Nama Pelanggan tidak boleh sama',
@@ -122,6 +123,7 @@ class PelangganController extends Controller
             // Update data tagihan & fisik di tabel Pelanggan
             $pelanggan->update([
                 'nik'          => $request->nik,
+                'meteran_awal' => $request->meteran_awal,
             ]);
         });
 

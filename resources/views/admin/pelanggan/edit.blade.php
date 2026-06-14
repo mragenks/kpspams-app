@@ -35,6 +35,17 @@
                 @enderror
             </div>
 
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Meteran Awal <span class="text-red-500">*</span>
+                </label>
+                <input type="number" step="0.01" name="meteran_awal" value="{{ old('meteran_awal', $pelanggan->meteran_awal) }}"
+                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('meteran_awal') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
+                @error('meteran_awal')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap</label>
                 <textarea name="alamat" rows="3"
