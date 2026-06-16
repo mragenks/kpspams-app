@@ -18,6 +18,16 @@ use App\Http\Controllers\Pelanggan\DashboardController as PelangganDashboardCont
 use App\Http\Middleware\PreventBackHistory;
 
 Route::get('/', function () {
+    if (auth()->check()) {
+        $role = auth()->user()->role;
+        if ($role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        } elseif ($role === 'ketua') {
+            return redirect()->route('ketua.dashboard');
+        } elseif ($role === 'pelanggan') {
+            return redirect()->route('pelanggan.dashboard');
+        }
+    }
     return redirect()->route('login');
 });
 
