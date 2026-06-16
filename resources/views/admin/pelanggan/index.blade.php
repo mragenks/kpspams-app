@@ -36,8 +36,34 @@
                 <thead class="bg-gray-50 text-gray-600 uppercase text-[10px] sm:text-xs tracking-wider border-b">
                     <tr>
                         <th class="px-4 py-3 sm:px-6">No</th>
-                        <th class="px-4 py-3 sm:px-6">Kode</th>
-                        <th class="px-4 py-3 sm:px-6 min-w-[180px]">Nama Pelanggan</th>
+                        <th class="px-4 py-3 sm:px-6">
+                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'kode_pelanggan', 'direction' => ($sort === 'kode_pelanggan' && $direction === 'asc') ? 'desc' : 'asc']) }}" class="flex items-center gap-1 hover:text-blue-600 transition">
+                                Kode
+                                @if($sort === 'kode_pelanggan')
+                                    @if($direction === 'asc')
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                    @else
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    @endif
+                                @else
+                                    <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg>
+                                @endif
+                            </a>
+                        </th>
+                        <th class="px-4 py-3 sm:px-6 min-w-[180px]">
+                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'nama_pelanggan', 'direction' => ($sort === 'nama_pelanggan' && $direction === 'asc') ? 'desc' : 'asc']) }}" class="flex items-center gap-1 hover:text-blue-600 transition">
+                                Nama Pelanggan
+                                @if($sort === 'nama_pelanggan')
+                                    @if($direction === 'asc')
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                    @else
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    @endif
+                                @else
+                                    <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg>
+                                @endif
+                            </a>
+                        </th>
                         <th class="hidden md:table-cell px-6 py-4">No. HP</th>
                         <th class="hidden lg:table-cell px-6 py-4">Alamat</th>
                         <th class="px-4 py-3 sm:px-6 text-center">Meter Akhir</th>

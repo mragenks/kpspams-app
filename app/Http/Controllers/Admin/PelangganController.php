@@ -15,26 +15,40 @@ class PelangganController extends Controller
     {
         // Tangkap kueri pencarian
         $search = $request->search ?? '';
+        $sort = $request->sort ?? 'created_at';
+        $direction = $request->direction ?? 'desc';
 
         // Ambil data pelanggan dengan relasi
-        $pelanggan = Pelanggan::with(['user', 'pencatatanMeter' => function ($query) {
+        $query = Pelanggan::with(['user', 'pencatatanMeter' => function ($query) {
             $query->latest('tahun_periode')->latest('bulan_periode');
         }])
             ->when($search, function ($query) use ($search) {
                 // Logika pencarian: bisa mencari Kode Pelanggan ATAU Nama Lengkap (dari tabel users)
                 $query->where(function ($subQuery) use ($search) {
-                    $subQuery->where('kode_pelanggan', 'like', "%$search%")
+                    $subQuery->where('pelanggan.kode_pelanggan', 'like', "%$search%")
                         ->orWhereHas('user', function ($u) use ($search) {
                             $u->where('nama_lengkap', 'like', "%$search%");
                         });
                 });
-            })
-            ->latest()
-            ->paginate(10)
-            ->withQueryString(); // Mempertahankan parameter 'search' saat klik halaman pagination 2, 3, dst
+            });
 
-        // Kirim $search ke view agar input text tetap terisi
-        return view('admin.pelanggan.index', compact('pelanggan', 'search'));
+        // Logika sorting
+        if ($sort === 'nama_pelanggan') {
+            // Join tabel users untuk sorting berdasarkan nama_lengkap
+            $query->select('pelanggan.*')
+                  ->join('users', 'pelanggan.user_id', '=', 'users.id')
+                  ->orderBy('users.nama_lengkap', $direction);
+        } elseif ($sort === 'kode_pelanggan') {
+            $query->orderBy('pelanggan.kode_pelanggan', $direction);
+        } else {
+            $query->latest('pelanggan.created_at');
+        }
+
+        $pelanggan = $query->paginate(10)
+            ->withQueryString(); // Mempertahankan parameter 'search', 'sort', 'direction' saat klik halaman pagination 2, 3, dst
+
+        // Kirim variabel ke view
+        return view('admin.pelanggan.index', compact('pelanggan', 'search', 'sort', 'direction'));
     }
 
     public function create()

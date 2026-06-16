@@ -15,8 +15,10 @@ class UserController extends Controller
     {
         $search = $request->search ?? '';
         $role = $request->role ?? '';
+        $sort = $request->sort ?? 'created_at';
+        $direction = $request->direction ?? 'desc';
 
-        $users = User::with(['pelanggan', 'pengurus'])
+        $query = User::with(['pelanggan', 'pengurus'])
             ->when($search, function ($q) use ($search) {
                 // Gunakan function ($subQuery) agar logika OR tidak bertabrakan dengan filter Role
                 $q->where(function ($subQuery) use ($search) {
@@ -24,11 +26,19 @@ class UserController extends Controller
                         ->orWhere('nama_lengkap', 'like', "%$search%");
                 });
             })
-            ->when($role, fn($q) => $q->where('role', $role))
-            ->latest()
-            ->paginate(10);
+            ->when($role, fn($q) => $q->where('role', $role));
 
-        return view('admin.user.index', compact('users', 'search', 'role'));
+        if ($sort === 'username') {
+            $query->orderBy('username', $direction);
+        } elseif ($sort === 'nama_lengkap') {
+            $query->orderBy('nama_lengkap', $direction);
+        } else {
+            $query->latest('created_at');
+        }
+
+        $users = $query->paginate(10)->withQueryString();
+
+        return view('admin.user.index', compact('users', 'search', 'role', 'sort', 'direction'));
     }
 
     public function create()
