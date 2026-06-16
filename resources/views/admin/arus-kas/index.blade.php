@@ -146,7 +146,6 @@
                         <th class="hidden md:table-cell px-6 py-3">Akun Kas</th>
                         <th class="px-4 py-3 sm:px-6 text-right">Masuk</th>
                         <th class="px-4 py-3 sm:px-6 text-right">Keluar</th>
-                        <th class="hidden lg:table-cell px-6 py-3">No. Bukti</th>
                         <th class="px-4 py-3 sm:px-6 text-center">Status</th>
                     </tr>
                 </thead>
@@ -183,10 +182,6 @@
                                 @else
                                     -
                                 @endif
-                            </td>
-
-                            <td class="hidden lg:table-cell px-6 py-3 text-gray-500 text-xs">
-                                {{ $ak->no_bukti ?? '-' }}
                             </td>
                             <td class="px-4 py-3 sm:px-6 text-center">
                                 @if (!$ak->pembayaran_id)
