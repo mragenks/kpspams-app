@@ -88,8 +88,12 @@
             </div>
         </div>
 
+        @php
+            $adaPending = $pembayaran->pembayaran->contains('status_validasi', 'pending') || $pembayaran->pembayaran->contains('is_pending', true);
+        @endphp
+
         {{-- Form Bayar --}}
-        @if ($pembayaran->status_bayar !== 'lunas')
+        @if ($pembayaran->status_bayar !== 'lunas' && !$adaPending)
             <div class="bg-white rounded-lg shadow p-4 sm:p-6 border-t-4 border-blue-500">
                 <h3 class="text-base font-semibold text-gray-800 mb-4">Catat Pembayaran (Manual)</h3>
 
@@ -181,6 +185,22 @@
                     @csrf
                 </form>
             </div>
+        @elseif ($pembayaran->status_bayar !== 'lunas' && $adaPending)
+            <div class="bg-yellow-50 rounded-lg shadow p-4 sm:p-6 border-l-4 border-yellow-500">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800">Menunggu Konfirmasi</h3>
+                        <div class="mt-2 text-sm text-yellow-700">
+                            <p>Terdapat bukti pembayaran dari pelanggan yang belum dikonfirmasi. Form pencatatan manual disembunyikan untuk mencegah redudansi data. Silakan tinjau bukti pada tabel Riwayat Pembayaran di bawah.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         @endif
 
         {{-- Riwayat Pembayaran --}}
@@ -217,7 +237,7 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-center">
-                                        @if ($p->is_pending)
+                                        @if ($p->status_validasi === 'pending' || $p->is_pending)
                                             <div class="flex flex-col gap-1">
                                                 @if ($pembayaran->sisa_tagihan > 0)
                                                     <button type="button"
