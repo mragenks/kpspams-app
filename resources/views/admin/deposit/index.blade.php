@@ -2,10 +2,8 @@
 @section('title', 'Manajemen Saldo Pelanggan')
 
 @section('content')
-    {{-- Tambahkan CSS Tom Select --}}
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
     <style>
-        /* Kustomisasi agar Tom Select menyatu dengan desain Tailwind */
         .ts-control {
             border: 1px solid #d1d5db;
             padding: 0.5rem 0.75rem;
@@ -29,7 +27,6 @@
                     @csrf
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Pelanggan</label>
-                        {{-- ID pelanggan_id untuk inisialisasi Tom Select --}}
                         <select name="pelanggan_id" id="pelanggan_id" autocomplete="off"
                             placeholder="Ketik Kode atau Nama...">
                             <option value="">-- Cari Pelanggan --</option>
@@ -100,7 +97,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y">
-                            @foreach ($pelanggan as $p)
+                            @foreach ($pelangganPaginated as $p)
                                 <tr class="hover:bg-gray-50 transition">
                                     <td class="px-6 py-4">
                                         <div class="font-bold text-gray-800">{{ $p->nama_pelanggan }}</div>
@@ -115,6 +112,13 @@
                         </tbody>
                     </table>
                 </div>
+
+                {{-- Menampilkan Paginasi --}}
+                @if ($pelangganPaginated->hasPages())
+                    <div class="p-4 border-t">
+                        {{ $pelangganPaginated->links() }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>

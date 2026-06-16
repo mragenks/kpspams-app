@@ -18,9 +18,13 @@ class DepositController extends Controller
             ->get()
             ->sortBy('nama_pelanggan', SORT_NATURAL | SORT_FLAG_CASE);
 
+        $pelangganPaginated = Pelanggan::with('user')
+            ->where('status', 'aktif')
+            ->paginate(8);
+
         $akunKas = AkunKas::where('is_active', true)->get();
 
-        return view('admin.deposit.index', compact('pelanggan', 'akunKas'));
+        return view('admin.deposit.index', compact('pelanggan', 'pelangganPaginated', 'akunKas'));
     }
 
     public function store(Request $request)
@@ -39,10 +43,8 @@ class DepositController extends Controller
         DB::transaction(function () use ($request) {
             $pelanggan = Pelanggan::lockForUpdate()->find($request->pelanggan_id);
 
-            // 1. Tambah Saldo Pelanggan
             $pelanggan->increment('saldo', $request->nominal);
 
-            // 2. Catat ke Arus Kas
             ArusKas::create([
                 'akun_kas_id'     => $request->akun_kas_id,
                 'jenis_transaksi' => 'masuk',
@@ -52,7 +54,6 @@ class DepositController extends Controller
                 'dicatat_oleh'    => auth()->id(),
             ]);
 
-            // 3. Update Saldo Akun Kas
             AkunKas::find($request->akun_kas_id)->increment('saldo', $request->nominal);
         });
 
