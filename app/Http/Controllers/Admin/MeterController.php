@@ -21,7 +21,6 @@ class MeterController extends Controller
         $endPeriode = $request->end_periode ?? date('Y-m');
         $search = $request->search;
 
-        // Proteksi: Jika "Dari Periode" lebih besar dari "Sampai Periode", tukar nilainya
         if ($startPeriode > $endPeriode) {
             $temp = $startPeriode;
             $startPeriode = $endPeriode;
@@ -75,7 +74,6 @@ class MeterController extends Controller
 
     public function create(Request $request)
     {
-        // LOGIKA BARU: Hilangkan Pelanggan yang akun User-nya nonaktif dari Dropdown
         $pelanggan = Pelanggan::where('status', 'aktif')
             ->where(function ($query) {
                 $query->doesntHave('user')
@@ -131,7 +129,6 @@ class MeterController extends Controller
             'foto_meteran.max'            => 'Ukuran foto maksimal 2MB!',
         ]);
 
-        // PROTEKSI KEAMANAN BACKEND: Tolak jika status fisik mati ATAU akun mati
         $pelanggan = Pelanggan::findOrFail($request->pelanggan_id);
         if (
             strtolower($pelanggan->status) !== 'aktif' ||
@@ -205,12 +202,10 @@ class MeterController extends Controller
             ]);
         });
 
-        // 1. Kirim Notifikasi Lonceng (In-App)
         if ($pelanggan->user) {
             $pelanggan->user->notify(new TagihanBaruNotification($tagihanTerbuat, $request->bulan_periode, $request->tahun_periode));
         }
 
-        // 2. Kirim Notifikasi WhatsApp via Fonnte
         if ($pelanggan->no_hp) {
             $namaBulan = \Carbon\Carbon::create()->month($request->bulan_periode)->isoFormat('MMMM');
             $nominal = number_format($tagihanTerbuat->total_tagihan, 0, ',', '.');
@@ -308,9 +303,6 @@ class MeterController extends Controller
             ->with('success', 'Data pencatatan meter berhasil dihapus!');
     }
 
-    // ==========================================
-    // FUNGSI HELPER UNTUK WHATSAPP (FONNTE)
-    // ==========================================
     private function sendWhatsApp($no_hp, $pesan)
     {
         $token = config('services.fonnte.token');

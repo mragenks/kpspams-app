@@ -35,7 +35,6 @@ class ArusKasController extends Controller
 
         $akunKasList = AkunKas::where('is_active', true)->get();
 
-        // Summary
         $totalMasuk = ArusKas::whereMonth('tanggal', $bulan)
             ->whereYear('tanggal', $tahun)
             ->when($akunKasId, fn($q) => $q->where('akun_kas_id', $akunKasId))

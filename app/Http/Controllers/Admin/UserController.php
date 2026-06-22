@@ -20,7 +20,6 @@ class UserController extends Controller
 
         $query = User::with(['pelanggan', 'pengurus'])
             ->when($search, function ($q) use ($search) {
-                // Gunakan function ($subQuery) agar logika OR tidak bertabrakan dengan filter Role
                 $q->where(function ($subQuery) use ($search) {
                     $subQuery->where('username', 'like', "%$search%")
                         ->orWhere('nama_lengkap', 'like', "%$search%");
@@ -111,28 +110,22 @@ class UserController extends Controller
             return back()->with('error', 'Tidak dapat mengubah status akun sendiri!');
         }
 
-        // Simpan status baru (true/false) ke variabel untuk digunakan di 2 tabel
         $newStatus = !$user->is_active;
 
         DB::transaction(function () use ($user, $newStatus) {
-            // 1. Ubah status di tabel users
             $user->update([
                 'is_active' => $newStatus,
             ]);
 
-            // 2. JIKA role-nya pelanggan, update juga status di tabel pelanggan
             if ($user->role === 'pelanggan') {
                 $pelanggan = Pelanggan::where('user_id', $user->id)->first();
                 if ($pelanggan) {
-                    // Cek tipe data kolom status Anda di tabel pelanggan (aktif/nonaktif atau 1/0)
-                    // Asumsi: menggunakan ENUM ('aktif', 'nonaktif')
                     $pelanggan->update([
                         'status' => $newStatus ? 'aktif' : 'nonaktif'
                     ]);
                 }
             }
 
-            // Hapus semua session user tersebut agar otomatis logout jika dinonaktifkan
             DB::table('sessions')
                 ->where('user_id', $user->id)
                 ->delete();
@@ -177,16 +170,14 @@ class UserController extends Controller
         ]);
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($request, $user) {
-            // 1. Update Akun Login & Identitas di tabel User
             $user->update([
-                'nama_lengkap' => $request->nama_pengurus, // Mapping dari nama_pengurus
+                'nama_lengkap' => $request->nama_pengurus, 
                 'username'     => $request->username,
                 'role'         => $request->role,
                 'no_hp'        => $request->no_hp,
                 'alamat'       => $request->alamat,
             ]);
 
-            // 2. Update Jabatan di tabel Pengurus
             $dataPengurus = [
                 'jabatan' => $request->jabatan,
             ];

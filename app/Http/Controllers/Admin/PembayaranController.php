@@ -15,9 +15,6 @@ use Illuminate\Support\Facades\Http;
 
 class PembayaranController extends Controller
 {
-    // ==========================================
-    // FUNGSI HELPER UNTUK WHATSAPP (FONNTE)
-    // ==========================================
     private function sendWhatsApp($no_hp, $pesan)
     {
         $token = config('services.fonnte.token');
@@ -38,9 +35,6 @@ class PembayaranController extends Controller
         }
     }
 
-    // ==========================================
-    // LOGIKA PENYUSUNAN PESAN WA PEMBAYARAN
-    // ==========================================
     private function kirimNotifikasiWAPembayaran($tagihan, $nominalBayarTerakhir)
     {
         $pelanggan = $tagihan->pelanggan;
@@ -193,7 +187,6 @@ class PembayaranController extends Controller
             $akunKas->increment('saldo', $request->nominal_bayar);
         });
 
-        // PANGGIL FUNGSI WA
         $tagihan->refresh();
         $this->kirimNotifikasiWAPembayaran($tagihan, $request->nominal_bayar);
 
@@ -253,7 +246,6 @@ class PembayaranController extends Controller
             $akunKas->increment('saldo', $request->nominal_bayar);
         });
 
-        // PANGGIL FUNGSI WA
         $tagihan->refresh();
         $this->kirimNotifikasiWAPembayaran($tagihan, $request->nominal_bayar);
 
@@ -276,7 +268,6 @@ class PembayaranController extends Controller
             'keterangan' => $pembayaranPending->keterangan . ' [DITOLAK ADMIN]'
         ]);
 
-        // Kirim Notifikasi WA ke Pelanggan
         if (!empty($pelanggan->no_hp) && strlen($pelanggan->no_hp) >= 10) {
             $pesan = "Halo, Bpk/Ibu *{$pelanggan->nama_pelanggan}*.\n\n";
             $pesan .= "Mohon maaf, bukti pembayaran tagihan air Anda untuk periode *" . \Carbon\Carbon::create(null, $tagihan->bulan_periode, 1)->isoFormat('MMMM Y') . "* *DITOLAK* oleh Admin.\n\n";
@@ -330,7 +321,6 @@ class PembayaranController extends Controller
             ]);
         });
 
-        // PANGGIL FUNGSI WA
         $tagihan->refresh();
         $this->kirimNotifikasiWAPembayaran($tagihan, $nominalPotong);
 

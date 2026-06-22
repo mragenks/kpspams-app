@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('pencatatan_meter_id')->constrained('pencatatan_meter')->onDelete('cascade');
             $table->integer('bulan_periode');
             $table->integer('tahun_periode');
-            $table->decimal('biaya_beban', 10, 2)->default(5000); // fixed monthly fee
+            $table->decimal('biaya_beban', 10, 2)->default(5000); 
             $table->decimal('biaya_pemakaian', 10, 2);
             $table->decimal('total_tagihan', 10, 2);
             $table->decimal('total_terbayar', 10, 2)->default(0);

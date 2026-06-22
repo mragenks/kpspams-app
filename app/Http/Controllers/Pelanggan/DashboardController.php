@@ -53,7 +53,6 @@ class DashboardController extends Controller
 
         $pelanggan = auth()->user()->pelanggan;
 
-        // Pastikan tagihan milik pelanggan ini
         $tagihan = TagihanAir::where('id', $request->tagihan_id)
             ->where('pelanggan_id', $pelanggan->id)
             ->whereIn('status_bayar', ['belum_lunas', 'mencicil'])
@@ -62,7 +61,6 @@ class DashboardController extends Controller
         // Upload foto
         $fotoPath = $request->file('foto_bukti')->store('bukti/pelanggan', 'public');
 
-        // Tangkap hasilnya ke dalam variabel $pembayaran
         $pembayaran = Pembayaran::create([
             'tagihan_id'    => $tagihan->id,
             'pelanggan_id'  => $pelanggan->id,
@@ -75,14 +73,8 @@ class DashboardController extends Controller
             'dicatat_oleh'  => auth()->id(),
         ]);
 
-        // ==========================================
-        // FITUR NOTIFIKASI OTOMATIS KE ADMIN & KETUA
-        // ==========================================
-
-        // 1. Ambil semua user dengan role admin dan ketua
         $admins = User::whereIn('role', ['admin', 'ketua'])->get();
 
-        // 2. Kirim notifikasi menggunakan Facade Notification
         Notification::send($admins, new PembayaranBaruNotification($pembayaran, $pelanggan));
 
         return back()->with('success', 'Bukti pembayaran berhasil dikirim! Admin akan segera memproses.');
@@ -90,7 +82,6 @@ class DashboardController extends Controller
 
     public function suratTagihan(Request $request, $id)
     {
-        // 1. Jika URL membawa notif_id, otomatis tandai notifikasi sebagai "Telah Dibaca"
         if ($request->has('notif_id')) {
             $notif = auth()->user()->notifications()->find($request->notif_id);
             if ($notif) {
@@ -98,7 +89,6 @@ class DashboardController extends Controller
             }
         }
 
-        // 2. Ambil data tagihan beserta relasinya, pastikan ini milik pelanggan yang sedang login
         $pelanggan = auth()->user()->pelanggan;
         if (!$pelanggan) {
             abort(403, 'Data pelanggan tidak ditemukan.');

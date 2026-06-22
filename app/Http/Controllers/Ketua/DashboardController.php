@@ -18,7 +18,6 @@ class DashboardController extends Controller
         $bulan = date('n');
         $tahun = date('Y');
 
-        // Summary Cards
         $totalPelanggan = Pelanggan::where('status', 'aktif')->count();
 
         $tagihanBelumLunas = TagihanAir::whereIn('status_bayar', ['belum_lunas', 'mencicil'])
@@ -28,7 +27,6 @@ class DashboardController extends Controller
 
         $totalAset = Inventaris::count();
 
-        // Tagihan bulan ini
         $tagihanBulanIni = TagihanAir::where('bulan_periode', $bulan)
             ->where('tahun_periode', $tahun)
             ->get();
@@ -36,7 +34,6 @@ class DashboardController extends Controller
         $totalTagihanBulanIni = $tagihanBulanIni->sum('total_tagihan');
         $totalTerbayarBulanIni = $tagihanBulanIni->sum('total_terbayar');
 
-        // Arus kas bulan ini
         $pemasukanBulanIni = ArusKas::whereMonth('tanggal', $bulan)
             ->whereYear('tanggal', $tahun)
             ->whereIn('jenis_transaksi', ['masuk', 'mutasi_masuk'])
@@ -47,11 +44,9 @@ class DashboardController extends Controller
             ->whereIn('jenis_transaksi', ['keluar', 'mutasi_keluar'])
             ->sum('nominal');
 
-        // Piutang (total sisa tagihan yang belum lunas)
         $totalPiutang = TagihanAir::whereIn('status_bayar', ['belum_lunas', 'mencicil'])
             ->sum('sisa_tagihan');
 
-        // Tagihan terbaru belum lunas
         $tagihanTerbaru = TagihanAir::with('pelanggan')
             ->whereIn('status_bayar', ['belum_lunas', 'mencicil'])
             ->where('bulan_periode', $bulan)
@@ -60,18 +55,15 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Transaksi kas terbaru
         $transaksiTerbaru = ArusKas::with('akunKas')
             ->latest()
             ->take(5)
             ->get();
 
-        // Aset rusak
         $asetRusak = Inventaris::where('kondisi', 'rusak')
             ->orWhere('kondisi', 'perlu_perbaikan')
             ->count();
 
-        // Data chart arus kas 6 bulan terakhir
         $chartData = [];
         for ($i = 5; $i >= 0; $i--) {
             $date = Carbon::now()->subMonths($i);

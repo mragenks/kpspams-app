@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('akun_kas', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_akun'); // e.g. "Kas Tunai", "Bank BRI"
+            $table->string('nama_akun');
             $table->enum('jenis_akun', ['tunai', 'bank'])->default('tunai');
             $table->decimal('saldo', 15, 2)->default(0);
             $table->text('keterangan')->nullable();

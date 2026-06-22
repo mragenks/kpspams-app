@@ -9,7 +9,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('pelanggan', function (Blueprint $table) {
-            // Tambahkan kolom saldo setelah status, defaultnya 0
             $table->bigInteger('saldo')->default(0)->after('status');
         });
     }

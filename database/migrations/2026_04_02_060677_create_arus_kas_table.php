@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('no_bukti')->nullable();
             $table->date('tanggal');
             $table->foreignId('dicatat_oleh')->constrained('users')->onDelete('cascade');
-            // reference to pembayaran if this cash entry came from water bill payment
             $table->foreignId('pembayaran_id')->nullable()->constrained('pembayaran')->onDelete('set null');
             $table->timestamps();
         });

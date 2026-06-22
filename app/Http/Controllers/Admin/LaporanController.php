@@ -21,11 +21,9 @@ class LaporanController extends Controller
     {
         $tab = $request->get('tab', 'arus-kas');
 
-        // Untuk Arus Kas & Inventaris
         $startDate = $request->start_date ?: Carbon::now()->startOfMonth()->format('Y-m-d');
         $endDate = $request->end_date ?: Carbon::now()->endOfMonth()->format('Y-m-d');
 
-        // Khusus Laporan Tagihan (Bulan & Tahun)
         $startPeriode = $request->start_periode ?: Carbon::now()->format('Y-m');
         $endPeriode = $request->end_periode ?: Carbon::now()->format('Y-m');
 
@@ -39,7 +37,6 @@ class LaporanController extends Controller
         } elseif ($tab == 'tagihan') {
             $searchPelanggan = $request->search_pelanggan;
 
-            // LOGIKA BARU: Filter 100% murni berdasarkan Periode Tagihan (Bulan & Tahun)
             $query = TagihanAir::with(['pelanggan', 'pencatatanMeter'])
                 ->whereRaw("CONCAT(tahun_periode, '-', LPAD(bulan_periode, 2, '0')) BETWEEN ? AND ?", [$startPeriode, $endPeriode]);
 
@@ -150,7 +147,6 @@ class LaporanController extends Controller
 
         $tagihan = $query->orderBy('tahun_periode', 'asc')->orderBy('bulan_periode', 'asc')->get();
 
-        // Format Label Periode (Jika 1 bulan saja, tampilkan 1. Jika rentang, tampilkan Awal - Akhir)
         $labelStart = Carbon::createFromFormat('Y-m', $startPeriode)->isoFormat('MMM Y');
         $labelEnd = Carbon::createFromFormat('Y-m', $endPeriode)->isoFormat('MMM Y');
         $periodeLabel = $labelStart === $labelEnd ? strtoupper($labelStart) : strtoupper($labelStart . ' - ' . $labelEnd);
@@ -174,10 +170,9 @@ class LaporanController extends Controller
         $startDate = $request->start_date ?: \Carbon\Carbon::now()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?: \Carbon\Carbon::now()->endOfMonth()->toDateString();
 
-        // Ambil data riwayat mutasi beserta relasi barangnya
         $inventaris = \App\Models\RiwayatInventaris::with('inventaris')
             ->whereBetween('tanggal', [$startDate, $endDate])
-            ->orderBy('tanggal', 'asc') // Urutkan dari tanggal paling lama ke terbaru
+            ->orderBy('tanggal', 'asc')
             ->get();
 
         $data = [
@@ -187,7 +182,6 @@ class LaporanController extends Controller
             'tanggalCetak' => \Carbon\Carbon::now()->isoFormat('D MMMM Y')
         ];
 
-        // Menggunakan kertas A4 Portrait (Tegak) karena kolomnya tidak terlalu banyak
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.laporan.pdf_inventaris', $data)->setPaper('a4', 'portrait');
 
         return $pdf->stream("Laporan_Mutasi_Inventaris_{$startDate}_sd_{$endDate}.pdf");

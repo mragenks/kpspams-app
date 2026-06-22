@@ -9,7 +9,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sessions', function (Blueprint $table) {
-            // Menambahkan garis relasi foreign key dari sessions(user_id) ke users(id)
             $table->foreign('user_id')
                 ->references('id')->on('users')
                 ->onDelete('cascade');
@@ -19,7 +18,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('sessions', function (Blueprint $table) {
-            // Menghapus garis relasi jika di-rollback
             $table->dropForeign(['user_id']);
         });
     }

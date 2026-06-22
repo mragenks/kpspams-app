@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('kode_barang')->unique();
             $table->string('nama_barang');
-            $table->enum('jenis_aset', ['tetap', 'tidak_tetap']); // fixed vs consumable
+            $table->enum('jenis_aset', ['tetap', 'tidak_tetap']); 
             $table->integer('stok_awal')->default(0);
             $table->integer('stok_saat_ini')->default(0);
             $table->enum('kondisi', ['baik', 'rusak', 'perlu_perbaikan'])->default('baik');

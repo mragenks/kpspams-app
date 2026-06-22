@@ -32,7 +32,6 @@ class PembayaranBaruNotification extends Notification
             'title' => 'Pembayaran Baru: ' . $this->pelanggan->nama_pelanggan,
             'message' => $this->pelanggan->nama_pelanggan . ' telah mengirimkan bukti pembayaran sebesar Rp ' . number_format($nominal, 0, ',', '.') . '. Menunggu konfirmasi Anda.',
 
-            // PERBAIKAN: Gunakan route detail (show) dan simpan ID-nya
             'url' => route('admin.pembayaran.show', $this->pembayaran->tagihan_id),
             'tagihan_id' => $this->pembayaran->tagihan_id,
             'pembayaran_id' => $this->pembayaran->id

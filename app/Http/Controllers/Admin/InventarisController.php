@@ -53,7 +53,6 @@ class InventarisController extends Controller
         ]);
 
         DB::transaction(function () use ($request) {
-            // Generate kode barang otomatis
             $prefix = $request->jenis_aset === 'tetap' ? 'AT' : 'ATT';
             $lastItem = Inventaris::where('jenis_aset', $request->jenis_aset)
                 ->latest('id')->first();
@@ -126,7 +125,6 @@ class InventarisController extends Controller
 
     public function mutasiStok(Request $request, Inventaris $inventaris)
     {
-        // Fitur Pengembalian ditambahkan pada validasi di sini
         $request->validate([
             'jenis_mutasi' => 'required|in:masuk,keluar,pengembalian',
             'jumlah'       => 'required|integer|min:1',
@@ -134,7 +132,6 @@ class InventarisController extends Controller
             'tanggal'      => 'required|date',
         ]);
 
-        // Cek jika barang keluar tapi stok tidak cukup
         if (
             $request->jenis_mutasi === 'keluar' &&
             $inventaris->stok_saat_ini < $request->jumlah
@@ -145,7 +142,6 @@ class InventarisController extends Controller
         DB::transaction(function () use ($request, $inventaris) {
             $stokSebelum = $inventaris->stok_saat_ini;
 
-            // Logika: Jika masuk / pengembalian -> Tambah Stok. Jika keluar -> Kurangi Stok.
             $stokSesudah = in_array($request->jenis_mutasi, ['masuk', 'pengembalian'])
                 ? $stokSebelum + $request->jumlah
                 : $stokSebelum - $request->jumlah;

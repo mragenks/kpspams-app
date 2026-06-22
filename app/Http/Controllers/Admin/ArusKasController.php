@@ -35,7 +35,6 @@ class ArusKasController extends Controller
 
         $akunKasList = AkunKas::where('is_active', true)->get();
 
-        // Summary
         $totalMasuk = ArusKas::whereMonth('tanggal', $bulan)
             ->whereYear('tanggal', $tahun)
             ->when($akunKasId, fn($q) => $q->where('akun_kas_id', $akunKasId))
@@ -87,7 +86,6 @@ class ArusKasController extends Controller
 
         $akunKas = AkunKas::findOrFail($request->akun_kas_id);
 
-        // Validasi saldo cukup untuk pengeluaran
         if ($request->jenis_transaksi === 'keluar' && $akunKas->saldo < $request->nominal) {
             return back()->with('error', 'Saldo akun kas tidak mencukupi! Saldo saat ini: Rp ' .
                 number_format($akunKas->saldo, 0, ',', '.'));
@@ -149,7 +147,6 @@ class ArusKasController extends Controller
         }
 
         DB::transaction(function () use ($request, $akunAsal, $akunTujuan) {
-            // Catat mutasi keluar
             ArusKas::create([
                 'akun_kas_id'     => $request->akun_asal_id,
                 'jenis_transaksi' => 'mutasi_keluar',
@@ -159,7 +156,6 @@ class ArusKasController extends Controller
                 'dicatat_oleh'    => auth()->id(),
             ]);
 
-            // Catat mutasi masuk
             ArusKas::create([
                 'akun_kas_id'     => $request->akun_tujuan_id,
                 'jenis_transaksi' => 'mutasi_masuk',
@@ -169,7 +165,6 @@ class ArusKasController extends Controller
                 'dicatat_oleh'    => auth()->id(),
             ]);
 
-            // Update saldo
             $akunAsal->decrement('saldo', $request->nominal);
             $akunTujuan->increment('saldo', $request->nominal);
         });
@@ -180,7 +175,6 @@ class ArusKasController extends Controller
 
     public function destroy(ArusKas $arusKas)
     {
-        // Kembalikan saldo
         $akunKas = $arusKas->akunKas;
 
         if (in_array($arusKas->jenis_transaksi, ['masuk', 'mutasi_masuk'])) {

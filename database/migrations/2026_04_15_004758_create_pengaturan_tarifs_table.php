@@ -21,7 +21,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Insert data default
         DB::table('pengaturan_tarif')->insert([
             'biaya_beban' => 5000,
             'tarif_0_5'   => 10000,

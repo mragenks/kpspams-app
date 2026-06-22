@@ -17,7 +17,6 @@ class DataDummySeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Ambil Admin (Pencatat)
         $admin = User::where('role', 'admin')->first();
 
         if (!$admin) {
@@ -25,13 +24,11 @@ class DataDummySeeder extends Seeder
             return;
         }
 
-        // 2. Siapkan Akun Kas
         $kasBendahara = AkunKas::firstOrCreate(
             ['nama_akun' => 'Kas Tunai Bendahara'],
             ['saldo' => 0, 'is_active' => true]
         );
 
-        // 3. Nama Pelanggan
         $names = [
             'Ahmad Syarif',
             'Budi Santoso',
@@ -46,10 +43,8 @@ class DataDummySeeder extends Seeder
         ];
 
         foreach ($names as $i => $name) {
-            // Tentukan Kode Pelanggan duluan
             $kodePelanggan = 'PLG-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT);
 
-            // 4. Buat Akun User (NAMA, HP, ALAMAT MASUK SINI)
             $userPelanggan = User::create([
                 'nama_lengkap' => $name,
                 'no_hp'        => '0812' . rand(10000000, 99999999),
@@ -61,18 +56,15 @@ class DataDummySeeder extends Seeder
                 'is_active'    => true,
             ]);
 
-            // 5. Buat Data Pelanggan (HANYA INFO TAGIHAN & FISIK)
             $pelanggan = Pelanggan::create([
                 'user_id'        => $userPelanggan->id,
                 'kode_pelanggan' => $kodePelanggan,
-                // nama_pelanggan, alamat, dan no_hp dihapus dari sini
                 'meteran_awal'   => rand(10, 50),
                 'status'         => 'aktif',
                 'saldo'          => 0,
                 'created_at'     => Carbon::now()->subMonths(4)
             ]);
 
-            // 6. Buat Riwayat 3 Bulan (Jan - Mar 2026)
             $meterSekarang = $pelanggan->meteran_awal;
 
             for ($m = 1; $m <= 3; $m++) {
@@ -122,7 +114,6 @@ class DataDummySeeder extends Seeder
             }
         }
 
-        // 7. Buat Data Dummy Inventaris Aset
         $asets = [
             [
                 'kode_barang'       => 'AT-001',

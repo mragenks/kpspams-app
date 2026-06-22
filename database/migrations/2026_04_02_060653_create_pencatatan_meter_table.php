@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('pencatatan_meter', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pelanggan_id')->constrained('pelanggan')->onDelete('cascade');
-            $table->integer('bulan_periode'); // 1-12
+            $table->integer('bulan_periode');
             $table->integer('tahun_periode');
             $table->decimal('meter_awal', 10, 2);
             $table->decimal('meter_akhir', 10, 2);
@@ -20,7 +20,6 @@ return new class extends Migration
             $table->foreignId('dicatat_oleh')->constrained('users')->onDelete('cascade');
             $table->timestamps();
 
-            // prevent duplicate entry for same customer same period
             $table->unique(['pelanggan_id', 'bulan_periode', 'tahun_periode']);
         });
     }

@@ -21,11 +21,9 @@ class LaporanController extends Controller
     {
         $tab = $request->get('tab', 'arus-kas');
 
-        // Untuk Arus Kas & Inventaris
         $startDate = $request->start_date ?: Carbon::now()->startOfMonth()->format('Y-m-d');
         $endDate = $request->end_date ?: Carbon::now()->endOfMonth()->format('Y-m-d');
 
-        // Khusus Laporan Tagihan (Bulan & Tahun)
         $startPeriode = $request->start_periode ?: Carbon::now()->format('Y-m');
         $endPeriode = $request->end_periode ?: Carbon::now()->format('Y-m');
 
@@ -39,7 +37,6 @@ class LaporanController extends Controller
         } elseif ($tab == 'tagihan') {
             $searchPelanggan = $request->search_pelanggan;
 
-            // LOGIKA SAMA DENGAN ADMIN: Filter berdasarkan Periode Tagihan
             $query = TagihanAir::with(['pelanggan', 'pencatatanMeter'])
                 ->whereRaw("CONCAT(tahun_periode, '-', LPAD(bulan_periode, 2, '0')) BETWEEN ? AND ?", [$startPeriode, $endPeriode]);
 
@@ -126,7 +123,6 @@ class LaporanController extends Controller
             'tanggalCetak' => Carbon::now()->isoFormat('D MMMM Y')
         ];
 
-        // Memakai view PDF admin agar sama persis
         $pdf = Pdf::loadView('admin.laporan.pdf_aruskas', $data)->setPaper('a4', 'landscape');
         return $pdf->stream("Laporan_ArusKas_{$startDate}_sd_{$endDate}.pdf");
     }

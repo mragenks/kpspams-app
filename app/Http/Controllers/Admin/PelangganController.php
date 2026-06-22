@@ -13,17 +13,14 @@ class PelangganController extends Controller
 {
     public function index(Request $request)
     {
-        // Tangkap kueri pencarian
         $search = $request->search ?? '';
         $sort = $request->sort ?? 'created_at';
         $direction = $request->direction ?? 'desc';
 
-        // Ambil data pelanggan dengan relasi
         $query = Pelanggan::with(['user', 'pencatatanMeter' => function ($query) {
             $query->latest('tahun_periode')->latest('bulan_periode');
         }])
             ->when($search, function ($query) use ($search) {
-                // Logika pencarian: bisa mencari Kode Pelanggan ATAU Nama Lengkap (dari tabel users)
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery->where('pelanggan.kode_pelanggan', 'like', "%$search%")
                         ->orWhereHas('user', function ($u) use ($search) {
@@ -32,9 +29,7 @@ class PelangganController extends Controller
                 });
             });
 
-        // Logika sorting
         if ($sort === 'nama_pelanggan') {
-            // Join tabel users untuk sorting berdasarkan nama_lengkap
             $query->select('pelanggan.*')
                   ->join('users', 'pelanggan.user_id', '=', 'users.id')
                   ->orderBy('users.nama_lengkap', $direction);
@@ -45,9 +40,8 @@ class PelangganController extends Controller
         }
 
         $pelanggan = $query->paginate(10)
-            ->withQueryString(); // Mempertahankan parameter 'search', 'sort', 'direction' saat klik halaman pagination 2, 3, dst
+            ->withQueryString();
 
-        // Kirim variabel ke view
         return view('admin.pelanggan.index', compact('pelanggan', 'search', 'sort', 'direction'));
     }
 
@@ -70,14 +64,12 @@ class PelangganController extends Controller
         ]);
 
         DB::transaction(function () use ($request) {
-            // Generate kode pelanggan otomatis
             $lastPelanggan = Pelanggan::latest('id')->first();
             $newNumber = $lastPelanggan ? (intval(substr($lastPelanggan->kode_pelanggan, 4)) + 1) : 1;
             $kodePelanggan = 'PLG-' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
 
-            // 1. Buat akun user untuk pelanggan (KOLOM NAMA, HP, ALAMAT MASUK KE SINI)
             $user = User::create([
-                'nama_lengkap' => $request->nama_pelanggan, // Mapping dari input view
+                'nama_lengkap' => $request->nama_pelanggan,
                 'username'  => $kodePelanggan,
                 'password'  => Hash::make('pelanggan123'),
                 'no_hp'     => $request->no_hp,
@@ -86,7 +78,6 @@ class PelangganController extends Controller
                 'is_active' => true,
             ]);
 
-            // 2. Buat data pelanggan (HANYA FOKUS PADA DATA FISIK TAGIHAN)
             Pelanggan::create([
                 'user_id'        => $user->id,
                 'kode_pelanggan' => $kodePelanggan,
@@ -125,7 +116,6 @@ class PelangganController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $pelanggan) {
-            // Update data identitas di tabel User
             if ($pelanggan->user) {
                 $pelanggan->user->update([
                     'nama_lengkap' => $request->nama_pelanggan,
@@ -134,7 +124,6 @@ class PelangganController extends Controller
                 ]);
             }
 
-            // Update data tagihan & fisik di tabel Pelanggan
             $pelanggan->update([
                 'nik'          => $request->nik,
                 'meteran_awal' => $request->meteran_awal,
@@ -147,7 +136,6 @@ class PelangganController extends Controller
 
     public function destroy(Pelanggan $pelanggan)
     {
-        // Hapus user terkait sekaligus (data pelanggan akan ikut terhapus karena on delete cascade)
         $pelanggan->user()->delete();
         $pelanggan->delete();
 

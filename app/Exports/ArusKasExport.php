@@ -17,7 +17,6 @@ class ArusKasExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
     protected $startDate;
     protected $endDate;
 
-    // Menangkap parameter rentang tanggal dari Controller
     public function __construct($startDate, $endDate)
     {
         $this->startDate = $startDate;
@@ -27,7 +26,7 @@ class ArusKasExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
     public function query()
     {
         return ArusKas::query()
-            ->with(['akunKas', 'dicatatOleh']) // Pastikan relasi ini ada di Model ArusKas!
+            ->with(['akunKas', 'dicatatOleh'])
             ->whereBetween('tanggal', [$this->startDate, $this->endDate])
             ->orderBy('tanggal', 'asc');
     }
@@ -48,7 +47,6 @@ class ArusKasExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
 
     public function map($row): array
     {
-        // Logika pemisahan kolom debit/kredit
         $masuk = in_array($row->jenis_transaksi, ['masuk', 'mutasi_masuk']) ? $row->nominal : 0;
         $keluar = in_array($row->jenis_transaksi, ['keluar', 'mutasi_keluar']) ? $row->nominal : 0;
 

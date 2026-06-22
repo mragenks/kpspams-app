@@ -9,7 +9,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('pembayaran', function (Blueprint $table) {
-            // Mengubah kolom menjadi nullable agar bisa diisi null saat status pending
             $table->unsignedBigInteger('akun_kas_id')->nullable()->change();
         });
     }

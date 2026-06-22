@@ -47,7 +47,6 @@ class Handler extends ExceptionHandler
         });
 
         $this->renderable(function (PostTooLargeException $e, $request) {
-            // Kita gunakan URL parameter (?upload_error=1) karena Session belum aktif di tahap ini
             $url = url()->previous();
             $separator = parse_url($url, PHP_URL_QUERY) ? '&' : '?';
             
