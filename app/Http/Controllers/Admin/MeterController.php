@@ -216,11 +216,11 @@ class MeterController extends Controller
             $pesanWA .= "📊 *Rincian Pemakaian:*\n";
             $pesanWA .= "💧 Volume: *{$volume} m³*\n";
             $pesanWA .= "💰 Total Tagihan: *Rp {$nominal}*\n\n";
-            // $pesanWA .= "Silakan lakukan pembayaran melalui kasir atau transfer ke rekening berikut:\n\n";
-            // $pesanWA .= "🏦 *BANK BRI*\n";
-            // $pesanWA .= "💳 No. Rek: *6892-01-023456-53-1*\n";
-            // $pesanWA .= "👤 A.N: *siapa ya?*\n\n";
-            // $pesanWA .= "Setelah melakukan transfer, mohon upload foto bukti pembayaran di Portal Pelanggan.\n\n";
+            $pesanWA .= "Silakan lakukan pembayaran melalui kasir atau transfer ke rekening berikut:\n\n";
+            $pesanWA .= "🏦 *BANK Jateng*\n";
+            $pesanWA .= "💳 No. Rek: *3011 0333 25*\n";
+            $pesanWA .= "👤 A.N: *Puji Hastutiningsih*\n\n";
+            $pesanWA .= "Setelah melakukan transfer, mohon upload foto bukti pembayaran di Portal Pelanggan.\n\n";
             $pesanWA .= "Terima kasih. 🙏";
 
             $this->sendWhatsApp($pelanggan->no_hp, $pesanWA);
