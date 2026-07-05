@@ -53,7 +53,7 @@ class UserController extends Controller
             'role'          => 'required|in:admin,ketua',
             'nama_pengurus' => 'required|string|max:255',
             'jabatan'       => 'nullable|string|max:255',
-            'no_hp'         => 'nullable|string|max:20',
+            'no_hp'         => 'nullable|numeric|digits_between:10,15',
             'alamat'        => 'nullable|string',
         ], [
             'username.required'      => 'Username wajib diisi!',
@@ -64,6 +64,8 @@ class UserController extends Controller
             'role.required'          => 'Role akses wajib dipilih!',
             'role.in'                => 'Pilihan role tidak valid!',
             'nama_pengurus.required' => 'Nama lengkap pengurus wajib diisi!',
+            'no_hp.numeric'          => 'Peringatan: Nomor HP hanya boleh diisi dengan angka!',
+            'no_hp.digits_between'   => 'Nomor HP harus antara 10 hingga 15 digit angka!',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -159,7 +161,7 @@ class UserController extends Controller
             'role'          => 'required|in:admin,ketua',
             'nama_pengurus' => 'required|string|max:255',
             'jabatan'       => 'nullable|string|max:255',
-            'no_hp'         => 'nullable|string|max:20',
+            'no_hp'         => 'nullable|numeric|digits_between:10,15',
             'alamat'        => 'nullable|string',
         ], [
             'username.required'      => 'Username wajib diisi!',
@@ -167,11 +169,13 @@ class UserController extends Controller
             'role.required'          => 'Role akses wajib dipilih!',
             'role.in'                => 'Pilihan role tidak valid!',
             'nama_pengurus.required' => 'Nama lengkap pengurus wajib diisi!',
+            'no_hp.numeric'          => 'Peringatan: Nomor HP hanya boleh diisi dengan angka!',
+            'no_hp.digits_between'   => 'Nomor HP harus antara 10 hingga 15 digit angka!',
         ]);
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($request, $user) {
             $user->update([
-                'nama_lengkap' => $request->nama_pengurus, 
+                'nama_lengkap' => $request->nama_pengurus,
                 'username'     => $request->username,
                 'role'         => $request->role,
                 'no_hp'        => $request->no_hp,

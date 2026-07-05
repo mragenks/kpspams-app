@@ -19,7 +19,8 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Nama Pelanggan <span class="text-red-500">*</span>
                 </label>
-            <input type="text" name="nama_pelanggan" value="{{ old('nama_pelanggan', $pelanggan->user->nama_lengkap) }}"
+                <input type="text" name="nama_pelanggan"
+                    value="{{ old('nama_pelanggan', $pelanggan->user->nama_lengkap) }}"
                     class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('nama_pelanggan') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
                 @error('nama_pelanggan')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -27,8 +28,19 @@
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">No. HP / WhatsApp</label>
-            <input type="text" name="no_hp" value="{{ old('no_hp', $pelanggan->user->no_hp) }}"
+                <label class="block text-sm font-medium text-gray-700 mb-1">NIK</label>
+                <input type="text" name="nik" value="{{ old('nik', $pelanggan->nik ?? '') }}"
+                    placeholder="Contoh: 3312345678901234" maxlength="16"
+                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('nik') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
+                @error('nik')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nomor HP / WhatsApp</label>
+                <input type="text" name="no_hp" value="{{ old('no_hp', $pelanggan->user->no_hp ?? '') }}"
+                    placeholder="Contoh: 081234567890" maxlength="15"
                     class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('no_hp') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
                 @error('no_hp')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -39,7 +51,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Meteran Awal <span class="text-red-500">*</span>
                 </label>
-                <input type="number" step="0.01" name="meteran_awal" value="{{ old('meteran_awal', $pelanggan->meteran_awal) }}"
+                <input type="text" name="meteran_awal" value="{{ old('meteran_awal', $pelanggan->meteran_awal) }}"
                     class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('meteran_awal') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
                 @error('meteran_awal')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -49,7 +61,7 @@
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap</label>
                 <textarea name="alamat" rows="3"
-                class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('alamat') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">{{ old('alamat', $pelanggan->user->alamat) }}</textarea>
+                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('alamat') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">{{ old('alamat', $pelanggan->user->alamat) }}</textarea>
                 @error('alamat')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror

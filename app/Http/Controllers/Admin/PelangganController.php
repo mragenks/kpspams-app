@@ -31,8 +31,8 @@ class PelangganController extends Controller
 
         if ($sort === 'nama_pelanggan') {
             $query->select('pelanggan.*')
-                  ->join('users', 'pelanggan.user_id', '=', 'users.id')
-                  ->orderBy('users.nama_lengkap', $direction);
+                ->join('users', 'pelanggan.user_id', '=', 'users.id')
+                ->orderBy('users.nama_lengkap', $direction);
         } elseif ($sort === 'kode_pelanggan') {
             $query->orderBy('pelanggan.kode_pelanggan', $direction);
         } else {
@@ -54,13 +54,17 @@ class PelangganController extends Controller
     {
         $request->validate([
             'nama_pelanggan' => 'required|string|max:255|unique:users,nama_lengkap',
-            'nik'            => 'nullable|string|max:16',
+            'nik'            => 'nullable|numeric|digits:16',
             'alamat'         => 'nullable|string',
-            'no_hp'          => 'nullable|string|max:15',
+            'no_hp'          => 'nullable|numeric|digits_between:10,15',
             'meteran_awal'   => 'required|numeric|min:0',
         ], [
             'nama_pelanggan.required' => 'Nama Pelanggan tidak boleh kosong',
             'nama_pelanggan.unique'   => 'Nama Pelanggan tidak boleh sama',
+            'no_hp.numeric'          => 'Nomor HP harus berupa angka!',
+            'no_hp.digits_between'   => 'Nomor HP harus antara 10-15 digit!',
+            'nik.numeric'            => 'NIK harus berupa angka!',
+            'nik.digits'             => 'NIK harus 16 digit!',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -106,13 +110,20 @@ class PelangganController extends Controller
     {
         $request->validate([
             'nama_pelanggan' => 'required|string|max:255|unique:users,nama_lengkap,' . $pelanggan->user_id,
-            'nik'            => 'nullable|string|max:16',
+            'nik'            => 'nullable|numeric|digits:16',
             'alamat'         => 'nullable|string',
-            'no_hp'          => 'nullable|string|max:15',
+            'no_hp'          => 'nullable|numeric|digits_between:10,15',
             'meteran_awal'   => 'required|numeric|min:0',
         ], [
-            'nama_pelanggan.required' => 'Nama Pelanggan tidak boleh kosong',
-            'nama_pelanggan.unique'   => 'Nama Pelanggan tidak boleh sama',
+            'nama_pelanggan.required' => 'Nama Pelanggan tidak boleh kosong!',
+            'nama_pelanggan.unique'   => 'Nama Pelanggan sudah digunakan, tidak boleh sama!',
+            'nik.numeric'             => 'Peringatan: NIK hanya boleh diisi dengan angka!',
+            'nik.digits'              => 'NIK harus tepat berjumlah 16 digit angka!',
+            'no_hp.numeric'           => 'Peringatan: Nomor HP hanya boleh diisi dengan angka!',
+            'no_hp.digits_between'    => 'Nomor HP harus antara 10 hingga 15 digit angka!',
+            'meteran_awal.required'   => 'Meteran awal wajib diisi!',
+            'meteran_awal.numeric'    => 'Peringatan: Meteran awal khusus angka!',
+            'meteran_awal.min'        => 'Meteran awal tidak boleh minus!',
         ]);
 
         DB::transaction(function () use ($request, $pelanggan) {
