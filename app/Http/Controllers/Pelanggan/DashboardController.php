@@ -58,6 +58,14 @@ class DashboardController extends Controller
             ->whereIn('status_bayar', ['belum_lunas', 'mencicil'])
             ->firstOrFail();
 
+        $adaPembayaranPending = Pembayaran::where('tagihan_id', $tagihan->id)
+            ->where('status_validasi', 'pending')
+            ->exists();
+
+        if ($adaPembayaranPending) {
+            return back()->with('error', 'Gagal: Bukti pembayaran untuk tagihan ini sudah terkirim sebelumnya. Silakan tunggu konfirmasi admin.');
+        }
+
         // Upload foto
         $fotoPath = $request->file('foto_bukti')->store('bukti/pelanggan', 'public');
 
