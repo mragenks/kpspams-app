@@ -38,7 +38,7 @@
 
             {{-- User Info --}}
             <div class="px-4 py-3 bg-blue-800 border-b border-blue-700">
-                <p class="text-sm font-semibold text-white">{{ Auth::user()->username }}</p>
+                <p class="text-sm font-semibold text-white truncate">{{ Auth::user()->nama_lengkap }}</p>
                 <p class="text-xs text-blue-200 capitalize">{{ Auth::user()->role }}</p>
             </div>
 
