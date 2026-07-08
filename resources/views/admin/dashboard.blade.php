@@ -2,8 +2,6 @@
 @section('title', 'Dashboard')
 
 @section('content')
-
-    {{-- Summary Cards --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
         <div class="bg-white rounded-xl shadow p-4 flex items-center hover:shadow-md transition">
@@ -67,7 +65,6 @@
         </div>
     </div>
 
-    {{-- Notifikasi Bukti Pending --}}
     @if ($buktiPending->count() > 0)
         <div class="bg-orange-50 border border-orange-300 rounded-xl p-4 mb-6">
             <div class="flex items-start gap-3">
@@ -86,10 +83,12 @@
                             <div class="flex items-center justify-between bg-white rounded-lg px-3 py-2">
                                 <div class="flex items-center gap-2">
                                     @if ($bp->foto_bukti)
-                                        <a href="{{ asset('storage/' . $bp->foto_bukti) }}" target="_blank">
+                                        <button type="button"
+                                            onclick="bukaModalFoto('{{ asset('storage/' . $bp->foto_bukti) }}')"
+                                            class="focus:outline-none">
                                             <img src="{{ asset('storage/' . $bp->foto_bukti) }}"
-                                                class="w-8 h-8 object-cover rounded border">
-                                        </a>
+                                                class="w-8 h-8 object-cover rounded border hover:opacity-80 transition cursor-pointer">
+                                        </button>
                                     @endif
                                     <div>
                                         <p class="text-xs font-medium text-gray-800">
@@ -113,14 +112,12 @@
         </div>
     @endif
 
-    {{-- Piutang info mobile --}}
     <div class="lg:hidden bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
         <p class="text-sm text-red-700">
             💰 Total Piutang: <strong>Rp {{ number_format($totalPiutang, 0, ',', '.') }}</strong>
         </p>
     </div>
 
-    {{-- Bulan Ini --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div class="bg-white rounded-xl shadow p-4 lg:p-6">
             <p class="text-xs lg:text-sm text-gray-500 mb-1">Tagihan Bulan Ini</p>
@@ -159,10 +156,8 @@
         </div>
     </div>
 
-    {{-- Chart & Tagihan --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
 
-        {{-- Chart --}}
         <div class="bg-white rounded-xl shadow p-4 lg:p-6">
             <h3 class="text-sm lg:text-base font-semibold text-gray-700 mb-4">
                 Arus Kas 6 Bulan Terakhir
@@ -170,7 +165,6 @@
             <canvas id="arusKasChart"></canvas>
         </div>
 
-        {{-- Tagihan Belum Lunas --}}
         <div class="bg-white rounded-xl shadow p-4 lg:p-6">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-sm lg:text-base font-semibold text-gray-700">Tagihan Belum Lunas</h3>
@@ -208,7 +202,6 @@
         </div>
     </div>
 
-    {{-- Transaksi Terbaru --}}
     <div class="bg-white rounded-xl shadow p-4 lg:p-6">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-sm lg:text-base font-semibold text-gray-700">Transaksi Kas Terbaru</h3>
@@ -257,7 +250,26 @@
         </div>
     </div>
 
-    {{-- Chart.js --}}
+    <div id="modalPreviewFoto"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border flex flex-col animate-fade-in">
+            <div class="flex justify-between items-center px-5 py-4 border-b bg-gray-50">
+                <h3 class="text-sm font-bold text-gray-800">Pratinjau Bukti Pembayaran</h3>
+                <button type="button" onclick="tutupModalFoto()"
+                    class="text-gray-400 hover:text-gray-600 transition p-1.5 rounded-lg hover:bg-gray-200/70 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="p-5 flex justify-center bg-gray-100/30">
+                <img id="imgPreviewModal" src="" alt="Bukti Transfer Warga"
+                    class="max-h-[55vh] max-w-full object-contain rounded-xl shadow-sm border bg-white">
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const chartData = @json($chartData);
@@ -314,6 +326,32 @@
                 }
             }
         });
-    </script>
 
+        const modalFoto = document.getElementById('modalPreviewFoto');
+        const imgPreviewModal = document.getElementById('imgPreviewModal');
+
+        function bukaModalFoto(url) {
+            imgPreviewModal.src = url;
+            modalFoto.classList.remove('hidden');
+            modalFoto.classList.add('flex');
+        }
+
+        function tutupModalFoto() {
+            modalFoto.classList.add('hidden');
+            modalFoto.classList.remove('flex');
+            imgPreviewModal.src = '';
+        }
+
+        modalFoto.addEventListener('click', function(e) {
+            if (e.target === this || e.target.id === 'modalPreviewFoto') {
+                tutupModalFoto();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                tutupModalFoto();
+            }
+        });
+    </script>
 @endsection

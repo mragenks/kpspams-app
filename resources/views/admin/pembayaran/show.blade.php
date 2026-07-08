@@ -3,8 +3,6 @@
 
 @section('content')
     <div class="max-w-3xl mx-auto space-y-6">
-
-        {{-- Info Tagihan --}}
         <div class="bg-white rounded-lg shadow p-4 sm:p-6">
             <div class="flex justify-between items-center mb-6 border-b pb-4 sm:border-none sm:pb-0">
                 <h2 class="text-base sm:text-lg font-semibold text-gray-700">Detail Tagihan</h2>
@@ -89,10 +87,11 @@
         </div>
 
         @php
-            $adaPending = $pembayaran->pembayaran->contains('status_validasi', 'pending') || $pembayaran->pembayaran->contains('is_pending', true);
+            $adaPending =
+                $pembayaran->pembayaran->contains('status_validasi', 'pending') ||
+                $pembayaran->pembayaran->contains('is_pending', true);
         @endphp
 
-        {{-- Form Bayar --}}
         @if ($pembayaran->status_bayar !== 'lunas' && !$adaPending)
             <div class="bg-white rounded-lg shadow p-4 sm:p-6 border-t-4 border-blue-500">
                 <h3 class="text-base font-semibold text-gray-800 mb-4">Catat Pembayaran (Manual)</h3>
@@ -164,7 +163,6 @@
                             Proses Pembayaran
                         </button>
 
-                        {{-- Tombol Bayar via Saldo memanggil Modal --}}
                         @if ($pembayaran->pelanggan->saldo > 0)
                             <button type="button" onclick="bukaModalSaldo()"
                                 class="w-full sm:w-auto flex justify-center items-center gap-2 bg-indigo-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-indigo-700 transition shadow-sm">
@@ -179,7 +177,6 @@
                     </div>
                 </form>
 
-                {{-- Hidden Form untuk eksekusi Bayar Saldo --}}
                 <form id="formBayarSaldo" action="{{ route('admin.pembayaran.bayar_saldo', $pembayaran->id) }}"
                     method="POST" class="hidden">
                     @csrf
@@ -189,21 +186,25 @@
             <div class="bg-yellow-50 rounded-lg shadow p-4 sm:p-6 border-l-4 border-yellow-500">
                 <div class="flex items-start">
                     <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                clip-rule="evenodd" />
                         </svg>
                     </div>
                     <div class="ml-3">
                         <h3 class="text-sm font-medium text-yellow-800">Menunggu Konfirmasi</h3>
                         <div class="mt-2 text-sm text-yellow-700">
-                            <p>Terdapat bukti pembayaran dari pelanggan yang belum dikonfirmasi. Form pencatatan manual disembunyikan untuk mencegah redudansi data. Silakan tinjau bukti pada tabel Riwayat Pembayaran di bawah.</p>
+                            <p>Terdapat bukti pembayaran dari pelanggan yang belum dikonfirmasi. Form pencatatan manual
+                                disembunyikan untuk mencegah redudansi data. Silakan tinjau bukti pada tabel Riwayat
+                                Pembayaran di bawah.</p>
                         </div>
                     </div>
                 </div>
             </div>
         @endif
 
-        {{-- Riwayat Pembayaran --}}
         @if ($pembayaran->pembayaran->count() > 0)
             <div class="bg-white rounded-lg shadow p-4 sm:p-6">
                 <h3 class="text-base font-semibold text-gray-800 mb-4 border-b pb-2">Riwayat Pembayaran & Bukti</h3>
@@ -227,11 +228,12 @@
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         @if ($p->foto_bukti)
-                                            <a href="{{ Storage::url($p->foto_bukti) }}" target="_blank"
-                                                class="inline-block">
-                                                <img src="{{ Storage::url($p->foto_bukti) }}" alt="Bukti"
-                                                    class="w-10 h-10 object-cover rounded border border-gray-300 shadow-sm">
-                                            </a>
+                                            <button type="button"
+                                                onclick="bukaModalFoto('{{ Storage::url($p->foto_bukti) }}')"
+                                                class="focus:outline-none inline-block">
+                                                <img src="{{ Storage::url($p->foto_bukti) }}" alt="Bukti Transfer"
+                                                    class="w-10 h-10 object-cover rounded border border-gray-300 shadow-sm hover:opacity-80 transition cursor-pointer">
+                                            </button>
                                         @else
                                             <span class="text-gray-300 text-xs">-</span>
                                         @endif
@@ -263,10 +265,8 @@
                 </div>
             </div>
         @endif
-
     </div>
 
-    {{-- Modal Konfirmasi ACC Bukti Transfer --}}
     <div id="modalKonfirmasi"
         class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 mx-4">
@@ -302,7 +302,6 @@
         </div>
     </div>
 
-    {{-- Modal Konfirmasi Bayar Pakai Saldo --}}
     @if ($pembayaran->pelanggan && $pembayaran->pelanggan->saldo > 0)
         <div id="modalSaldo"
             class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity">
@@ -353,6 +352,25 @@
         </div>
     @endif
 
+    <div id="modalPreviewFoto"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border flex flex-col animate-fade-in">
+            <div class="flex justify-between items-center px-5 py-4 border-b bg-gray-50">
+                <h3 class="text-sm font-bold text-gray-800">Pratinjau Bukti Pembayaran</h3>
+                <button type="button" onclick="tutupModalFoto()"
+                    class="text-gray-400 hover:text-gray-600 transition p-1.5 rounded-lg hover:bg-gray-200/70 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="p-5 flex justify-center bg-gray-100/30">
+                <img id="imgPreviewModal" src="" alt="Bukti Pembayaran"
+                    class="max-h-[55vh] max-w-full object-contain rounded-xl shadow-sm border bg-white">
+            </div>
+        </div>
+    </div>
+
     <script>
         function previewFoto(input, previewId) {
             const preview = document.getElementById(previewId);
@@ -366,7 +384,6 @@
             }
         }
 
-        // Modal ACC Transfer
         const modalAcc = document.getElementById('modalKonfirmasi');
 
         function bukaModalKonfirmasi(pembayaranId) {
@@ -384,7 +401,6 @@
             if (e.target === this) tutupModalKonfirmasi();
         });
 
-        // Modal Bayar Pakai Saldo
         const modalSaldo = document.getElementById('modalSaldo');
 
         function bukaModalSaldo() {
@@ -405,5 +421,32 @@
                 if (e.target === this) tutupModalSaldo();
             });
         }
+
+        const modalFoto = document.getElementById('modalPreviewFoto');
+        const imgPreviewModal = document.getElementById('imgPreviewModal');
+
+        function bukaModalFoto(url) {
+            imgPreviewModal.src = url;
+            modalFoto.classList.remove('hidden');
+            modalFoto.classList.add('flex');
+        }
+
+        function tutupModalFoto() {
+            modalFoto.classList.add('hidden');
+            modalFoto.classList.remove('flex');
+            imgPreviewModal.src = '';
+        }
+
+        modalFoto.addEventListener('click', function(e) {
+            if (e.target === this || e.target.id === 'modalPreviewFoto') {
+                tutupModalFoto();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                tutupModalFoto();
+            }
+        });
     </script>
 @endsection
