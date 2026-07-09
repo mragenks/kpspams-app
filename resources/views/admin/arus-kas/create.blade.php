@@ -17,7 +17,7 @@
                     Akun Kas <span class="text-red-500">*</span>
                 </label>
                 <select name="akun_kas_id"
-                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition {{ $errors->has('akun_kas_id') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition {{ $errors->has('akun_kas_id') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
                     <option value="">-- Pilih Akun Kas --</option>
                     @foreach ($akunKasList as $ak)
                         <option value="{{ $ak->id }}" {{ old('akun_kas_id') == $ak->id ? 'selected' : '' }}>
@@ -37,7 +37,7 @@
                 </label>
                 <div class="relative">
                     <span class="absolute left-3 top-2 text-sm text-gray-500">Rp</span>
-                    <input type="number" name="nominal" value="{{ old('nominal') }}" min="1"
+                    <input type="text" name="nominal" value="{{ old('nominal') }}" placeholder="Contoh: 50000"
                         class="w-full border rounded-lg pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('nominal') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
                 </div>
                 @error('nominal')

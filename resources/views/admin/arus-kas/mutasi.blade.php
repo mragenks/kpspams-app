@@ -2,7 +2,7 @@
 @section('title', 'Mutasi Dana')
 
 @section('content')
-    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow p-6">
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow p-4 sm:p-6">
         <h2 class="text-lg font-semibold text-gray-700 mb-2">🔄 Mutasi Dana</h2>
         <p class="text-sm text-gray-500 mb-6">Pindahkan dana antar akun kas (contoh: setor tunai ke bank)</p>
 
@@ -14,7 +14,7 @@
                     Akun Asal <span class="text-red-500">*</span>
                 </label>
                 <select name="akun_asal_id"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition {{ $errors->has('akun_asal_id') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
                     <option value="">-- Pilih Akun Asal --</option>
                     @foreach ($akunKasList as $ak)
                         <option value="{{ $ak->id }}" {{ old('akun_asal_id') == $ak->id ? 'selected' : '' }}>
@@ -39,7 +39,7 @@
                     Akun Tujuan <span class="text-red-500">*</span>
                 </label>
                 <select name="akun_tujuan_id"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition {{ $errors->has('akun_tujuan_id') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
                     <option value="">-- Pilih Akun Tujuan --</option>
                     @foreach ($akunKasList as $ak)
                         <option value="{{ $ak->id }}" {{ old('akun_tujuan_id') == $ak->id ? 'selected' : '' }}>
@@ -59,8 +59,8 @@
                 </label>
                 <div class="relative">
                     <span class="absolute left-3 top-2 text-sm text-gray-500">Rp</span>
-                    <input type="number" name="nominal" value="{{ old('nominal') }}" min="1"
-                        class="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" name="nominal" value="{{ old('nominal') }}" placeholder="Contoh: 100000"
+                        class="w-full border rounded-lg pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('nominal') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
                 </div>
                 @error('nominal')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -73,7 +73,7 @@
                 </label>
                 <input type="text" name="keterangan" value="{{ old('keterangan') }}"
                     placeholder="Contoh: Setor kas ke bank BRI"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('keterangan') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
                 @error('keterangan')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror
@@ -84,7 +84,7 @@
                     Tanggal <span class="text-red-500">*</span>
                 </label>
                 <input type="date" name="tanggal" value="{{ old('tanggal', date('Y-m-d')) }}"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3">

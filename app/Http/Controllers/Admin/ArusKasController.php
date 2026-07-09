@@ -71,7 +71,7 @@ class ArusKasController extends Controller
         $request->validate([
             'jenis_transaksi' => 'required|in:masuk,keluar',
             'akun_kas_id'     => 'required|exists:akun_kas,id',
-            'nominal'         => 'required|numeric|min:1',
+            'nominal'         => 'required|integer|min:1',
             'keterangan'      => 'required|string|max:255',
             'no_bukti'        => 'nullable|string|max:100',
             'tanggal'         => 'required|date',
@@ -79,7 +79,8 @@ class ArusKasController extends Controller
             'jenis_transaksi.required' => 'Jenis transaksi wajib dipilih.',
             'akun_kas_id.required'     => 'Akun kas wajib dipilih.',
             'nominal.required'         => 'Nominal wajib diisi.',
-            'nominal.min'              => 'Nominal minimal Rp 1.',
+            'nominal.integer'          => 'Peringatan: Nominal harus berupa angka bulat (tidak boleh desimal atau menggunakan koma/titik)!',
+            'nominal.min'              => 'Peringatan: Nominal tidak boleh minus, nol, atau kurang dari Rp 1!',
             'keterangan.required'      => 'Keterangan wajib diisi.',
             'tanggal.required'         => 'Tanggal wajib diisi.',
         ]);
@@ -125,15 +126,16 @@ class ArusKasController extends Controller
         $request->validate([
             'akun_asal_id'   => 'required|exists:akun_kas,id',
             'akun_tujuan_id' => 'required|exists:akun_kas,id|different:akun_asal_id',
-            'nominal'        => 'required|numeric|min:1',
+            'nominal'        => 'required|integer|min:1',
             'keterangan'     => 'required|string|max:255',
             'tanggal'        => 'required|date',
         ], [
             'akun_asal_id.required'   => 'Akun asal wajib dipilih.',
             'akun_tujuan_id.required' => 'Akun tujuan wajib dipilih.',
-            'akun_tujuan_id.different'=> 'Dana Asal dan Dana Tujuan tidak boleh sama.',
+            'akun_tujuan_id.different' => 'Dana Asal dan Dana Tujuan tidak boleh sama.',
             'nominal.required'        => 'Nominal mutasi wajib diisi.',
-            'nominal.min'             => 'Nominal mutasi minimal Rp 1.',
+            'nominal.integer'         => 'Peringatan: Nominal mutasi harus berupa angka bulat (tidak boleh desimal atau menggunakan koma/titik)!',
+            'nominal.min'             => 'Peringatan: Nominal mutasi tidak boleh minus, nol, atau kurang dari Rp 1!',
             'keterangan.required'     => 'Keterangan wajib diisi.',
             'tanggal.required'        => 'Tanggal wajib diisi.',
         ]);
