@@ -21,6 +21,20 @@ class LaporanController extends Controller
     {
         $tab = $request->get('tab', 'arus-kas');
 
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            if ($request->start_date > $request->end_date) {
+                return redirect()->route('admin.laporan.index', ['tab' => $tab])
+                    ->with('error', 'Peringatan: Tanggal awal ("Dari Tanggal") tidak boleh melebihi tanggal akhir ("Sampai Tanggal")!');
+            }
+        }
+        
+        if ($request->filled('start_periode') && $request->filled('end_periode')) {
+            if ($request->start_periode > $request->end_periode) {
+                return redirect()->route('admin.laporan.index', ['tab' => $tab])
+                    ->with('error', 'Peringatan: Periode awal tidak boleh melebihi periode akhir!');
+            }
+        }
+
         $startDate = $request->start_date ?: Carbon::now()->startOfMonth()->format('Y-m-d');
         $endDate = $request->end_date ?: Carbon::now()->endOfMonth()->format('Y-m-d');
 

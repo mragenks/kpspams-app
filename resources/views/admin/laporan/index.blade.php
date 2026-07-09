@@ -69,11 +69,13 @@
                     <div class="w-full md:flex-1">
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Dari Tanggal</label>
                         <input type="date" name="start_date" value="{{ $startDate }}" onchange="this.form.submit()"
+                            max="{{ $endDate }}"
                             class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                     <div class="w-full md:flex-1">
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Sampai Tanggal</label>
                         <input type="date" name="end_date" value="{{ $endDate }}" onchange="this.form.submit()"
+                            min="{{ $startDate }}"
                             class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                 </form>
@@ -167,14 +169,14 @@
                     <div class="w-full md:w-1/4">
                         <label class="block text-xs font-semibold text-blue-800 mb-1">Dari Periode</label>
                         <input type="month" name="start_periode" value="{{ $startPeriode }}"
-                            onchange="this.form.submit()"
+                            onchange="this.form.submit()" max="{{ $endPeriode }}"
                             class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white cursor-pointer">
                     </div>
 
                     <div class="w-full md:w-1/4">
                         <label class="block text-xs font-semibold text-blue-800 mb-1">Sampai Periode</label>
                         <input type="month" name="end_periode" value="{{ $endPeriode }}"
-                            onchange="this.form.submit()"
+                            onchange="this.form.submit()" min="{{ $startPeriode }}"
                             class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white cursor-pointer">
                     </div>
 
@@ -298,12 +300,13 @@
                     <div class="w-full md:flex-1">
                         <label class="block text-xs font-semibold text-purple-800 mb-1">Dari Tanggal</label>
                         <input type="date" name="start_date" value="{{ $startDate }}"
-                            onchange="this.form.submit()"
+                            onchange="this.form.submit()" max="{{ $endDate }}"
                             class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-purple-500">
                     </div>
                     <div class="w-full md:flex-1">
                         <label class="block text-xs font-semibold text-purple-800 mb-1">Sampai Tanggal</label>
                         <input type="date" name="end_date" value="{{ $endDate }}" onchange="this.form.submit()"
+                            min="{{ $startDate }}"
                             class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-purple-500">
                     </div>
                 </form>
