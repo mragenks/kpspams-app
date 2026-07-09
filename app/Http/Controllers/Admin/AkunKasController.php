@@ -22,13 +22,14 @@ class AkunKasController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_akun'   => 'required|string|max:255|unique:akun_kas,nama_akun',
+            'nama_akun'   => 'required|string|max:255|unique:akun_kas,nama_akun|regex:/^[a-zA-Z0-9\s]+$/',
             'jenis_akun'  => 'required|in:tunai,bank',
             'saldo'       => 'required|numeric|min:0',
             'keterangan'  => 'nullable|string',
         ], [
             'nama_akun.required' => 'Nama Akun Kas tidak boleh kosong.',
             'nama_akun.unique'   => 'Nama Akun Kas sudah ada, silakan gunakan nama yang lain.',
+            'nama_akun.regex'    => 'Peringatan: Nama Akun Kas hanya boleh berisi huruf, angka, dan spasi (tidak boleh mengandung simbol)!',
         ]);
 
         AkunKas::create([
@@ -51,13 +52,14 @@ class AkunKasController extends Controller
     public function update(Request $request, AkunKas $akunKas)
     {
         $request->validate([
-            'nama_akun'  => 'required|string|max:255|unique:akun_kas,nama_akun,' . $akunKas->id,
+            'nama_akun'  => 'required|string|max:255|unique:akun_kas,nama_akun,' . $akunKas->id . '|regex:/^[a-zA-Z0-9\s]+$/',
             'jenis_akun' => 'required|in:tunai,bank',
             'keterangan' => 'nullable|string',
             'is_active'  => 'boolean',
         ], [
             'nama_akun.required' => 'Nama Akun Kas tidak boleh kosong.',
             'nama_akun.unique'   => 'Nama Akun Kas sudah ada, silakan gunakan nama yang lain.',
+            'nama_akun.regex'    => 'Peringatan: Nama Akun Kas hanya boleh berisi huruf, angka, dan spasi (tidak boleh mengandung simbol)!',
         ]);
 
         $akunKas->update([

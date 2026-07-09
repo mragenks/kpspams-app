@@ -80,7 +80,7 @@ class UserController extends Controller
             ]);
 
             $user->pengurus()->create([
-                'jabatan' => $request->jabatan,
+                'jabatan' => $request->jabatan ?? '-',
             ]);
         });
 
