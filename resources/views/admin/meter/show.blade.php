@@ -127,18 +127,71 @@
                         Bukti Foto Meteran
                     </h3>
                     <div class="bg-gray-50 p-2 rounded-lg inline-block w-full text-center">
-                        <a href="{{ asset('storage/' . $meter->foto_meteran) }}" target="_blank"
-                            class="block w-full max-w-sm mx-auto">
+                        {{-- DIUBAH: Mengubah Tag <a> Link Tab Baru Menjadi Button Pemicu Modal Pop-up --}}
+                        <button type="button" onclick="bukaModalFoto('{{ asset('storage/' . $meter->foto_meteran) }}')"
+                            class="focus:outline-none block w-full max-w-sm mx-auto">
                             <img src="{{ asset('storage/' . $meter->foto_meteran) }}"
                                 alt="Foto Meteran {{ $meter->pelanggan->nama_pelanggan }}"
                                 class="w-full rounded border border-gray-300 shadow-sm hover:opacity-80 transition duration-200 cursor-pointer object-cover">
-                        </a>
-                        <p class="text-[10px] sm:text-xs text-gray-400 mt-2 font-medium">Klik foto untuk memperbesar layar
-                            penuh</p>
+                        </button>
+                        <p class="text-[10px] sm:text-xs text-gray-400 mt-2 font-medium">Klik foto untuk memperbesar
+                            tampilan</p>
                     </div>
                 </div>
             @endif
 
         </div>
     </div>
+
+    {{-- MODAL POP-UP VIEWER FIXED (TRANSPARAN DI BELAKANG & HEADER TERSTRUKTUR RAPI) --}}
+    <div id="modalPreviewFoto"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border flex flex-col animate-fade-in">
+            <div class="flex justify-between items-center px-5 py-4 border-b bg-gray-50">
+                <h3 class="text-sm font-bold text-gray-800">Pratinjau Foto Meteran</h3>
+                <button type="button" onclick="tutupModalFoto()"
+                    class="text-gray-400 hover:text-gray-600 transition p-1.5 rounded-lg hover:bg-gray-200/70 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="p-5 flex justify-center bg-gray-100/30">
+                <img id="imgPreviewModal" src="" alt="Foto Fisik Meteran"
+                    class="max-h-[55vh] max-w-full object-contain rounded-xl shadow-sm border bg-white">
+            </div>
+        </div>
+    </div>
+
+    {{-- Script Logika JavaScript Modal Preview --}}
+    <script>
+        const modalFoto = document.getElementById('modalPreviewFoto');
+        const imgPreviewModal = document.getElementById('imgPreviewModal');
+
+        function bukaModalFoto(url) {
+            imgPreviewModal.src = url;
+            modalFoto.classList.remove('hidden');
+            modalFoto.classList.add('flex');
+        }
+
+        function tutupModalFoto() {
+            modalFoto.classList.add('hidden');
+            modalFoto.classList.remove('flex');
+            imgPreviewModal.src = '';
+        }
+
+        // Tutup otomatis jika klik area transparan di luar kotak putih modal
+        modalFoto.addEventListener('click', function(e) {
+            if (e.target === this || e.target.id === 'modalPreviewFoto') {
+                tutupModalFoto();
+            }
+        });
+
+        // Tutup menggunakan tombol Escape (ESC) pada keyboard laptop
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                tutupModalFoto();
+            }
+        });
+    </script>
 @endsection

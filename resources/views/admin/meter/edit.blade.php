@@ -48,11 +48,12 @@
 
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Update Foto Meteran (Opsional)</label>
+                    {{-- MODIFIKASI: Menambahkan keselarasan bingkai merah penanda error --}}
                     <input type="file" name="foto_meteran" accept="image/*"
-                        class="w-full border-gray-300 rounded-lg shadow-sm px-4 py-2 text-sm">
+                        class="w-full border rounded-lg shadow-sm px-4 py-2 text-sm {{ $errors->has('foto_meteran') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
                     <p class="text-xs text-gray-500 mt-1">Biarkan kosong jika foto tidak perlu diubah.</p>
                     @error('foto_meteran')
-                        <span class="text-red-500 text-xs">{{ $message }}</span>
+                        <span class="text-red-500 text-xs font-semibold block mt-1">⚠️ {{ $message }}</span>
                     @enderror
                 </div>
 
@@ -110,4 +111,19 @@
             });
         }
     </script>
+
+    {{-- MODIFIKASI: Pemicu SweetAlert2 Otomasi Khusus Form Edit --}}
+    @if ($errors->has('foto_meteran'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Format Berkas Gagal!',
+                    text: '{{ $errors->first('foto_meteran') }}',
+                    confirmButtonColor: '#ef4444',
+                    confirmButtonText: 'Pilih Foto Ulang'
+                });
+            });
+        </script>
+    @endif
 @endsection
