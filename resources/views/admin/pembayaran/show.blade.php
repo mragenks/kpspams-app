@@ -145,9 +145,14 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Foto Bukti Pembayaran <span class="text-gray-400 font-normal">(Opsional)</span>
                         </label>
+                        {{-- MODIFIKASI: Menambahkan keselarasan bingkai merah penanda error berkas --}}
                         <input type="file" name="foto_bukti" accept="image/*"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition bg-white"
+                            class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition {{ $errors->has('foto_bukti') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}"
                             onchange="previewFoto(this, 'preview_bukti')">
+                        {{-- MODIFIKASI: Menampilkan teks penolak format non-gambar tepat di bawah input --}}
+                        @error('foto_bukti')
+                            <p class="text-red-500 text-xs mt-1 font-semibold">⚠️ {{ $message }}</p>
+                        @enderror
                         <div id="preview_bukti" class="hidden mt-3">
                             <img src="" alt="Preview" class="w-32 h-32 object-cover rounded-lg border shadow-sm">
                         </div>
