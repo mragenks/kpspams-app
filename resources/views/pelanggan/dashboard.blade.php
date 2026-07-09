@@ -23,7 +23,7 @@
         </div>
     </div>
 
-    {{-- Tagihan Aktif --}}
+    {{-- Tagihan Hack --}}
     @if ($tagihanAktif)
         <div
             class="bg-white rounded-xl shadow p-6 mb-6 border-l-4 {{ $tagihanAktif->status_bayar === 'mencicil' ? 'border-yellow-500' : 'border-red-500' }}">
@@ -74,7 +74,7 @@
                 </div>
             @endif
 
-            {{-- TOMBOL BARU: LIHAT SURAT TAGIHAN --}}
+            {{-- TOMBOL LIHAT SURAT TAGIHAN --}}
             <div class="mt-3">
                 <a href="{{ route('pelanggan.tagihan.surat', $tagihanAktif->id) }}"
                     class="w-full flex items-center justify-center gap-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 py-2.5 rounded-lg text-sm font-semibold transition shadow-sm">
@@ -105,11 +105,14 @@
                 @else
                     @if ($pembayaranDitolak)
                         <div class="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                            <svg class="w-5 h-5 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg class="w-5 h-5 text-red-500 mt-0.5" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <p class="text-sm text-red-700">
-                                <strong>Bukti ditolak!</strong> Bukti sebelumnya ditolak oleh Admin. Silakan periksa dan upload ulang bukti yang benar.
+                                <strong>Bukti ditolak!</strong> Bukti sebelumnya ditolak oleh Admin. Silakan periksa dan
+                                upload ulang bukti yang benar.
                             </p>
                         </div>
                     @endif
@@ -168,7 +171,6 @@
                                             Pemakaian: {{ number_format($tagihan->pencatatanMeter->volume_m3, 2) }} m³
                                         </p>
                                     @endif
-                                    {{-- LINK SURAT TAGIHAN KECIL DI RIWAYAT --}}
                                     <span class="text-gray-300">•</span>
                                     <a href="{{ route('pelanggan.tagihan.surat', $tagihan->id) }}"
                                         class="text-blue-600 hover:text-blue-800 text-xs font-semibold flex items-center gap-1">
@@ -192,8 +194,7 @@
                                     <span
                                         class="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">Mencicil</span>
                                 @else
-                                    <span
-                                        class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">Belum
+                                    <span class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">Belum
                                         Lunas</span>
                                 @endif
                             </div>
@@ -242,11 +243,14 @@
                                         <div class="flex items-center justify-between bg-gray-50 rounded-lg p-2">
                                             <div class="flex items-center gap-3">
                                                 @if ($p->foto_bukti)
-                                                    <a href="{{ asset('storage/' . $p->foto_bukti) }}" target="_blank">
+                                                    {{-- INSTANCE 1: Diubah dari Tag <a> menjadi Button Pop-up --}}
+                                                    <button type="button"
+                                                        onclick="bukaModalFoto('{{ asset('storage/' . $p->foto_bukti) }}')"
+                                                        class="focus:outline-none">
                                                         <img src="{{ asset('storage/' . $p->foto_bukti) }}"
                                                             alt="Bukti"
                                                             class="w-12 h-12 object-cover rounded-lg border hover:opacity-80 transition cursor-pointer">
-                                                    </a>
+                                                    </button>
                                                 @else
                                                     <div
                                                         class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
@@ -271,13 +275,17 @@
                                                 </div>
                                             </div>
                                             <div class="text-right">
-                                                <span class="text-xs text-gray-400 block">{{ $p->akunKas->nama_akun ?? '-' }}</span>
-                                                @if($p->status_validasi === 'ditolak')
-                                                    <span class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] font-medium mt-1 inline-block">Ditolak</span>
+                                                <span
+                                                    class="text-xs text-gray-400 block">{{ $p->akunKas->nama_akun ?? '-' }}</span>
+                                                @if ($p->status_validasi === 'ditolak')
+                                                    <span
+                                                        class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] font-medium mt-1 inline-block">Ditolak</span>
                                                 @elseif($p->status_validasi === 'pending')
-                                                    <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-medium mt-1 inline-block">Menunggu</span>
+                                                    <span
+                                                        class="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-medium mt-1 inline-block">Menunggu</span>
                                                 @else
-                                                    <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-medium mt-1 inline-block">Disetujui</span>
+                                                    <span
+                                                        class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-medium mt-1 inline-block">Disetujui</span>
                                                 @endif
                                             </div>
                                         </div>
@@ -300,7 +308,7 @@
         @endif
     </div>
 
-    {{-- MODAL Semua Riwayat (Dibersihkan dari class 'flex' bawaan) --}}
+    {{-- MODAL Semua Riwayat --}}
     <div id="modalRiwayat" class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-screen overflow-hidden flex flex-col">
 
@@ -393,10 +401,13 @@
                                     @foreach ($tagihan->pembayaran as $p)
                                         <div class="flex items-center gap-2 bg-gray-50 rounded-lg p-2 text-xs">
                                             @if ($p->foto_bukti)
-                                                <a href="{{ asset('storage/' . $p->foto_bukti) }}" target="_blank">
+                                                {{-- INSTANCE 2: Diubah dari Tag <a> menjadi Button Pop-up --}}
+                                                <button type="button"
+                                                    onclick="bukaModalFoto('{{ asset('storage/' . $p->foto_bukti) }}')"
+                                                    class="focus:outline-none">
                                                     <img src="{{ asset('storage/' . $p->foto_bukti) }}" alt="Bukti"
                                                         class="w-10 h-10 object-cover rounded border hover:opacity-80 cursor-pointer">
-                                                </a>
+                                                </button>
                                             @else
                                                 <div
                                                     class="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
@@ -414,12 +425,15 @@
                                                 <p class="text-gray-400">
                                                     {{ \Carbon\Carbon::parse($p->tanggal_bayar)->isoFormat('D MMM Y') }}
                                                 </p>
-                                                @if($p->status_validasi === 'ditolak')
-                                                    <span class="px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] font-medium">Ditolak</span>
+                                                @if ($p->status_validasi === 'ditolak')
+                                                    <span
+                                                        class="px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] font-medium">Ditolak</span>
                                                 @elseif($p->status_validasi === 'pending')
-                                                    <span class="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-medium">Menunggu</span>
+                                                    <span
+                                                        class="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-medium">Menunggu</span>
                                                 @else
-                                                    <span class="px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-medium">Disetujui</span>
+                                                    <span
+                                                        class="px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-medium">Disetujui</span>
                                                 @endif
                                             </div>
                                         </div>
@@ -445,65 +459,91 @@
 
     {{-- MODAL Upload Bukti Pembayaran --}}
     @if ($tagihanAktif)
-    <div id="modalUploadBukti" class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 p-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-screen overflow-hidden flex flex-col">
-            {{-- Modal Header --}}
-            <div class="flex justify-between items-center p-6 border-b">
-                <h2 class="text-lg font-bold text-gray-800">Upload Bukti Pembayaran</h2>
-                <button onclick="tutupModalUploadBukti()" class="text-gray-400 hover:text-gray-600 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div id="modalUploadBukti"
+            class="hidden fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 p-4">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-screen overflow-hidden flex flex-col">
+                {{-- Modal Header --}}
+                <div class="flex justify-between items-center p-6 border-b">
+                    <h2 class="text-lg font-bold text-gray-800">Upload Bukti Pembayaran</h2>
+                    <button onclick="tutupModalUploadBukti()" class="text-gray-400 hover:text-gray-600 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Modal Body --}}
+                <div class="overflow-y-auto p-6">
+                    {{-- Tambahan proteksi Double Click Form Submission --}}
+                    <form action="{{ route('pelanggan.pembayaran.submit') }}" method="POST"
+                        enctype="multipart/form-data"
+                        onsubmit="this.querySelector('button[type=submit]').disabled = true; this.querySelector('button[type=submit]').innerHTML = '⏳ Sedang Mengirim...'; return true;">
+                        @csrf
+                        <input type="hidden" name="tagihan_id" value="{{ $tagihanAktif->id }}">
+
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Foto Bukti Transfer/Pembayaran <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" name="foto_bukti" accept="image/*" required
+                                onchange="previewBukti(this)"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-400 mt-1">Format: JPG, PNG. Maks 5MB</p>
+                            <div id="previewBuktiContainer" class="hidden mt-2">
+                                <img id="previewBuktiImg" src="" alt="Preview"
+                                    class="w-32 h-32 object-cover rounded-lg border">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Keterangan <span class="text-gray-400 font-normal">(Opsional)</span>
+                            </label>
+                            <input type="text" name="keterangan" placeholder="Contoh: Transfer BRI 10 April 2026"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                            <p class="text-xs text-yellow-700">
+                                ⚠️ Bukti yang dikirim akan diverifikasi oleh Admin. Pembayaran baru tercatat setelah
+                                dikonfirmasi.
+                            </p>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                            Kirim Bukti Pembayaran
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- MODAL POP-UP PREVIEW KOTAK FIXED (TIDAK FULL SCREEN & BACKGROUND TRANSPARAN) --}}
+    <div id="modalPreviewFoto"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border flex flex-col animate-fade-in">
+            <div class="flex justify-between items-center px-5 py-4 border-b bg-gray-50">
+                <h3 class="text-sm font-bold text-gray-800">Pratinjau Bukti Pembayaran</h3>
+                <button type="button" onclick="tutupModalFoto()"
+                    class="text-gray-400 hover:text-gray-600 transition p-1.5 rounded-lg hover:bg-gray-200/70 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
-
-            {{-- Modal Body --}}
-            <div class="overflow-y-auto p-6">
-                <form action="{{ route('pelanggan.pembayaran.submit') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <input type="hidden" name="tagihan_id" value="{{ $tagihanAktif->id }}">
-
-                    <div class="mb-3">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Foto Bukti Transfer/Pembayaran <span class="text-red-500">*</span>
-                        </label>
-                        <input type="file" name="foto_bukti" accept="image/*" required onchange="previewBukti(this)"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <p class="text-xs text-gray-400 mt-1">Format: JPG, PNG. Maks 5MB</p>
-                        <div id="previewBuktiContainer" class="hidden mt-2">
-                            <img id="previewBuktiImg" src="" alt="Preview"
-                                class="w-32 h-32 object-cover rounded-lg border">
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Keterangan <span class="text-gray-400 font-normal">(Opsional)</span>
-                        </label>
-                        <input type="text" name="keterangan" placeholder="Contoh: Transfer BRI 10 April 2026"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-                        <p class="text-xs text-yellow-700">
-                            ⚠️ Bukti yang dikirim akan diverifikasi oleh Admin. Pembayaran baru tercatat setelah
-                            dikonfirmasi.
-                        </p>
-                    </div>
-
-                    <button type="submit"
-                        class="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                        </svg>
-                        Kirim Bukti Pembayaran
-                    </button>
-                </form>
+            <div class="p-5 flex justify-center bg-gray-100/30">
+                <img id="imgPreviewModal" src="" alt="Bukti Pembayaran"
+                    class="max-h-[55vh] max-w-full object-contain rounded-xl shadow-sm border bg-white">
             </div>
         </div>
     </div>
-    @endif
 
     {{-- Script Interaktif Modal & Preview Foto --}}
     <script>
@@ -512,13 +552,13 @@
         // Fungsi Buka Modal
         function bukaModalRiwayat() {
             modal.classList.remove('hidden');
-            modal.classList.add('flex'); // Tambahkan flex secara dinamis agar peringatan VS Code hilang
+            modal.classList.add('flex');
         }
 
         // Fungsi Tutup Modal
         function tutupModalRiwayat() {
             modal.classList.add('hidden');
-            modal.classList.remove('flex'); // Hapus kembali flex-nya
+            modal.classList.remove('flex');
         }
 
         // Tutup modal kalau klik di luar area konten modal
@@ -559,7 +599,7 @@
             });
         @endif
 
-        // Preview Bukti Pembayaran
+        // Preview Bukti Pembayaran Sebelum Upload
         function previewBukti(input) {
             const container = document.getElementById('previewBuktiContainer');
             const img = document.getElementById('previewBuktiImg');
@@ -572,6 +612,36 @@
                 reader.readAsDataURL(input.files[0]);
             }
         }
+
+        // KONTROL POP-UP INTERAKTIF PREVIEW FOTO BUKTI TRANSFER
+        const modalFoto = document.getElementById('modalPreviewFoto');
+        const imgPreviewModal = document.getElementById('imgPreviewModal');
+
+        function bukaModalFoto(url) {
+            imgPreviewModal.src = url;
+            modalFoto.classList.remove('hidden');
+            modalFoto.classList.add('flex');
+        }
+
+        function tutupModalFoto() {
+            modalFoto.classList.add('hidden');
+            modalFoto.classList.remove('flex');
+            imgPreviewModal.src = '';
+        }
+
+        if (modalFoto) {
+            modalFoto.addEventListener('click', function(e) {
+                if (e.target === this || e.target.id === 'modalPreviewFoto') {
+                    tutupModalFoto();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                tutupModalFoto();
+            }
+        });
     </script>
 
 @endsection
