@@ -123,13 +123,16 @@
     <table class="footer-table">
         <tr>
             <td>
-                Dibuat oleh,<br>Sekretaris KP-SPAMS<br><br><br><br>
-                <b>( Yanni Puspitawati )</b>
-            </td>
-            <td></td>
-            <td>
                 Mengetahui,<br>Ketua KP-SPAMS<br><br><br><br>
                 <b>( Kunto Budhi Sasongko )</b>
+            </td>
+            <td>
+                Sekretaris KP-SPAMS<br><br><br><br>
+                <b>( Puji Hasitutiningsih )</b>
+            </td>
+            <td>
+                Dibuat oleh,<br>Bendahara KP-SPAMS<br><br><br><br>
+                <b>( Yanni Puspitawati )</b>
             </td>
         </tr>
     </table>
