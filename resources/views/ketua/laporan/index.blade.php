@@ -68,12 +68,16 @@
                     <input type="hidden" name="tab" value="arus-kas">
                     <div class="w-full md:flex-1">
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Dari Tanggal</label>
+                        {{-- PERBAIKAN: Ditambahkan max agar tanggal awal tidak melebihi tanggal akhir --}}
                         <input type="date" name="start_date" value="{{ $startDate }}" onchange="this.form.submit()"
+                            max="{{ $endDate }}"
                             class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                     <div class="w-full md:flex-1">
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Sampai Tanggal</label>
+                        {{-- PERBAIKAN: Ditambahkan min agar tanggal akhir tidak kurang dari tanggal awal --}}
                         <input type="date" name="end_date" value="{{ $endDate }}" onchange="this.form.submit()"
+                            min="{{ $startDate }}"
                             class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                 </form>
@@ -164,15 +168,17 @@
 
                     <div class="w-full md:w-1/4">
                         <label class="block text-xs font-semibold text-blue-800 mb-1">Dari Periode</label>
+                        {{-- PERBAIKAN: Ditambahkan max untuk periode bulan --}}
                         <input type="month" name="start_periode" value="{{ $startPeriode }}"
-                            onchange="this.form.submit()"
+                            onchange="this.form.submit()" max="{{ $endPeriode }}"
                             class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white cursor-pointer">
                     </div>
 
                     <div class="w-full md:w-1/4">
                         <label class="block text-xs font-semibold text-blue-800 mb-1">Sampai Periode</label>
+                        {{-- PERBAIKAN: Ditambahkan min untuk periode bulan --}}
                         <input type="month" name="end_periode" value="{{ $endPeriode }}"
-                            onchange="this.form.submit()"
+                            onchange="this.form.submit()" min="{{ $startPeriode }}"
                             class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white cursor-pointer">
                     </div>
 
@@ -234,7 +240,8 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-4 py-8 text-center text-gray-500">Tidak ada tagihan pada
+                                    <td colspan="5" class="px-4 py-8 text-center text-gray-500">Tidak ada data tagihan
+                                        pada
                                         periode/pencarian ini.</td>
                                 </tr>
                             @endforelse
@@ -293,13 +300,16 @@
                     <input type="hidden" name="tab" value="inventaris">
                     <div class="w-full md:flex-1">
                         <label class="block text-xs font-semibold text-purple-800 mb-1">Dari Tanggal</label>
+                        {{-- PERBAIKAN: Ditambahkan max untuk filter harian inventaris --}}
                         <input type="date" name="start_date" value="{{ $startDate }}"
-                            onchange="this.form.submit()"
+                            onchange="this.form.submit()" max="{{ $endDate }}"
                             class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-purple-500">
                     </div>
                     <div class="w-full md:flex-1">
                         <label class="block text-xs font-semibold text-purple-800 mb-1">Sampai Tanggal</label>
+                        {{-- PERBAIKAN: Ditambahkan min untuk filter harian inventaris --}}
                         <input type="date" name="end_date" value="{{ $endDate }}" onchange="this.form.submit()"
+                            min="{{ $startDate }}"
                             class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-purple-500">
                     </div>
                 </form>
