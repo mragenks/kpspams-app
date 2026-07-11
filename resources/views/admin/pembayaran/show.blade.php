@@ -145,11 +145,9 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Foto Bukti Pembayaran <span class="text-gray-400 font-normal">(Opsional)</span>
                         </label>
-                        {{-- MODIFIKASI: Menambahkan keselarasan bingkai merah penanda error berkas --}}
                         <input type="file" name="foto_bukti" accept="image/*"
-                            class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition {{ $errors->has('foto_bukti') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition bg-white"
                             onchange="previewFoto(this, 'preview_bukti')">
-                        {{-- MODIFIKASI: Menampilkan teks penolak format non-gambar tepat di bawah input --}}
                         @error('foto_bukti')
                             <p class="text-red-500 text-xs mt-1 font-semibold">⚠️ {{ $message }}</p>
                         @enderror
@@ -174,8 +172,7 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                                Bayar Pakai Saldo (Tersedia: Rp
+                                </svg> Bayar Pakai Saldo (Tersedia: Rp
                                 {{ number_format($pembayaran->pelanggan->saldo, 0, ',', '.') }})
                             </button>
                         @endif
@@ -218,45 +215,66 @@
                         <thead
                             class="bg-gray-50 text-gray-600 uppercase text-[10px] sm:text-xs tracking-wider border-b border-gray-200">
                             <tr>
-                                <th class="px-4 py-3 w-8">No</th>
+                                <th class="px-4 py-3 w-8 text-center">No</th>
                                 <th class="px-4 py-3 whitespace-nowrap">Tanggal</th>
+                                <th class="px-4 py-3 text-right">Nominal Bayar</th>
+                                <th class="px-4 py-3 text-center">Metode / Akun Kas</th>
                                 <th class="px-4 py-3 text-center">Bukti</th>
+                                <th class="px-4 py-3 text-center">Status Validasi</th>
                                 <th class="px-4 py-3 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             @foreach ($pembayaran->pembayaran as $index => $p)
                                 <tr class="hover:bg-gray-50 transition">
-                                    <td class="px-4 py-3 text-gray-500 text-xs">{{ $index + 1 }}</td>
+                                    <td class="px-4 py-3 text-gray-500 text-xs text-center">{{ $index + 1 }}</td>
                                     <td class="px-4 py-3 text-gray-800 font-medium whitespace-nowrap text-xs">
                                         {{ \Carbon\Carbon::parse($p->tanggal_bayar)->isoFormat('D MMM Y') }}
+                                    </td>
+                                    <td class="px-4 py-3 text-right text-gray-900 font-bold whitespace-nowrap text-xs">
+                                        Rp {{ number_format($p->nominal_bayar, 0, ',', '.') }}
+                                    </td>
+                                    <td class="px-4 py-3 text-center text-gray-700 text-xs whitespace-nowrap">
+                                        {{ $p->akunKas->nama_akun ?? 'Potong Saldo Warga' }}
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         @if ($p->foto_bukti)
                                             <button type="button"
-                                                onclick="bukaModalFoto('{{ Storage::url($p->foto_bukti) }}')"
+                                                onclick="bukaModalFoto('{{ asset('storage/' . $p->foto_bukti) }}')"
                                                 class="focus:outline-none inline-block">
-                                                <img src="{{ Storage::url($p->foto_bukti) }}" alt="Bukti Transfer"
+                                                <img src="{{ asset('storage/' . $p->foto_bukti) }}" alt="Bukti Transfer"
                                                     class="w-10 h-10 object-cover rounded border border-gray-300 shadow-sm hover:opacity-80 transition cursor-pointer">
                                             </button>
                                         @else
-                                            <span class="text-gray-300 text-xs">-</span>
+                                            <span class="text-gray-400 text-xs italic">Tanpa Foto</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-center whitespace-nowrap">
+                                        @if ($p->status_validasi === 'ditolak')
+                                            <span
+                                                class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] font-bold uppercase">Ditolak</span>
+                                        @elseif($p->status_validasi === 'pending' || $p->is_pending)
+                                            <span
+                                                class="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-bold uppercase animate-pulse">Pending</span>
+                                        @else
+                                            <span
+                                                class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase">Disetujui</span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         @if ($p->status_validasi === 'pending' || $p->is_pending)
-                                            <div class="flex flex-col gap-1">
+                                            <div class="flex flex-col gap-1 items-center">
                                                 @if ($pembayaran->sisa_tagihan > 0)
                                                     <button type="button"
                                                         onclick="bukaModalKonfirmasi({{ $p->id }})"
-                                                        class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] font-medium hover:bg-blue-700 transition">Konfirmasi</button>
+                                                        class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] font-medium hover:bg-blue-700 transition w-20">Konfirmasi</button>
                                                 @endif
                                                 <form action="{{ route('admin.pembayaran.reject', $p->id) }}"
                                                     method="POST"
                                                     onsubmit="return confirm('Apakah Anda yakin ingin menolak dan menghapus bukti pembayaran ini?')">
                                                     @csrf @method('DELETE')
                                                     <button type="submit"
-                                                        class="w-full bg-red-600 text-white px-2 py-1 rounded text-[10px] font-medium hover:bg-red-700 transition">Tolak</button>
+                                                        class="bg-red-600 text-white px-2 py-1 rounded text-[10px] font-medium hover:bg-red-700 transition w-20">Tolak</button>
                                                 </form>
                                             </div>
                                         @else
