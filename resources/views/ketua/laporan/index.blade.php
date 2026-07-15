@@ -88,6 +88,7 @@
                             <tr>
                                 <th class="px-4 py-3">Tanggal</th>
                                 <th class="px-4 py-3">Keterangan</th>
+                                <th class="px-4 py-3">No. Bukti</th>
                                 <th class="px-4 py-3 text-right">Debit</th>
                                 <th class="px-4 py-3 text-right">Kredit</th>
                             </tr>
@@ -95,10 +96,13 @@
                         <tbody>
                             @forelse($data['arusKas'] as $kas)
                                 <tr class="border-t hover:bg-gray-50">
-                                    <td class="px-4 py-3 whitespace-nowrap">
-                                        {{ \Carbon\Carbon::parse($kas->tanggal)->format('d/m/Y') }}</td>
-                                    <td class="px-4 py-3">{{ $kas->keterangan }}</td>
-                                    <td class="px-4 py-3 text-right text-green-600 whitespace-nowrap">
+                                     <td class="px-4 py-3 whitespace-nowrap">
+                                         <div>{{ \Carbon\Carbon::parse($kas->tanggal)->format('d/m/Y') }}</div>
+                                         <div class="text-xs text-gray-500 mt-0.5">Pukul: {{ \Carbon\Carbon::parse($kas->created_at)->format('H:i') }}</div>
+                                     </td>
+                                     <td class="px-4 py-3">{{ $kas->keterangan }}</td>
+                                     <td class="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">{{ $kas->no_bukti ?? '-' }}</td>
+                                     <td class="px-4 py-3 text-right text-green-600 whitespace-nowrap">
                                         {{ in_array($kas->jenis_transaksi, ['masuk', 'mutasi_masuk']) ? 'Rp ' . number_format($kas->nominal, 0, ',', '.') : '-' }}
                                     </td>
                                     <td class="px-4 py-3 text-right text-red-600 whitespace-nowrap">
@@ -107,7 +111,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-4 py-8 text-center text-gray-500">Tidak ada data transaksi.
+                                     <td colspan="5" class="px-4 py-8 text-center text-gray-500">Tidak ada data transaksi.
                                     </td>
                                 </tr>
                             @endforelse

@@ -101,8 +101,16 @@
                 @endphp
                 <tr>
                     <td align="center">{{ $index + 2 }}</td>
-                    <td align="center">{{ \Carbon\Carbon::parse($item->tanggal)->isoFormat('D MMM Y') }}</td>
-                    <td>{{ $item->keterangan }}</td>
+                    <td align="center">
+                        {{ \Carbon\Carbon::parse($item->tanggal)->isoFormat('D MMM Y') }}
+                        <br><small style="color: #444; font-size: 10px;">{{ \Carbon\Carbon::parse($item->created_at)->format('H:i') }}</small>
+                    </td>
+                    <td>
+                        {{ $item->keterangan }}
+                        @if($item->no_bukti)
+                            <br><small style="color: #666; font-size: 9px;">No. Bukti: {{ $item->no_bukti }}</small>
+                        @endif
+                    </td>
                     <td class="text-right">{{ $isMasuk ? number_format($item->nominal, 0, ',', '.') : '-' }}</td>
                     <td class="text-right">{{ !$isMasuk ? number_format($item->nominal, 0, ',', '.') : '-' }}</td>
                     <td class="text-right">{{ number_format($currentSaldo, 0, ',', '.') }}</td>
