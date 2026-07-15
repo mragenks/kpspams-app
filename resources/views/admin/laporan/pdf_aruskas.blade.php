@@ -106,7 +106,23 @@
                         <br><small style="color: #444; font-size: 10px;">{{ \Carbon\Carbon::parse($item->created_at)->format('H:i') }}</small>
                     </td>
                     <td>
-                        {{ $item->keterangan }}
+                        @if (strpos($item->keterangan, ' - ') !== false)
+                            @php
+                                $parts = explode(' - ', $item->keterangan, 2);
+                            @endphp
+                            <span>{{ $parts[0] }}</span>
+                            <br><small style="color: #555; font-size: 10px;">Keterangan: {{ $parts[1] }}</small>
+                        @elseif (strpos($item->keterangan, 'Deposit/Titipan Saldo: ') === 0 && strpos($item->keterangan, '. ') !== false)
+                            @php
+                                $parts = explode('. ', $item->keterangan, 2);
+                            @endphp
+                            <span>{{ $parts[0] }}</span>
+                            @if(isset($parts[1]) && trim($parts[1]) !== '')
+                                <br><small style="color: #555; font-size: 10px;">Keterangan: {{ $parts[1] }}</small>
+                            @endif
+                        @else
+                            {{ $item->keterangan }}
+                        @endif
                         @if($item->no_bukti)
                             <br><small style="color: #666; font-size: 9px;">No. Bukti: {{ $item->no_bukti }}</small>
                         @endif

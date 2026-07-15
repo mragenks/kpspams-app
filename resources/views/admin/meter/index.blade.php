@@ -91,6 +91,7 @@
                         <th class="hidden md:table-cell px-6 py-3 text-center">Meter Akhir</th>
                         <th class="hidden sm:table-cell px-6 py-3 text-center">Vol (m³)</th>
                         <th class="px-4 py-3 sm:px-6 text-right">Tagihan</th>
+                        <th class="hidden lg:table-cell px-4 py-3 text-center">Petugas Catat</th>
                         <th class="px-4 py-3 sm:px-6 text-center">Status</th>
                         <th class="px-4 py-3 sm:px-6 text-center">Aksi</th>
                     </tr>
@@ -127,6 +128,9 @@
                             <td
                                 class="px-4 py-3 sm:px-6 font-bold text-gray-800 text-right whitespace-nowrap text-xs sm:text-sm">
                                 Rp {{ number_format($p->tagihanAir->total_tagihan ?? 0, 0, ',', '.') }}
+                            </td>
+                            <td class="hidden lg:table-cell px-4 py-3 text-center text-xs text-gray-600">
+                                {{ $p->creator->nama_lengkap ?? '-' }}
                             </td>
                             <td class="px-4 py-3 sm:px-6 text-center">
                                 @if ($p->tagihanAir)

@@ -27,7 +27,7 @@ class MeterController extends Controller
             $endPeriode = $temp;
         }
 
-        $pencatatan = PencatatanMeter::with(['pelanggan', 'tagihanAir'])
+        $pencatatan = PencatatanMeter::with(['pelanggan', 'tagihanAir', 'creator'])
             ->whereRaw("CONCAT(tahun_periode, '-', LPAD(bulan_periode, 2, '0')) BETWEEN ? AND ?", [$startPeriode, $endPeriode])
             ->when($search, function ($query) use ($search) {
                 $query->whereHas('pelanggan', function ($q) use ($search) {

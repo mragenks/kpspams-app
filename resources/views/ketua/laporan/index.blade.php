@@ -100,7 +100,25 @@
                                          <div>{{ \Carbon\Carbon::parse($kas->tanggal)->format('d/m/Y') }}</div>
                                          <div class="text-xs text-gray-500 mt-0.5">Pukul: {{ \Carbon\Carbon::parse($kas->created_at)->format('H:i') }}</div>
                                      </td>
-                                     <td class="px-4 py-3">{{ $kas->keterangan }}</td>
+                                     <td class="px-4 py-3">
+                                         @if (strpos($kas->keterangan, ' - ') !== false)
+                                             @php
+                                                 $parts = explode(' - ', $kas->keterangan, 2);
+                                             @endphp
+                                             <div>{{ $parts[0] }}</div>
+                                             <div class="text-[11px] text-gray-500 mt-0.5"><span class="font-semibold text-gray-600">Keterangan:</span> {{ $parts[1] }}</div>
+                                         @elseif (strpos($kas->keterangan, 'Deposit/Titipan Saldo: ') === 0 && strpos($kas->keterangan, '. ') !== false)
+                                             @php
+                                                 $parts = explode('. ', $kas->keterangan, 2);
+                                             @endphp
+                                             <div>{{ $parts[0] }}</div>
+                                             @if(isset($parts[1]) && trim($parts[1]) !== '')
+                                                 <div class="text-[11px] text-gray-500 mt-0.5"><span class="font-semibold text-gray-600">Keterangan:</span> {{ $parts[1] }}</div>
+                                             @endif
+                                         @else
+                                             <div>{{ $kas->keterangan }}</div>
+                                         @endif
+                                     </td>
                                      <td class="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">{{ $kas->no_bukti ?? '-' }}</td>
                                      <td class="px-4 py-3 text-right text-green-600 whitespace-nowrap">
                                         {{ in_array($kas->jenis_transaksi, ['masuk', 'mutasi_masuk']) ? 'Rp ' . number_format($kas->nominal, 0, ',', '.') : '-' }}

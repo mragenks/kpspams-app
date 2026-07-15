@@ -140,7 +140,23 @@
                                 <div class="text-xs text-gray-500 mt-0.5">Pukul: {{ \Carbon\Carbon::parse($ak->created_at)->format('H:i') }}</div>
                             </td>
                             <td class="px-4 py-3 sm:px-6 text-gray-800 text-xs sm:text-sm">
-                                <div>{{ $ak->keterangan }}</div>
+                                @if (strpos($ak->keterangan, ' - ') !== false)
+                                    @php
+                                        $parts = explode(' - ', $ak->keterangan, 2);
+                                    @endphp
+                                    <div>{{ $parts[0] }}</div>
+                                    <div class="text-[11px] text-gray-500 mt-0.5"><span class="font-semibold text-gray-600">Keterangan:</span> {{ $parts[1] }}</div>
+                                @elseif (strpos($ak->keterangan, 'Deposit/Titipan Saldo: ') === 0 && strpos($ak->keterangan, '. ') !== false)
+                                    @php
+                                        $parts = explode('. ', $ak->keterangan, 2);
+                                    @endphp
+                                    <div>{{ $parts[0] }}</div>
+                                    @if(isset($parts[1]) && trim($parts[1]) !== '')
+                                        <div class="text-[11px] text-gray-500 mt-0.5"><span class="font-semibold text-gray-600">Keterangan:</span> {{ $parts[1] }}</div>
+                                    @endif
+                                @else
+                                    <div>{{ $ak->keterangan }}</div>
+                                @endif
                                 <div class="mt-1 flex flex-wrap gap-1.5 items-center">
                                     @if ($ak->no_bukti)
                                         <span class="inline-flex md:hidden items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-800 border border-gray-200">

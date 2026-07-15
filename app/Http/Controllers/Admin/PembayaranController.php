@@ -75,7 +75,7 @@ class PembayaranController extends Controller
         $status = $request->status ?? '';
         $search = $request->search;
 
-        $tagihan = TagihanAir::with(['pelanggan.user', 'pencatatanMeter'])
+        $tagihan = TagihanAir::with(['pelanggan.user', 'pencatatanMeter.creator'])
             ->whereHas('pelanggan', fn($q) => $q->where('status', 'aktif'))
             ->where('bulan_periode', $bulan)
             ->where('tahun_periode', $tahun)

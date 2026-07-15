@@ -87,6 +87,7 @@
                         <th class="hidden md:table-cell px-6 py-3">Total Tagihan</th>
                         <th class="hidden md:table-cell px-6 py-3">Terbayar</th>
                         <th class="px-4 py-3 sm:px-6">Sisa</th>
+                        <th class="hidden lg:table-cell px-4 py-3 text-center">Pembuat Tagihan</th>
                         <th class="px-4 py-3 sm:px-6">Status</th>
                         <th class="px-4 py-3 sm:px-6 text-center">Aksi</th>
                     </tr>
@@ -116,6 +117,9 @@
                             </td>
                             <td class="px-4 py-3 sm:px-6 text-red-600 font-bold whitespace-nowrap text-xs sm:text-sm">
                                 Rp {{ number_format($t->sisa_tagihan, 0, ',', '.') }}
+                            </td>
+                            <td class="hidden lg:table-cell px-4 py-3 text-center text-xs text-gray-600">
+                                {{ $t->pencatatanMeter->creator->nama_lengkap ?? '-' }}
                             </td>
                             <td class="px-4 py-3 sm:px-6">
                                 @if ($t->status_bayar === 'lunas')

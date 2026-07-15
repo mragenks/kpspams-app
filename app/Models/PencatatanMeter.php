@@ -29,6 +29,11 @@ class PencatatanMeter extends Model
         return $this->hasOne(TagihanAir::class, 'pencatatan_meter_id');
     }
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'dicatat_oleh');
+    }
+
     public function hitungBiayaPemakaian()
     {
         $tarif = \App\Models\PengaturanTarif::first();
