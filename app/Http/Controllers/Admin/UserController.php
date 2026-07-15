@@ -68,6 +68,15 @@ class UserController extends Controller
             'no_hp.digits_between'   => 'Nomor HP harus antara 10 hingga 15 digit angka!',
         ]);
 
+        if ($request->role === 'ketua') {
+            $activeKetuaExists = User::where('role', 'ketua')->where('is_active', true)->exists();
+            if ($activeKetuaExists) {
+                return back()->withInput()->withErrors([
+                    'role' => 'Hanya boleh ada 1 Ketua yang aktif pada saat yang sama. Silakan nonaktifkan Ketua yang lama terlebih dahulu!'
+                ]);
+            }
+        }
+
         DB::transaction(function () use ($request) {
             $user = User::create([
                 'nama_lengkap' => $request->nama_pengurus,
@@ -113,6 +122,16 @@ class UserController extends Controller
         }
 
         $newStatus = !$user->is_active;
+
+        if ($user->role === 'ketua' && $newStatus) {
+            $activeKetuaExists = User::where('role', 'ketua')
+                ->where('is_active', true)
+                ->where('id', '!=', $user->id)
+                ->exists();
+            if ($activeKetuaExists) {
+                return back()->with('error', 'Gagal mengaktifkan! Hanya boleh ada 1 Ketua yang aktif pada saat yang sama. Silakan nonaktifkan Ketua yang lama terlebih dahulu!');
+            }
+        }
 
         DB::transaction(function () use ($user, $newStatus) {
             $user->update([
@@ -172,6 +191,18 @@ class UserController extends Controller
             'no_hp.numeric'          => 'Peringatan: Nomor HP hanya boleh diisi dengan angka!',
             'no_hp.digits_between'   => 'Nomor HP harus antara 10 hingga 15 digit angka!',
         ]);
+
+        if ($request->role === 'ketua' && $user->is_active) {
+            $activeKetuaExists = User::where('role', 'ketua')
+                ->where('is_active', true)
+                ->where('id', '!=', $user->id)
+                ->exists();
+            if ($activeKetuaExists) {
+                return back()->withInput()->withErrors([
+                    'role' => 'Hanya boleh ada 1 Ketua yang aktif pada saat yang sama. Silakan nonaktifkan Ketua yang lama terlebih dahulu!'
+                ]);
+            }
+        }
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($request, $user) {
             $user->update([
