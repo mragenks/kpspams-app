@@ -14,6 +14,7 @@ class ArusKas extends Model
         'nominal',
         'keterangan',
         'no_bukti',
+        'foto_bukti',
         'tanggal',
         'dicatat_oleh',
         'pembayaran_id'

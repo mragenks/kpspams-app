@@ -6,7 +6,7 @@
         <h2 class="text-lg font-semibold text-gray-700 mb-2">🔄 Mutasi Dana</h2>
         <p class="text-sm text-gray-500 mb-6">Pindahkan dana antar akun kas (contoh: setor tunai ke bank)</p>
 
-        <form action="{{ route('admin.mutasi.store') }}" method="POST">
+        <form action="{{ route('admin.mutasi.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="mb-4">
@@ -79,12 +79,29 @@
                 @enderror
             </div>
 
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Foto Bukti <span class="text-gray-400 text-xs">(Opsional, Maks 5MB)</span>
+                </label>
+                <input type="file" name="foto_bukti" accept="image/*"
+                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition {{ $errors->has('foto_bukti') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}"
+                    onchange="previewFoto(this, 'preview_bukti')">
+                <p class="text-xs text-gray-400 mt-1">Format: JPG, JPEG, PNG. Maksimal 5MB</p>
+                @error('foto_bukti')
+                    <p class="text-red-500 text-xs mt-1 font-semibold">⚠️ {{ $message }}</p>
+                @enderror
+                <div id="preview_bukti" class="hidden mt-3">
+                    <img src="" alt="Preview" class="w-40 h-40 object-cover rounded-lg border shadow-sm">
+                </div>
+            </div>
+
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Tanggal <span class="text-red-500">*</span>
                 </label>
                 <input type="date" name="tanggal" value="{{ old('tanggal', date('Y-m-d')) }}"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    readonly
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed pointer-events-none">
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3">
@@ -99,4 +116,33 @@
             </div>
         </form>
     </div>
+
+    <script>
+        function previewFoto(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.querySelector('img').src = e.target.result;
+                    preview.classList.remove('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+
+    @if ($errors->has('foto_bukti'))
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Mengunggah Bukti!',
+                    text: '{{ $errors->first('foto_bukti') }}',
+                    confirmButtonColor: '#ef4444',
+                    confirmButtonText: 'Pilih Foto Ulang'
+                });
+            });
+        </script>
+    @endif
 @endsection

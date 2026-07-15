@@ -73,8 +73,8 @@ class ArusKasController extends Controller
             'akun_kas_id'     => 'required|exists:akun_kas,id',
             'nominal'         => 'required|integer|min:1',
             'keterangan'      => 'required|string|max:255',
-            'no_bukti'        => 'nullable|string|max:100',
             'tanggal'         => 'required|date',
+            'foto_bukti'      => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ], [
             'jenis_transaksi.required' => 'Jenis transaksi wajib dipilih.',
             'akun_kas_id.required'     => 'Akun kas wajib dipilih.',
@@ -83,6 +83,9 @@ class ArusKasController extends Controller
             'nominal.min'              => 'Peringatan: Nominal tidak boleh minus, nol, atau kurang dari Rp 1!',
             'keterangan.required'      => 'Keterangan wajib diisi.',
             'tanggal.required'         => 'Tanggal wajib diisi.',
+            'foto_bukti.image'         => 'File yang diunggah harus berupa gambar.',
+            'foto_bukti.mimes'         => 'Format gambar harus JPG, JPEG, atau PNG.',
+            'foto_bukti.max'           => 'Ukuran foto bukti maksimal adalah 5 MB.',
         ]);
 
         $akunKas = AkunKas::findOrFail($request->akun_kas_id);
@@ -92,13 +95,21 @@ class ArusKasController extends Controller
                 number_format($akunKas->saldo, 0, ',', '.'));
         }
 
-        DB::transaction(function () use ($request, $akunKas) {
+        $fotoPath = null;
+        if ($request->hasFile('foto_bukti')) {
+            $fotoPath = $request->file('foto_bukti')->store('bukti/arus-kas', 'public');
+        }
+
+        DB::transaction(function () use ($request, $akunKas, $fotoPath) {
+            $noBukti = $this->generateNoBukti($request->jenis_transaksi, $request->tanggal);
+
             ArusKas::create([
                 'akun_kas_id'     => $request->akun_kas_id,
                 'jenis_transaksi' => $request->jenis_transaksi,
                 'nominal'         => $request->nominal,
                 'keterangan'      => $request->keterangan,
-                'no_bukti'        => $request->no_bukti,
+                'no_bukti'        => $noBukti,
+                'foto_bukti'      => $fotoPath,
                 'tanggal'         => $request->tanggal,
                 'dicatat_oleh'    => auth()->id(),
             ]);
@@ -129,6 +140,7 @@ class ArusKasController extends Controller
             'nominal'        => 'required|integer|min:1',
             'keterangan'     => 'required|string|max:255',
             'tanggal'        => 'required|date',
+            'foto_bukti'     => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ], [
             'akun_asal_id.required'   => 'Akun asal wajib dipilih.',
             'akun_tujuan_id.required' => 'Akun tujuan wajib dipilih.',
@@ -138,6 +150,9 @@ class ArusKasController extends Controller
             'nominal.min'             => 'Peringatan: Nominal mutasi tidak boleh minus, nol, atau kurang dari Rp 1!',
             'keterangan.required'     => 'Keterangan wajib diisi.',
             'tanggal.required'        => 'Tanggal wajib diisi.',
+            'foto_bukti.image'        => 'File yang diunggah harus berupa gambar.',
+            'foto_bukti.mimes'        => 'Format gambar harus JPG, JPEG, atau PNG.',
+            'foto_bukti.max'          => 'Ukuran foto bukti maksimal adalah 5 MB.',
         ]);
 
         $akunAsal = AkunKas::findOrFail($request->akun_asal_id);
@@ -148,12 +163,21 @@ class ArusKasController extends Controller
                 number_format($akunAsal->saldo, 0, ',', '.'));
         }
 
-        DB::transaction(function () use ($request, $akunAsal, $akunTujuan) {
+        $fotoPath = null;
+        if ($request->hasFile('foto_bukti')) {
+            $fotoPath = $request->file('foto_bukti')->store('bukti/mutasi', 'public');
+        }
+
+        DB::transaction(function () use ($request, $akunAsal, $akunTujuan, $fotoPath) {
+            $noBukti = $this->generateNoBukti('mutasi', $request->tanggal);
+
             ArusKas::create([
                 'akun_kas_id'     => $request->akun_asal_id,
                 'jenis_transaksi' => 'mutasi_keluar',
                 'nominal'         => $request->nominal,
                 'keterangan'      => 'Mutasi ke ' . $akunTujuan->nama_akun . ' - ' . $request->keterangan,
+                'no_bukti'        => $noBukti,
+                'foto_bukti'      => $fotoPath,
                 'tanggal'         => $request->tanggal,
                 'dicatat_oleh'    => auth()->id(),
             ]);
@@ -163,6 +187,8 @@ class ArusKasController extends Controller
                 'jenis_transaksi' => 'mutasi_masuk',
                 'nominal'         => $request->nominal,
                 'keterangan'      => 'Mutasi dari ' . $akunAsal->nama_akun . ' - ' . $request->keterangan,
+                'no_bukti'        => $noBukti,
+                'foto_bukti'      => $fotoPath,
                 'tanggal'         => $request->tanggal,
                 'dicatat_oleh'    => auth()->id(),
             ]);
@@ -173,6 +199,33 @@ class ArusKasController extends Controller
 
         return redirect()->route('admin.arus-kas.index')
             ->with('success', 'Mutasi dana berhasil dicatat!');
+    }
+
+    private function generateNoBukti($jenis, $tanggal)
+    {
+        $dateStr = date('Ymd', strtotime($tanggal));
+        
+        $prefixCode = 'MUT';
+        if ($jenis === 'masuk') {
+            $prefixCode = 'MAS';
+        } elseif ($jenis === 'keluar') {
+            $prefixCode = 'KEL';
+        }
+        
+        $prefix = $prefixCode . '-' . $dateStr . '-';
+
+        $latest = ArusKas::where('no_bukti', 'like', $prefix . '%')
+            ->orderBy('no_bukti', 'desc')
+            ->first();
+
+        if ($latest) {
+            $lastNumber = intval(substr($latest->no_bukti, strlen($prefix)));
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        return $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 
     public function destroy(ArusKas $arusKas)

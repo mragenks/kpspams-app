@@ -68,7 +68,7 @@ class ArusKasExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
         }
 
         return [
-            Carbon::parse($row->tanggal)->format('d/m/Y'),
+            Carbon::parse($row->tanggal)->format('d/m/Y') . ' ' . Carbon::parse($row->created_at)->format('H:i'),
             $row->no_bukti ?? '-',
             $keterangan,
             $row->akunKas->nama_akun ?? 'Tidak Diketahui',

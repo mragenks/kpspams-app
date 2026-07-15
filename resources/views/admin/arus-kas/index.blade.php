@@ -146,6 +146,7 @@
                         <th class="hidden md:table-cell px-6 py-3">Akun Kas</th>
                         <th class="px-4 py-3 sm:px-6 text-right">Masuk</th>
                         <th class="px-4 py-3 sm:px-6 text-right">Keluar</th>
+                        <th class="hidden md:table-cell px-6 py-3 whitespace-nowrap">No. Bukti</th>
                         <th class="px-4 py-3 sm:px-6 text-center">Status</th>
                     </tr>
                 </thead>
@@ -156,10 +157,28 @@
                                 {{ ($arusKas->currentPage() - 1) * $arusKas->perPage() + $index + 1 }}
                             </td>
                             <td class="px-4 py-3 sm:px-6 text-gray-700 whitespace-nowrap">
-                                {{ \Carbon\Carbon::parse($ak->tanggal)->isoFormat('D MMM Y') }}
+                                <div>{{ \Carbon\Carbon::parse($ak->tanggal)->isoFormat('D MMM Y') }}</div>
+                                <div class="text-xs text-gray-500 mt-0.5">Pukul: {{ \Carbon\Carbon::parse($ak->created_at)->format('H:i') }}</div>
                             </td>
                             <td class="px-4 py-3 sm:px-6 text-gray-800 text-xs sm:text-sm">
-                                {{ $ak->keterangan }}
+                                <div>{{ $ak->keterangan }}</div>
+                                <div class="mt-1 flex flex-wrap gap-1.5 items-center">
+                                    @if ($ak->no_bukti)
+                                        <span class="inline-flex md:hidden items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                                            No. Bukti: {{ $ak->no_bukti }}
+                                        </span>
+                                    @endif
+                                    @if ($ak->foto_bukti)
+                                        <button type="button" onclick="bukaModalFoto('{{ asset('storage/' . $ak->foto_bukti) }}')"
+                                            class="inline-flex items-center text-[10px] font-medium text-blue-600 hover:text-blue-800 hover:underline gap-0.5 focus:outline-none">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            Lihat Foto Bukti
+                                        </button>
+                                    @endif
+                                </div>
                                 <div class="block md:hidden mt-1 text-[10px] text-gray-400">
                                     {{ $ak->akunKas->nama_akun }}
                                 </div>
@@ -182,6 +201,9 @@
                                 @else
                                     -
                                 @endif
+                            </td>
+                            <td class="hidden md:table-cell px-6 py-3 text-gray-500 text-xs font-mono whitespace-nowrap">
+                                {{ $ak->no_bukti ?? '-' }}
                             </td>
                             <td class="px-4 py-3 sm:px-6 text-center">
                                 @if (!$ak->pembayaran_id)
@@ -218,6 +240,25 @@
         @endif
     </div>
 
+    <div id="modalPreviewFoto"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border flex flex-col animate-fade-in">
+            <div class="flex justify-between items-center px-5 py-4 border-b bg-gray-50">
+                <h3 class="text-sm font-bold text-gray-800">Pratinjau Foto Bukti</h3>
+                <button type="button" onclick="tutupModalFoto()"
+                    class="text-gray-400 hover:text-gray-600 transition p-1.5 rounded-lg hover:bg-gray-200/70 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="p-5 flex justify-center bg-gray-100/30">
+                <img id="imgPreviewModal" src="" alt="Foto Bukti"
+                    class="max-h-[55vh] max-w-full object-contain rounded-xl shadow-sm border bg-white">
+            </div>
+        </div>
+    </div>
+
     {{-- Script untuk auto-submit dari tipe input bulan --}}
     <script>
         function submitPeriode() {
@@ -230,5 +271,32 @@
                 document.getElementById('filterForm').submit();
             }
         }
+
+        const modalFoto = document.getElementById('modalPreviewFoto');
+        const imgPreviewModal = document.getElementById('imgPreviewModal');
+
+        function bukaModalFoto(url) {
+            imgPreviewModal.src = url;
+            modalFoto.classList.remove('hidden');
+            modalFoto.classList.add('flex');
+        }
+
+        function tutupModalFoto() {
+            modalFoto.classList.add('hidden');
+            modalFoto.classList.remove('flex');
+            imgPreviewModal.src = '';
+        }
+
+        modalFoto.addEventListener('click', function(e) {
+            if (e.target === this || e.target.id === 'modalPreviewFoto') {
+                tutupModalFoto();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                tutupModalFoto();
+            }
+        });
     </script>
 @endsection
