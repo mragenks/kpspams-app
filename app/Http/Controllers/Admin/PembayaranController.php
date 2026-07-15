@@ -7,6 +7,7 @@ use App\Models\Pembayaran;
 use App\Models\TagihanAir;
 use App\Models\AkunKas;
 use App\Models\ArusKas;
+use App\Models\Pelanggan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -173,12 +174,15 @@ class PembayaranController extends Controller
                 'status_bayar'   => $status,
             ]);
 
+            $noBukti = $this->generateNoBukti('masuk', $request->tanggal_bayar);
             $akunKas = AkunKas::find($request->akun_kas_id);
             ArusKas::create([
                 'akun_kas_id'     => $request->akun_kas_id,
                 'jenis_transaksi' => 'masuk',
                 'nominal'         => $request->nominal_bayar,
                 'keterangan'      => 'Pembayaran tagihan air ' . $tagihan->pelanggan->nama_pelanggan,
+                'no_bukti'        => $noBukti,
+                'foto_bukti'      => $pembayaran->foto_bukti,
                 'tanggal'         => $request->tanggal_bayar,
                 'dicatat_oleh'    => auth()->id(),
                 'pembayaran_id'   => $pembayaran->id,
@@ -232,12 +236,15 @@ class PembayaranController extends Controller
                 'status_bayar'   => $status,
             ]);
 
+            $noBukti = $this->generateNoBukti('masuk', $pembayaranPending->tanggal_bayar);
             $akunKas = AkunKas::find($request->akun_kas_id);
             ArusKas::create([
                 'akun_kas_id'     => $request->akun_kas_id,
                 'jenis_transaksi' => 'masuk',
                 'nominal'         => $request->nominal_bayar,
                 'keterangan'      => 'Konfirmasi transfer: ' . $tagihan->pelanggan->nama_pelanggan,
+                'no_bukti'        => $noBukti,
+                'foto_bukti'      => $pembayaranPending->foto_bukti,
                 'tanggal'         => $pembayaranPending->tanggal_bayar,
                 'dicatat_oleh'    => auth()->id(),
                 'pembayaran_id'   => $pembayaranPending->id,
@@ -310,11 +317,13 @@ class PembayaranController extends Controller
 
             $pelanggan->decrement('saldo', $nominalPotong);
 
+            $noBukti = $this->generateNoBukti('masuk', date('Y-m-d'));
             ArusKas::create([
                 'akun_kas_id'     => 1,
                 'jenis_transaksi' => 'masuk',
                 'nominal'         => 0,
                 'keterangan'      => "Pelunasan Tagihan: {$pelanggan->nama_pelanggan} (Via Saldo - Rp " . number_format($nominalPotong, 0, ',', '.') . ")",
+                'no_bukti'        => $noBukti,
                 'tanggal'         => now(),
                 'pembayaran_id'   => $pembayaran->id,
                 'dicatat_oleh'    => auth()->id(),
@@ -325,5 +334,172 @@ class PembayaranController extends Controller
         $this->kirimNotifikasiWAPembayaran($tagihan, $nominalPotong);
 
         return back()->with('success', 'Tagihan berhasil dibayar menggunakan saldo!');
+    }
+
+    public function bayarSekaligusForm(Request $request)
+    {
+        $pelangganList = Pelanggan::with(['user'])
+            ->whereHas('tagihanAir', function ($q) {
+                $q->where('status_bayar', '!=', 'lunas');
+            })->get();
+
+        $selectedPelanggan = null;
+        $outstandingBills = [];
+        $totalTunggakan = 0;
+
+        if ($request->has('pelanggan_id')) {
+            $selectedPelanggan = Pelanggan::with(['user'])->find($request->pelanggan_id);
+            if ($selectedPelanggan) {
+                $outstandingBills = TagihanAir::where('pelanggan_id', $selectedPelanggan->id)
+                    ->where('status_bayar', '!=', 'lunas')
+                    ->orderBy('tahun_periode', 'asc')
+                    ->orderBy('bulan_periode', 'asc')
+                    ->get();
+                $totalTunggakan = $outstandingBills->sum('sisa_tagihan');
+            }
+        }
+
+        $akunKas = AkunKas::where('is_active', true)->get();
+
+        return view('admin.pembayaran.bayar_sekaligus', compact(
+            'pelangganList',
+            'selectedPelanggan',
+            'outstandingBills',
+            'totalTunggakan',
+            'akunKas'
+        ));
+    }
+
+    public function bayarSekaligusStore(Request $request)
+    {
+        $request->validate([
+            'pelanggan_id'  => 'required|exists:pelanggan,id',
+            'akun_kas_id'   => 'required|exists:akun_kas,id',
+            'nominal_bayar' => 'required|numeric|min:1',
+            'tanggal_bayar' => 'required|date',
+            'keterangan'    => 'nullable|string|max:255',
+            'foto_bukti'    => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+        ], [
+            'foto_bukti.max'   => 'Gagal: Ukuran foto bukti maksimal adalah 5 MB.',
+            'foto_bukti.image' => 'Gagal: File yang diupload harus berupa gambar.',
+            'foto_bukti.mimes' => 'Gagal: Format gambar harus JPG, JPEG, atau PNG.'
+        ]);
+
+        $pelanggan = Pelanggan::findOrFail($request->pelanggan_id);
+
+        $bills = TagihanAir::where('pelanggan_id', $pelanggan->id)
+            ->where('status_bayar', '!=', 'lunas')
+            ->orderBy('tahun_periode', 'asc')
+            ->orderBy('bulan_periode', 'asc')
+            ->get();
+
+        $totalTunggakan = $bills->sum('sisa_tagihan');
+
+        if ($request->nominal_bayar > $totalTunggakan) {
+            return back()->withInput()->with('error', 'Gagal: Nominal pembayaran melebihi total tunggakan pelanggan (Rp ' . number_format($totalTunggakan, 0, ',', '.') . ')!');
+        }
+
+        $fotoPath = null;
+        if ($request->hasFile('foto_bukti')) {
+            $fotoPath = $request->file('foto_bukti')->store('bukti/pembayaran', 'public');
+        }
+
+        $remainingPayment = floatval($request->nominal_bayar);
+        $processedBills = [];
+
+        DB::transaction(function () use ($request, $bills, &$remainingPayment, $fotoPath, &$processedBills) {
+            foreach ($bills as $bill) {
+                if ($remainingPayment <= 0) {
+                    break;
+                }
+
+                $needed = floatval($bill->sisa_tagihan);
+                $paymentForThisBill = min($remainingPayment, $needed);
+
+                $pembayaran = Pembayaran::create([
+                    'tagihan_id'    => $bill->id,
+                    'pelanggan_id'  => $bill->pelanggan_id,
+                    'akun_kas_id'   => $request->akun_kas_id,
+                    'nominal_bayar' => $paymentForThisBill,
+                    'tanggal_bayar' => $request->tanggal_bayar,
+                    'keterangan'    => $request->keterangan ?? 'Pembayaran sekaligus tunggakan',
+                    'foto_bukti'    => $fotoPath,
+                    'dicatat_oleh'  => auth()->id(),
+                ]);
+
+                $totalTerbayarBaru = floatval($bill->total_terbayar) + $paymentForThisBill;
+                $sisaTagihanBaru = floatval($bill->total_tagihan) - $totalTerbayarBaru;
+
+                $status = 'belum_lunas';
+                if ($sisaTagihanBaru <= 0) {
+                    $status = 'lunas';
+                    $sisaTagihanBaru = 0;
+                } elseif ($totalTerbayarBaru > 0) {
+                    $status = 'mencicil';
+                }
+
+                $bill->update([
+                    'total_terbayar' => $totalTerbayarBaru,
+                    'sisa_tagihan'   => $sisaTagihanBaru,
+                    'status_bayar'   => $status,
+                ]);
+
+                $noBukti = $this->generateNoBukti('masuk', $request->tanggal_bayar);
+                ArusKas::create([
+                    'akun_kas_id'     => $request->akun_kas_id,
+                    'jenis_transaksi' => 'masuk',
+                    'nominal'         => $paymentForThisBill,
+                    'keterangan'      => 'Pembayaran tagihan air ' . $bill->pelanggan->nama_pelanggan . ' (Periode ' . \Carbon\Carbon::create(null, $bill->bulan_periode, 1)->isoFormat('MMMM Y') . ')',
+                    'no_bukti'        => $noBukti,
+                    'foto_bukti'      => $fotoPath,
+                    'tanggal'         => $request->tanggal_bayar,
+                    'dicatat_oleh'    => auth()->id(),
+                    'pembayaran_id'   => $pembayaran->id,
+                ]);
+
+                $remainingPayment -= $paymentForThisBill;
+                $processedBills[] = [
+                    'bill' => $bill,
+                    'paid' => $paymentForThisBill
+                ];
+            }
+
+            AkunKas::find($request->akun_kas_id)->increment('saldo', floatval($request->nominal_bayar));
+        });
+
+        foreach ($processedBills as $pb) {
+            $pb['bill']->refresh();
+            $this->kirimNotifikasiWAPembayaran($pb['bill'], $pb['paid']);
+        }
+
+        return redirect()->route('admin.pembayaran.index')
+            ->with('success', 'Pembayaran sekaligus sebesar Rp ' . number_format($request->nominal_bayar, 0, ',', '.') . ' berhasil didistribusikan ke tagihan pelanggan!');
+    }
+
+    private function generateNoBukti($jenis, $tanggal)
+    {
+        $dateStr = date('Ymd', strtotime($tanggal));
+        
+        $prefixCode = 'MUT';
+        if ($jenis === 'masuk') {
+            $prefixCode = 'MAS';
+        } elseif ($jenis === 'keluar') {
+            $prefixCode = 'KEL';
+        }
+        
+        $prefix = $prefixCode . '-' . $dateStr . '-';
+
+        $latest = ArusKas::where('no_bukti', 'like', $prefix . '%')
+            ->orderBy('no_bukti', 'desc')
+            ->first();
+
+        if ($latest) {
+            $lastNumber = intval(substr($latest->no_bukti, strlen($prefix)));
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        return $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 }

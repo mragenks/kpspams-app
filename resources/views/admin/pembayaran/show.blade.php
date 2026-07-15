@@ -130,8 +130,8 @@
                                 Tanggal Bayar <span class="text-red-500">*</span>
                             </label>
                             <input type="date" name="tanggal_bayar" value="{{ old('tanggal_bayar', date('Y-m-d')) }}"
-                                required
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                readonly
+                                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed pointer-events-none">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Keterangan</label>
@@ -217,6 +217,7 @@
                             <tr>
                                 <th class="px-4 py-3 w-8 text-center">No</th>
                                 <th class="px-4 py-3 whitespace-nowrap">Tanggal</th>
+                                <th class="px-4 py-3 text-center">No. Bukti</th>
                                 <th class="px-4 py-3 text-right">Nominal Bayar</th>
                                 <th class="px-4 py-3 text-center">Metode / Akun Kas</th>
                                 <th class="px-4 py-3 text-center">Bukti</th>
@@ -229,7 +230,11 @@
                                 <tr class="hover:bg-gray-50 transition">
                                     <td class="px-4 py-3 text-gray-500 text-xs text-center">{{ $index + 1 }}</td>
                                     <td class="px-4 py-3 text-gray-800 font-medium whitespace-nowrap text-xs">
-                                        {{ \Carbon\Carbon::parse($p->tanggal_bayar)->isoFormat('D MMM Y') }}
+                                        <div>{{ \Carbon\Carbon::parse($p->tanggal_bayar)->isoFormat('D MMM Y') }}</div>
+                                        <div class="text-[11px] text-gray-500 font-normal mt-0.5">Pukul: {{ \Carbon\Carbon::parse($p->created_at)->format('H:i') }}</div>
+                                    </td>
+                                    <td class="px-4 py-3 text-center text-gray-700 text-xs font-mono whitespace-nowrap">
+                                        {{ $p->arusKas?->no_bukti ?? '-' }}
                                     </td>
                                     <td class="px-4 py-3 text-right text-gray-900 font-bold whitespace-nowrap text-xs">
                                         Rp {{ number_format($p->nominal_bayar, 0, ',', '.') }}
