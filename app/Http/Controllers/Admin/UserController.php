@@ -14,7 +14,6 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $search = $request->search ?? '';
-        $role = $request->role ?? '';
         $sort = $request->sort ?? 'created_at';
         $direction = $request->direction ?? 'desc';
 
@@ -24,8 +23,7 @@ class UserController extends Controller
                     $subQuery->where('username', 'like', "%$search%")
                         ->orWhere('nama_lengkap', 'like', "%$search%");
                 });
-            })
-            ->when($role, fn($q) => $q->where('role', $role));
+            });
 
         if ($sort === 'username') {
             $query->orderBy('username', $direction);
@@ -35,9 +33,18 @@ class UserController extends Controller
             $query->latest('created_at');
         }
 
-        $users = $query->paginate(10)->withQueryString();
+        // Clone query to separate by role
+        $adminsQuery = clone $query;
+        $ketuasQuery = clone $query;
+        $pelanggansQuery = clone $query;
 
-        return view('admin.user.index', compact('users', 'search', 'role', 'sort', 'direction'));
+        $admins = $adminsQuery->where('role', 'admin')->get();
+        $ketuas = $ketuasQuery->where('role', 'ketua')->get();
+        $pelanggans = $pelanggansQuery->where('role', 'pelanggan')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('admin.user.index', compact('admins', 'ketuas', 'pelanggans', 'search', 'sort', 'direction'));
     }
 
     public function create()
