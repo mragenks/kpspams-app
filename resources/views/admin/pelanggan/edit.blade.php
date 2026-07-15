@@ -48,14 +48,10 @@
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Meteran Awal <span class="text-red-500">*</span>
-                </label>
-                <input type="text" name="meteran_awal" value="{{ old('meteran_awal', $pelanggan->meteran_awal) }}"
-                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('meteran_awal') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
-                @error('meteran_awal')
-                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                @enderror
+                <label class="block text-sm font-medium text-gray-700 mb-1">Meteran Awal</label>
+                <input type="text" value="{{ $pelanggan->meteran_awal }}" disabled
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed">
+                <input type="hidden" name="meteran_awal" value="{{ $pelanggan->meteran_awal }}">
             </div>
 
             <div class="mb-6">
