@@ -46,6 +46,8 @@ Route::middleware(['auth', 'active', 'admin', 'prevent-back-history'])->prefix('
     // PEMBAYARAN ROUTES
     Route::get('/pembayaran', [PembayaranController::class, 'index'])->name('pembayaran.index');
     Route::post('/pembayaran', [PembayaranController::class, 'store'])->name('pembayaran.store');
+    Route::get('/pembayaran/bayar-sekaligus', [PembayaranController::class, 'bayarSekaligusForm'])->name('pembayaran.bayar_sekaligus_form');
+    Route::post('/pembayaran/bayar-sekaligus', [PembayaranController::class, 'bayarSekaligusStore'])->name('pembayaran.bayar_sekaligus_store');
 
     // RUTE KUSTOM KONFIRMASI DAN TOLAK HARUS DI ATAS rute {pembayaran} agar tidak dianggap sebagai ID
     Route::post('/pembayaran/konfirmasi/{id}', [PembayaranController::class, 'confirm'])->name('pembayaran.confirm');
