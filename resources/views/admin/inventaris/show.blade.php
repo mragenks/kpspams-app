@@ -52,6 +52,9 @@
                 <div class="text-center px-1">
                     <p class="text-[9px] sm:text-xs text-gray-500 uppercase tracking-wide mb-0.5">Saat Ini</p>
                     <p class="text-xl sm:text-2xl font-bold text-blue-600">{{ $inventaris->stok_saat_ini }}</p>
+                    @if ($inventaris->stok_saat_ini <= $inventaris->stok_minimum)
+                        <span class="inline-block mt-1 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] font-semibold">Stok Menipis</span>
+                    @endif
                 </div>
 
                 <div class="text-center px-1 flex flex-col justify-center items-center">
@@ -69,18 +72,22 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Lokasi</p>
                     <p class="text-gray-800 font-medium">{{ $inventaris->lokasi ?? '-' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Tanggal Perolehan</p>
-                    <p class="text-gray-800 font-medium">
+                    <p class="text-gray-800 font-medium whitespace-nowrap">
                         {{ $inventaris->tanggal_perolehan
-                            ? \Carbon\Carbon::parse($inventaris->tanggal_perolehan)->isoFormat('D MMMM Y')
+                            ? \Carbon\Carbon::parse($inventaris->tanggal_perolehan)->isoFormat('D MMMM Y') . ' pukul ' . $inventaris->created_at->format('H:i')
                             : '-' }}
                     </p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 uppercase tracking-wide">Batas Stok Menipis</p>
+                    <p class="text-gray-800 font-medium font-mono text-sm">{{ $inventaris->stok_minimum }} unit</p>
                 </div>
             </div>
 

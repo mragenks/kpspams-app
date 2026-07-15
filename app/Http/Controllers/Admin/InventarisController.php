@@ -37,7 +37,8 @@ class InventarisController extends Controller
 
     public function create()
     {
-        return view('admin.inventaris.create');
+        $akunKas = \App\Models\AkunKas::where('is_active', true)->get();
+        return view('admin.inventaris.create', compact('akunKas'));
     }
 
     public function store(Request $request)
@@ -48,11 +49,28 @@ class InventarisController extends Controller
             'jumlah'            => 'required|integer|min:1',
             'kondisi'           => 'required|in:baik,rusak,perlu_perbaikan',
             'lokasi'            => 'nullable|string|max:255',
-            'tanggal_perolehan' => 'nullable|date',
+            'tanggal_perolehan' => 'required|date',
             'keterangan'        => 'nullable|string',
+            'stok_minimum'      => 'required|integer|min:0',
+            'akun_kas_id'       => 'required_if:catat_pengeluaran,1|nullable|exists:akun_kas,id',
+            'harga_perolehan'   => 'required_if:catat_pengeluaran,1|nullable|numeric|min:0',
+            'foto_bukti'        => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+        ], [
+            'akun_kas_id.required_if' => 'Akun Kas wajib dipilih jika mencatat pengeluaran kas.',
+            'harga_perolehan.required_if' => 'Harga perolehan wajib diisi jika mencatat pengeluaran kas.',
+            'foto_bukti.image' => 'Berkas bukti harus berupa gambar.',
+            'foto_bukti.mimes' => 'Format gambar bukti harus jpeg, png, atau jpg.',
+            'foto_bukti.max' => 'Ukuran gambar bukti maksimal 5MB.',
         ]);
 
-        DB::transaction(function () use ($request) {
+        $fotoPath = null;
+        if ($request->hasFile('foto_bukti')) {
+            $fotoPath = $request->file('foto_bukti')->store('bukti/arus-kas', 'public');
+        }
+
+        $tanggalPerolehanCombined = $request->tanggal_perolehan . ' ' . date('H:i:s');
+
+        DB::transaction(function () use ($request, $fotoPath, $tanggalPerolehanCombined) {
             $prefix = $request->jenis_aset === 'tetap' ? 'AT' : 'ATT';
             $lastItem = Inventaris::where('jenis_aset', $request->jenis_aset)
                 ->latest('id')->first();
@@ -69,8 +87,9 @@ class InventarisController extends Controller
                 'stok_saat_ini'     => $request->jumlah,
                 'kondisi'           => $request->kondisi,
                 'lokasi'            => $request->lokasi,
-                'tanggal_perolehan' => $request->tanggal_perolehan,
+                'tanggal_perolehan' => $tanggalPerolehanCombined,
                 'keterangan'        => $request->keterangan,
+                'stok_minimum'      => $request->stok_minimum,
             ]);
 
             // Catat riwayat
@@ -81,9 +100,27 @@ class InventarisController extends Controller
                 'stok_sebelum'  => 0,
                 'stok_sesudah'  => $request->jumlah,
                 'keterangan'    => 'Penambahan aset baru',
-                'tanggal'       => now()->toDateString(),
+                'tanggal'       => date('Y-m-d', strtotime($tanggalPerolehanCombined)),
                 'dicatat_oleh'  => auth()->id(),
             ]);
+
+            if ($request->catat_pengeluaran == '1') {
+                $noBukti = $this->generateNoBukti('keluar', $tanggalPerolehanCombined);
+                \App\Models\ArusKas::create([
+                    'akun_kas_id'     => $request->akun_kas_id,
+                    'jenis_transaksi' => 'keluar',
+                    'nominal'         => $request->harga_perolehan,
+                    'keterangan'      => 'Pembelian Aset: ' . $request->nama_barang . ' (' . $kodeBarang . ')',
+                    'no_bukti'        => $noBukti,
+                    'foto_bukti'      => $fotoPath,
+                    'tanggal'         => date('Y-m-d', strtotime($tanggalPerolehanCombined)),
+                    'dicatat_oleh'    => auth()->id(),
+                    'created_at'      => $tanggalPerolehanCombined,
+                ]);
+
+                // Update Saldo Kas
+                \App\Models\AkunKas::find($request->akun_kas_id)->decrement('saldo', $request->harga_perolehan);
+            }
         });
 
         return redirect()->route('admin.inventaris.index')
@@ -109,6 +146,7 @@ class InventarisController extends Controller
             'lokasi'            => 'nullable|string|max:255',
             'tanggal_perolehan' => 'nullable|date',
             'keterangan'        => 'nullable|string',
+            'stok_minimum'      => 'required|integer|min:0',
         ]);
 
         $inventaris->update($request->only([
@@ -116,7 +154,8 @@ class InventarisController extends Controller
             'kondisi',
             'lokasi',
             'tanggal_perolehan',
-            'keterangan'
+            'keterangan',
+            'stok_minimum'
         ]));
 
         return redirect()->route('admin.inventaris.index')
@@ -171,5 +210,32 @@ class InventarisController extends Controller
 
         return redirect()->route('admin.inventaris.index')
             ->with('success', 'Aset berhasil dihapus!');
+    }
+
+    private function generateNoBukti($jenis, $tanggal)
+    {
+        $dateStr = date('Ymd', strtotime($tanggal));
+        
+        $prefixCode = 'MUT';
+        if ($jenis === 'masuk') {
+            $prefixCode = 'MAS';
+        } elseif ($jenis === 'keluar') {
+            $prefixCode = 'KEL';
+        }
+        
+        $prefix = $prefixCode . '-' . $dateStr . '-';
+
+        $latest = \App\Models\ArusKas::where('no_bukti', 'like', $prefix . '%')
+            ->orderBy('no_bukti', 'desc')
+            ->first();
+
+        if ($latest) {
+            $lastNumber = intval(substr($latest->no_bukti, strlen($prefix)));
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        return $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 }

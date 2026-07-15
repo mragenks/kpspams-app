@@ -144,7 +144,7 @@
                             </td>
                             <td class="px-4 py-4 sm:px-6 font-semibold text-gray-700 whitespace-nowrap">
                                 {{ $item->stok_saat_ini }}
-                                @if ($item->jenis_aset === 'tidak_tetap' && $item->stok_saat_ini <= 5)
+                                @if ($item->stok_saat_ini <= $item->stok_minimum)
                                     <span class="text-red-500 text-xs block mt-1">⚠️ Menipis</span>
                                 @endif
                             </td>

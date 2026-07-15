@@ -65,9 +65,21 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Perolehan</label>
                     <input type="date" name="tanggal_perolehan"
-                        value="{{ old('tanggal_perolehan', $inventaris->tanggal_perolehan) }}"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        value="{{ old('tanggal_perolehan', $inventaris->tanggal_perolehan ? \Carbon\Carbon::parse($inventaris->tanggal_perolehan)->format('Y-m-d') : '') }}"
+                        readonly
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed pointer-events-none">
                 </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Batas Stok Menipis (Peringatan) <span class="text-red-500">*</span>
+                </label>
+                <input type="number" name="stok_minimum" value="{{ old('stok_minimum', $inventaris->stok_minimum) }}" min="0"
+                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ $errors->has('stok_minimum') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
+                @error('stok_minimum')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <div class="mb-6">

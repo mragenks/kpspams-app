@@ -17,7 +17,8 @@ class Inventaris extends Model
         'kondisi',
         'lokasi',
         'tanggal_perolehan',
-        'keterangan'
+        'keterangan',
+        'stok_minimum'
     ];
 
     public function riwayat()
