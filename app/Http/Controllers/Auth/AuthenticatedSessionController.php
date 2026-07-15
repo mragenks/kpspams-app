@@ -35,6 +35,8 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('admin.dashboard');
         } elseif ($user->isKetua()) {
             return redirect()->route('ketua.dashboard');
+        } elseif ($user->isPencatat()) {
+            return redirect()->route('pencatat.dashboard');
         } else {
             return redirect()->route('pelanggan.dashboard');
         }

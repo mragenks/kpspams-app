@@ -44,6 +44,11 @@
                 </button>
             </li>
             <li class="mr-2" role="presentation">
+                <button class="inline-block p-4 border-b-2 rounded-t-lg border-transparent text-gray-500 hover:text-gray-600 hover:border-gray-300" id="pencatat-tab" onclick="switchTab('pencatat')">
+                    Pencatat Meter ({{ $pencatats->count() }})
+                </button>
+            </li>
+            <li class="mr-2" role="presentation">
                 <button class="inline-block p-4 border-b-2 rounded-t-lg border-transparent text-gray-500 hover:text-gray-600 hover:border-gray-300" id="pelanggan-tab" onclick="switchTab('pelanggan')">
                     Pelanggan ({{ $pelanggans->total() }})
                 </button>
@@ -164,6 +169,60 @@
                         @empty
                             <tr>
                                 <td colspan="8" class="px-4 sm:px-6 py-8 text-center text-gray-400">Tidak ada pengurus/ketua ditemukan</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Tab Pencatat Meter --}}
+        <div id="content-pencatat" class="tab-content bg-white rounded-lg shadow overflow-hidden hidden">
+            <div class="p-4 sm:p-6 border-b">
+                <h2 class="text-base sm:text-lg font-semibold text-gray-700">Daftar Pencatat Meter</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
+                        <tr>
+                            <th class="px-4 sm:px-6 py-3 sm:py-4">No</th>
+                            <th class="px-4 sm:px-6 py-3 sm:py-4">Username</th>
+                            <th class="px-4 sm:px-6 py-3 sm:py-4">Nama Lengkap</th>
+                            <th class="px-4 sm:px-6 py-3 sm:py-4">No. HP</th>
+                            <th class="px-4 sm:px-6 py-3 sm:py-4">Alamat</th>
+                            <th class="px-4 sm:px-6 py-3 sm:py-4">Status</th>
+                            <th class="px-4 sm:px-6 py-3 sm:py-4 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @forelse($pencatats as $index => $user)
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-4 sm:px-6 py-3 sm:py-4 text-gray-500">{{ $index + 1 }}</td>
+                                <td class="px-4 sm:px-6 py-3 sm:py-4 font-mono font-semibold text-blue-600">{{ $user->username }}</td>
+                                <td class="px-4 sm:px-6 py-3 sm:py-4 text-gray-800">{{ $user->nama_lengkap }}</td>
+                                <td class="px-4 sm:px-6 py-3 sm:py-4 text-gray-600 font-mono">{{ $user->no_hp ?? '-' }}</td>
+                                <td class="px-4 sm:px-6 py-3 sm:py-4 text-gray-600">{{ $user->alamat ?? '-' }}</td>
+                                <td class="px-4 sm:px-6 py-3 sm:py-4">
+                                    <span class="px-2.5 py-0.5 {{ $user->is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }} rounded-full text-xs font-semibold">
+                                        {{ $user->is_active ? 'Aktif' : 'Non-aktif' }}
+                                    </span>
+                                </td>
+                                <td class="px-4 sm:px-6 py-3 sm:py-4">
+                                    <div class="flex gap-2 justify-center">
+                                        <a href="{{ route('admin.user.show', $user) }}" class="px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition">Detail</a>
+                                        <a href="{{ route('admin.user.edit', $user) }}" class="px-3 py-1.5 bg-yellow-500 text-white rounded text-xs font-medium hover:bg-yellow-600 transition">Edit</a>
+                                        <form action="{{ route('admin.user.toggle-status', $user) }}" method="POST" class="m-0">
+                                            @csrf
+                                            <button type="submit" class="px-3 py-1.5 {{ $user->is_active ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700' }} text-white rounded text-xs font-medium transition">
+                                                {{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="px-4 sm:px-6 py-8 text-center text-gray-400">Tidak ada pencatat meter ditemukan</td>
                             </tr>
                         @endforelse
                     </tbody>

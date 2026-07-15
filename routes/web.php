@@ -24,6 +24,8 @@ Route::get('/', function () {
             return redirect()->route('admin.dashboard');
         } elseif ($role === 'ketua') {
             return redirect()->route('ketua.dashboard');
+        } elseif ($role === 'pencatat') {
+            return redirect()->route('pencatat.dashboard');
         } elseif ($role === 'pelanggan') {
             return redirect()->route('pelanggan.dashboard');
         }
@@ -149,4 +151,16 @@ Route::middleware(['auth', 'active', 'pelanggan', 'prevent-back-history'])->pref
         return back();
     })->name('notif.markAllRead');
     Route::get('/tagihan/{id}/surat', [\App\Http\Controllers\Pelanggan\DashboardController::class, 'suratTagihan'])->name('tagihan.surat');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Pencatat Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'active', 'pencatat', 'prevent-back-history'])->prefix('pencatat')->name('pencatat.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\Pencatat\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/meter', [\App\Http\Controllers\Pencatat\MeterController::class, 'index'])->name('meter.index');
+    Route::get('/meter/create', [\App\Http\Controllers\Pencatat\MeterController::class, 'create'])->name('meter.create');
+    Route::post('/meter', [\App\Http\Controllers\Pencatat\MeterController::class, 'store'])->name('meter.store');
 });

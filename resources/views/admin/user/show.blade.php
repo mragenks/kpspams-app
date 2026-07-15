@@ -10,8 +10,8 @@
                 class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 border-b pb-4 sm:border-none sm:pb-0 gap-3 sm:gap-0">
                 <h2 class="text-base sm:text-lg font-semibold text-gray-700">Detail User</h2>
                 <div class="flex items-center gap-3 w-full sm:w-auto">
-                    {{-- TOMBOL EDIT KHUSUS ADMIN & KETUA DI HALAMAN SHOW --}}
-                    @if (in_array($user->role, ['admin', 'ketua']))
+                    {{-- TOMBOL EDIT KHUSUS ADMIN, KETUA, & PENCATAT DI HALAMAN SHOW --}}
+                    @if (in_array($user->role, ['admin', 'ketua', 'pencatat']))
                         <a href="{{ route('admin.user.edit', $user) }}"
                             class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded text-xs sm:text-sm font-medium transition flex-1 sm:flex-none text-center">
                             Edit User
@@ -38,9 +38,12 @@
                         @elseif($user->role === 'ketua')
                             <span
                                 class="px-2 sm:px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs sm:text-sm font-medium">Ketua</span>
+                        @elseif($user->role === 'pencatat')
+                            <span
+                                class="px-2 sm:px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs sm:text-sm font-medium">Pencatat Meter</span>
                         @else
                             <span
-                                class="px-2 sm:px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs sm:text-sm font-medium">Pelanggan</span>
+                                class="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm font-medium">Pelanggan</span>
                         @endif
                     </div>
                 </div>

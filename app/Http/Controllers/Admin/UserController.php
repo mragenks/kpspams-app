@@ -36,15 +36,17 @@ class UserController extends Controller
         // Clone query to separate by role
         $adminsQuery = clone $query;
         $ketuasQuery = clone $query;
+        $pencatatsQuery = clone $query;
         $pelanggansQuery = clone $query;
 
         $admins = $adminsQuery->where('role', 'admin')->get();
         $ketuas = $ketuasQuery->where('role', 'ketua')->get();
+        $pencatats = $pencatatsQuery->where('role', 'pencatat')->get();
         $pelanggans = $pelanggansQuery->where('role', 'pelanggan')
             ->paginate(10)
             ->withQueryString();
 
-        return view('admin.user.index', compact('admins', 'ketuas', 'pelanggans', 'search', 'sort', 'direction'));
+        return view('admin.user.index', compact('admins', 'ketuas', 'pencatats', 'pelanggans', 'search', 'sort', 'direction'));
     }
 
     public function create()
@@ -57,7 +59,7 @@ class UserController extends Controller
         $request->validate([
             'username'      => 'required|string|max:255|unique:users,username',
             'password'      => 'required|string|min:6|confirmed',
-            'role'          => 'required|in:admin,ketua',
+            'role'          => 'required|in:admin,ketua,pencatat',
             'nama_pengurus' => 'required|string|max:255',
             'jabatan'       => 'nullable|string|max:255',
             'no_hp'         => 'nullable|numeric|digits_between:10,15',
@@ -172,8 +174,8 @@ class UserController extends Controller
 
     public function edit(\App\Models\User $user)
     {
-        if (!in_array($user->role, ['admin', 'ketua'])) {
-            return redirect()->route('admin.user.index')->with('error', 'Hanya role Admin dan Ketua yang dapat diedit melalui form ini.');
+        if (!in_array($user->role, ['admin', 'ketua', 'pencatat'])) {
+            return redirect()->route('admin.user.index')->with('error', 'Hanya role Admin, Ketua, dan Pencatat yang dapat diedit melalui form ini.');
         }
 
         $user->load('pengurus');
@@ -184,7 +186,7 @@ class UserController extends Controller
     {
         $request->validate([
             'username'      => 'required|string|max:255|unique:users,username,' . $user->id,
-            'role'          => 'required|in:admin,ketua',
+            'role'          => 'required|in:admin,ketua,pencatat',
             'nama_pengurus' => 'required|string|max:255',
             'jabatan'       => 'nullable|string|max:255',
             'no_hp'         => 'nullable|numeric|digits_between:10,15',

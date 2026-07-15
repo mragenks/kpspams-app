@@ -54,4 +54,9 @@ class User extends Authenticatable
     {
         return $this->role === 'pelanggan';
     }
+
+    public function isPencatat(): bool
+    {
+        return $this->role === 'pencatat';
+    }
 }

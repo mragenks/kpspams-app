@@ -48,6 +48,8 @@
                     @include('layouts.partials.sidebar-admin')
                 @elseif(Auth::user()->isKetua())
                     @include('layouts.partials.sidebar-ketua')
+                @elseif(Auth::user()->isPencatat())
+                    @include('layouts.partials.sidebar-pencatat')
                 @endif
             </nav>
 

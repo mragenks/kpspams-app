@@ -43,6 +43,8 @@
                             </option>
                             <option value="ketua" {{ old('role', $user->role) === 'ketua' ? 'selected' : '' }}>Ketua
                             </option>
+                            <option value="pencatat" {{ old('role', $user->role) === 'pencatat' ? 'selected' : '' }}>Pencatat Meter
+                            </option>
                         </select>
                         @error('role')
                             <span class="text-red-500 text-xs">{{ $message }}</span>

@@ -66,6 +66,7 @@ class Kernel extends HttpKernel
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
         'ketua' => \App\Http\Middleware\KetuaMiddleware::class,
         'pelanggan' => \App\Http\Middleware\PelangganMiddleware::class,
+        'pencatat' => \App\Http\Middleware\PencatatMiddleware::class,
         'admin_or_ketua' => \App\Http\Middleware\AdminOrKetuaMiddleware::class,
         'active' => \App\Http\Middleware\CheckUserActive::class,
         'prevent-back-history' => \App\Http\Middleware\PreventBackHistory::class,

@@ -4,7 +4,7 @@
 @section('content')
     <div class="max-w-2xl mx-auto bg-white rounded-lg shadow p-4 sm:p-6 border-t-4 border-blue-500">
         <div class="flex justify-between items-center mb-6 border-b pb-4">
-            <h2 class="text-lg font-semibold text-gray-800">Tambah User (Admin / Ketua)</h2>
+            <h2 class="text-lg font-semibold text-gray-800">Tambah User Pengurus</h2>
             <a href="{{ route('admin.user.index') }}"
                 class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,6 +41,7 @@
                             <option value="">Pilih Role...</option>
                             <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
                             <option value="ketua" {{ old('role') === 'ketua' ? 'selected' : '' }}>Ketua</option>
+                            <option value="pencatat" {{ old('role') === 'pencatat' ? 'selected' : '' }}>Pencatat Meter</option>
                         </select>
                         @error('role')
                             <span class="text-red-500 text-xs">{{ $message }}</span>
