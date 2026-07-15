@@ -67,6 +67,17 @@ class ArusKasExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
             $keterangan .= ' - ' . $row->pembayaran->pelanggan->user->nama_lengkap;
         }
 
+        if (strpos($keterangan, ' - ') !== false) {
+            $parts = explode(' - ', $keterangan, 2);
+            $keterangan = $parts[0] . "\nKeterangan: " . $parts[1];
+        } elseif (strpos($keterangan, 'Deposit/Titipan Saldo: ') === 0 && strpos($keterangan, '. ') !== false) {
+            $parts = explode('. ', $keterangan, 2);
+            $keterangan = $parts[0];
+            if (isset($parts[1]) && trim($parts[1]) !== '') {
+                $keterangan .= "\nKeterangan: " . $parts[1];
+            }
+        }
+
         return [
             Carbon::parse($row->tanggal)->format('d/m/Y') . ' ' . Carbon::parse($row->created_at)->format('H:i'),
             $row->no_bukti ?? '-',
@@ -161,6 +172,9 @@ class ArusKasExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
 
                 // Format Nominal (Rp) agar rapi menggunakan titik ribuan
                 $sheet->getStyle('F7:G' . $totalRow)->getNumberFormat()->setFormatCode('#,##0');
+
+                // Wrap text untuk kolom Keterangan (C) agar text new line (\n) terlihat rapi
+                $sheet->getStyle('C7:C' . $totalRow)->getAlignment()->setWrapText(true);
 
                 // 4. Menambahkan Kolom Tanda Tangan (Sesuai PDF)
                 $signRow = $totalRow + 3;
