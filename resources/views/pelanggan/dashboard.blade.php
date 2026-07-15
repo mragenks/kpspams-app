@@ -263,11 +263,18 @@
                                                     </div>
                                                 @endif
                                                 <div>
-                                                    <p class="text-xs font-medium text-gray-700">
-                                                        Rp {{ number_format($p->nominal_bayar, 0, ',', '.') }}
-                                                    </p>
+                                                     <p class="text-xs font-medium text-gray-700 flex items-center gap-1.5 flex-wrap">
+                                                         <span>Rp {{ number_format($p->nominal_bayar, 0, ',', '.') }}</span>
+                                                         @if ($p->arusKas?->no_bukti)
+                                                             <span class="text-[9px] font-mono text-gray-500 bg-gray-100 px-1 py-0.5 rounded border border-gray-200">
+                                                                 {{ $p->arusKas->no_bukti }}
+                                                             </span>
+                                                         @endif
+                                                     </p>
                                                     <p class="text-xs text-gray-400">
                                                         {{ \Carbon\Carbon::parse($p->tanggal_bayar)->isoFormat('D MMM Y') }}
+                                                        <span class="text-gray-300 mx-1">•</span>
+                                                        Pukul: {{ \Carbon\Carbon::parse($p->created_at)->format('H:i') }}
                                                     </p>
                                                     @if ($p->keterangan)
                                                         <p class="text-xs text-gray-400">{{ $p->keterangan }}</p>
@@ -420,10 +427,18 @@
                                                 </div>
                                             @endif
                                             <div>
-                                                <p class="font-medium text-gray-700">Rp
-                                                    {{ number_format($p->nominal_bayar, 0, ',', '.') }}</p>
+                                                 <p class="font-medium text-gray-700 flex items-center gap-1.5 flex-wrap">
+                                                     <span>Rp {{ number_format($p->nominal_bayar, 0, ',', '.') }}</span>
+                                                     @if ($p->arusKas?->no_bukti)
+                                                         <span class="text-[9px] font-mono text-gray-500 bg-gray-100 px-1 py-0.5 rounded border border-gray-200">
+                                                             {{ $p->arusKas->no_bukti }}
+                                                         </span>
+                                                     @endif
+                                                 </p>
                                                 <p class="text-gray-400">
                                                     {{ \Carbon\Carbon::parse($p->tanggal_bayar)->isoFormat('D MMM Y') }}
+                                                    <span class="text-gray-300 mx-1">•</span>
+                                                    Pukul: {{ \Carbon\Carbon::parse($p->created_at)->format('H:i') }}
                                                 </p>
                                                 @if ($p->status_validasi === 'ditolak')
                                                     <span

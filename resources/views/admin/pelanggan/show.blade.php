@@ -67,6 +67,12 @@
                 class="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-yellow-600 transition">
                 Edit Data
             </a>
+            @if ($pelanggan->tagihanAir()->where('status_bayar', '!=', 'lunas')->exists())
+                <a href="{{ route('admin.pembayaran.bayar_sekaligus_form', ['pelanggan_id' => $pelanggan->id]) }}"
+                    class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 transition">
+                    Bayar Tunggakan
+                </a>
+            @endif
         </div>
     </div>
 @endsection
