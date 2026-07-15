@@ -23,7 +23,7 @@
         <div class="md:col-span-1">
             <div class="bg-white rounded-xl shadow p-6">
                 <h3 class="text-lg font-bold text-gray-800 mb-4">Top Up Saldo</h3>
-                <form action="{{ route('admin.deposit.store') }}" method="POST">
+                <form action="{{ route('admin.deposit.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Pelanggan</label>
@@ -64,7 +64,7 @@
                         @enderror
                     </div>
 
-                    <div class="mb-6">
+                    <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Keterangan</label>
                         <input type="text" name="keterangan" value="{{ old('keterangan') }}"
                             class="w-full border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500"
@@ -72,6 +72,22 @@
                         @error('keterangan')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Foto Bukti <span class="text-gray-400 text-xs">(Opsional, Maks 5MB)</span>
+                        </label>
+                        <input type="file" name="foto_bukti" accept="image/*"
+                            class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition {{ $errors->has('foto_bukti') ? 'border-red-500 bg-red-50' : 'border-gray-300' }}"
+                            onchange="previewFoto(this, 'preview_bukti')">
+                        <p class="text-xs text-gray-400 mt-1">Format: JPG, JPEG, PNG. Maksimal 5MB</p>
+                        @error('foto_bukti')
+                            <p class="text-red-500 text-xs mt-1 font-semibold">⚠️ {{ $message }}</p>
+                        @enderror
+                        <div id="preview_bukti" class="hidden mt-3">
+                            <img src="" alt="Preview" class="w-40 h-40 object-cover rounded-lg border shadow-sm mx-auto">
+                        </div>
                     </div>
 
                     <button type="submit"
@@ -135,5 +151,17 @@
                 }
             });
         });
+
+        function previewFoto(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.querySelector('img').src = e.target.result;
+                    preview.classList.remove('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
     </script>
 @endsection
