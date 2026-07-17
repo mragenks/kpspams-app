@@ -28,8 +28,8 @@ class ArusKasController extends Controller
                     $q->whereIn('jenis_transaksi', ['keluar', 'mutasi_keluar']);
                 }
             })
-            ->orderBy('tanggal', 'asc')
-            ->orderBy('id', 'asc')
+            ->orderBy('tanggal', 'desc')
+            ->orderBy('id', 'desc')
             ->paginate(15)
             ->withQueryString();
 

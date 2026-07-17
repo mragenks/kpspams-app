@@ -130,7 +130,8 @@ class InventarisController extends Controller
     public function show(Inventaris $inventaris)
     {
         $inventaris->load('riwayat');
-        return view('admin.inventaris.show', compact('inventaris'));
+        $akunKas = \App\Models\AkunKas::where('is_active', true)->get();
+        return view('admin.inventaris.show', compact('inventaris', 'akunKas'));
     }
 
     public function edit(Inventaris $inventaris)
@@ -165,10 +166,19 @@ class InventarisController extends Controller
     public function mutasiStok(Request $request, Inventaris $inventaris)
     {
         $request->validate([
-            'jenis_mutasi' => 'required|in:masuk,keluar,pengembalian',
-            'jumlah'       => 'required|integer|min:1',
-            'keterangan'   => 'required|string|max:255',
-            'tanggal'      => 'required|date',
+            'jenis_mutasi'      => 'required|in:masuk,keluar,pengembalian',
+            'jumlah'            => 'required|integer|min:1',
+            'keterangan'        => 'required|string|max:255',
+            'tanggal'           => 'required|date',
+            'akun_kas_id'       => 'required_if:catat_pengeluaran,1|nullable|exists:akun_kas,id',
+            'harga_perolehan'   => 'required_if:catat_pengeluaran,1|nullable|numeric|min:0',
+            'foto_bukti'        => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+        ], [
+            'akun_kas_id.required_if' => 'Akun Kas wajib dipilih jika mencatat pengeluaran kas.',
+            'harga_perolehan.required_if' => 'Harga perolehan wajib diisi jika mencatat pengeluaran kas.',
+            'foto_bukti.image' => 'Berkas bukti harus berupa gambar.',
+            'foto_bukti.mimes' => 'Format gambar bukti harus jpeg, png, atau jpg.',
+            'foto_bukti.max' => 'Ukuran gambar bukti maksimal 5MB.',
         ]);
 
         if (
@@ -197,6 +207,31 @@ class InventarisController extends Controller
             ]);
 
             $inventaris->update(['stok_saat_ini' => $stokSesudah]);
+
+            if ($request->jenis_mutasi === 'masuk' && $request->catat_pengeluaran == '1') {
+                $fotoPath = null;
+                if ($request->hasFile('foto_bukti')) {
+                    $fotoPath = $request->file('foto_bukti')->store('bukti/arus-kas', 'public');
+                }
+
+                $tanggalCombined = $request->tanggal . ' ' . date('H:i:s');
+                $noBukti = $this->generateNoBukti('keluar', $tanggalCombined);
+
+                \App\Models\ArusKas::create([
+                    'akun_kas_id'     => $request->akun_kas_id,
+                    'jenis_transaksi' => 'keluar',
+                    'nominal'         => $request->harga_perolehan,
+                    'keterangan'      => 'Pembelian Aset (Mutasi Masuk): ' . $inventaris->nama_barang . ' (' . $inventaris->kode_barang . ') - ' . $request->keterangan,
+                    'no_bukti'        => $noBukti,
+                    'foto_bukti'      => $fotoPath,
+                    'tanggal'         => $request->tanggal,
+                    'dicatat_oleh'    => auth()->id(),
+                    'created_at'      => $tanggalCombined,
+                ]);
+
+                // Update Saldo Kas
+                \App\Models\AkunKas::find($request->akun_kas_id)->decrement('saldo', $request->harga_perolehan);
+            }
         });
 
         return redirect()->route('admin.inventaris.show', $inventaris)

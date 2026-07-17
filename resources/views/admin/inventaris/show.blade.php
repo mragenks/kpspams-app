@@ -111,7 +111,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('admin.inventaris.mutasi', $inventaris) }}" method="POST">
+            <form action="{{ route('admin.inventaris.mutasi', $inventaris) }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -141,7 +141,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Keterangan <span class="text-red-500">*</span>
@@ -155,13 +155,63 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Tanggal <span class="text-red-500">*</span>
+                            Tanggal
                         </label>
-                        <input type="date" name="tanggal" value="{{ old('tanggal', date('Y-m-d')) }}" required
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        @error('tanggal')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                        <input type="date" value="{{ date('Y-m-d') }}" disabled
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none bg-gray-100 text-gray-500 cursor-not-allowed">
+                        <input type="hidden" name="tanggal" value="{{ date('Y-m-d') }}">
+                    </div>
+                </div>
+
+                {{-- Opsi Pengeluaran Arus Kas jika Jenis Mutasi Barang Masuk --}}
+                <div id="pengeluaran-kas-container" class="hidden border-t border-gray-100 pt-4 mb-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <input type="checkbox" id="catat_pengeluaran" name="catat_pengeluaran" value="1"
+                            {{ old('catat_pengeluaran') == '1' ? 'checked' : '' }}
+                            class="rounded text-blue-600 focus:ring-blue-500 border-gray-300 w-4 h-4">
+                        <label for="catat_pengeluaran" class="text-sm font-semibold text-gray-700">
+                            Catat langsung sebagai pengeluaran kas
+                        </label>
+                    </div>
+
+                    <div id="pengeluaran_fields" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">
+                                Akun Kas <span class="text-red-500">*</span>
+                            </label>
+                            <select name="akun_kas_id" id="akun_kas_id"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                <option value="">-- Pilih Akun Kas --</option>
+                                @foreach ($akunKas as $kas)
+                                    <option value="{{ $kas->id }}" {{ old('akun_kas_id') == $kas->id ? 'selected' : '' }}>
+                                        {{ $kas->nama_akun }} (Saldo: Rp {{ number_format($kas->saldo, 0, ',', '.') }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('akun_kas_id')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">
+                                Nominal Pembelian (Rp) <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" name="harga_perolehan" id="harga_perolehan" value="{{ old('harga_perolehan') }}" min="0"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            @error('harga_perolehan')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">
+                                Foto Bukti Pembayaran
+                            </label>
+                            <input type="file" name="foto_bukti" id="foto_bukti" accept="image/*"
+                                class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-[11px] file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            @error('foto_bukti')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
                 </div>
 
@@ -175,6 +225,46 @@
                     Catat Mutasi
                 </button>
             </form>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const jenisMutasiSelect = document.querySelector('select[name="jenis_mutasi"]');
+                    const pengeluaranKasContainer = document.getElementById('pengeluaran-kas-container');
+                    const catatPengeluaranCheckbox = document.getElementById('catat_pengeluaran');
+                    const pengeluaranFields = document.getElementById('pengeluaran_fields');
+                    const akunKasSelect = document.getElementById('akun_kas_id');
+                    const hargaPerolehanInput = document.getElementById('harga_perolehan');
+
+                    function togglePengeluaranContainer() {
+                        if (jenisMutasiSelect.value === 'masuk') {
+                            pengeluaranKasContainer.classList.remove('hidden');
+                        } else {
+                            pengeluaranKasContainer.classList.add('hidden');
+                            catatPengeluaranCheckbox.checked = false;
+                            togglePengeluaranFields();
+                        }
+                    }
+
+                    function togglePengeluaranFields() {
+                        if (catatPengeluaranCheckbox.checked && jenisMutasiSelect.value === 'masuk') {
+                            pengeluaranFields.classList.remove('hidden');
+                            akunKasSelect.setAttribute('required', 'required');
+                            hargaPerolehanInput.setAttribute('required', 'required');
+                        } else {
+                            pengeluaranFields.classList.add('hidden');
+                            akunKasSelect.removeAttribute('required');
+                            hargaPerolehanInput.removeAttribute('required');
+                        }
+                    }
+
+                    jenisMutasiSelect.addEventListener('change', togglePengeluaranContainer);
+                    catatPengeluaranCheckbox.addEventListener('change', togglePengeluaranFields);
+
+                    // Run on page load
+                    togglePengeluaranContainer();
+                    togglePengeluaranFields();
+                });
+            </script>
         </div>
 
         {{-- Riwayat Mutasi --}}
